@@ -1,0 +1,144 @@
+/*
+ * Copyright 2009-2017 Alibaba Cloud All rights reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <memory>
+#include <iostream>
+#include <alibabacloud/oss/Global.h>
+#include <alibabacloud/oss/Types.h>
+#include <alibabacloud/oss/OssError.h>
+#include <alibabacloud/oss/ServiceResult.h>
+#include <alibabacloud/oss/utils/Outcome.h>
+#include <alibabacloud/oss/model/VoidResult.h>
+#include <alibabacloud/oss/model/ListBucketsRequest.h>
+#include <alibabacloud/oss/model/ListBucketsResult.h>
+#include <alibabacloud/oss/model/CreateBucketRequest.h>
+#include <alibabacloud/oss/model/SetBucketAclRequest.h>
+#include <alibabacloud/oss/model/SetBucketLoggingRequest.h>
+#include <alibabacloud/oss/model/SetBucketWebsiteRequest.h>
+#include <alibabacloud/oss/model/SetBucketRefererRequest.h>
+#include <alibabacloud/oss/model/SetBucketLifecycleRequest.h>
+#include <alibabacloud/oss/model/SetBucketCorsRequest.h>
+#include <alibabacloud/oss/model/SetBucketStorageCapacityRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketLoggingRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketWebsiteRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketLifecycleRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketCorsRequest.h>
+#include <alibabacloud/oss/model/ListObjectsRequest.h>
+#include <alibabacloud/oss/model/ListObjectsResult.h>
+#include <alibabacloud/oss/model/GetBucketAclRequest.h>
+#include <alibabacloud/oss/model/GetBucketAclResult.h>
+#include <alibabacloud/oss/model/GetBucketLocationRequest.h>
+#include <alibabacloud/oss/model/GetBucketLocationResult.h>
+#include <alibabacloud/oss/model/GetBucketInfoRequest.h>
+#include <alibabacloud/oss/model/GetBucketInfoResult.h>
+#include <alibabacloud/oss/model/GetBucketLoggingRequest.h>
+#include <alibabacloud/oss/model/GetBucketLoggingResult.h>
+#include <alibabacloud/oss/model/GetBucketWebsiteRequest.h>
+#include <alibabacloud/oss/model/GetBucketWebsiteResult.h>
+#include <alibabacloud/oss/model/GetBucketRefererRequest.h>
+#include <alibabacloud/oss/model/GetBucketRefererResult.h>
+#include <alibabacloud/oss/model/GetBucketLifecycleRequest.h>
+#include <alibabacloud/oss/model/GetBucketLifecycleResult.h>
+#include <alibabacloud/oss/model/GetBucketStatRequest.h>
+#include <alibabacloud/oss/model/GetBucketStatResult.h>
+#include <alibabacloud/oss/model/GetBucketCorsRequest.h>
+#include <alibabacloud/oss/model/GetBucketCorsResult.h>
+#include <alibabacloud/oss/model/GetBucketStorageCapacityRequest.h>
+#include <alibabacloud/oss/model/GetBucketStorageCapacityResult.h>
+#include <alibabacloud/oss/model/GetObjectRequest.h>
+#include <alibabacloud/oss/model/GetObjectResult.h>
+#include <alibabacloud/oss/model/PutObjectRequest.h>
+#include <alibabacloud/oss/model/PutObjectResult.h>
+#include <alibabacloud/oss/model/DeleteObjectRequest.h>
+#include <alibabacloud/oss/model/DeleteObjectsRequest.h>
+#include <alibabacloud/oss/model/DeleteObjectsResult.h>
+#include <alibabacloud/oss/model/HeadObjectRequest.h>
+#include <alibabacloud/oss/model/GetObjectMetaRequest.h>
+#include <alibabacloud/oss/model/GeneratePresignedUrlRequest.h>
+#include <alibabacloud/oss/model/GetObjectByUrlRequest.h>
+#include <alibabacloud/oss/model/PutObjectByUrlRequest.h>
+#include <alibabacloud/oss/model/GetObjectAclRequest.h>
+#include <alibabacloud/oss/model/GetObjectAclResult.h>
+#include <alibabacloud/oss/model/AppendObjectRequest.h>
+#include <alibabacloud/oss/model/AppendObjectResult.h>
+#include <alibabacloud/oss/model/CopyObjectRequest.h>
+#include <alibabacloud/oss/model/CopyObjectResult.h>
+#include <alibabacloud/oss/model/GetSymlinkRequest.h>
+#include <alibabacloud/oss/model/GetSymlinkResult.h>
+#include <alibabacloud/oss/model/RestoreObjectRequest.h>
+#include <alibabacloud/oss/model/CreateSymlinkRequest.h>
+#include <alibabacloud/oss/model/CreateSymlinkResult.h>
+#include <alibabacloud/oss/model/SetObjectAclRequest.h>
+#include <alibabacloud/oss/model/InitiateMultipartUploadRequest.h>
+#include <alibabacloud/oss/model/InitiateMultipartUploadResult.h>
+#include <alibabacloud/oss/model/UploadPartRequest.h>
+#include <alibabacloud/oss/model/UploadPartCopyRequest.h>
+#include <alibabacloud/oss/model/UploadPartCopyResult.h>
+#include <alibabacloud/oss/model/CompleteMultipartUploadRequest.h>
+#include <alibabacloud/oss/model/CompleteMultipartUploadResult.h>
+#include <alibabacloud/oss/model/AbortMultipartUploadRequest.h>
+#include <alibabacloud/oss/model/ListMultipartUploadsRequest.h>
+#include <alibabacloud/oss/model/ListMultipartUploadsResult.h>
+#include <alibabacloud/oss/model/ListPartsRequest.h>
+#include <alibabacloud/oss/model/ListPartsResult.h>
+
+#include <alibabacloud/oss/Types.h>
+
+namespace AlibabaCloud
+{
+namespace OSS
+{
+    using OssOutcome = Outcome<OssError, ServiceResult>;
+    using VoidOutcome = Outcome<OssError, VoidResult>;
+    using StringOutcome = Outcome<OssError, std::string>;
+
+    using ListBucketsOutcome = Outcome<OssError, ListBucketsResult>;
+    using CreateBucketOutcome = Outcome<OssError, Bucket>;
+    using ListObjectOutcome = Outcome<OssError, ListObjectsResult>;
+
+    using GetBucketAclOutcome = Outcome<OssError, GetBucketAclResult>;
+    using GetBucketLocationOutcome = Outcome<OssError, GetBucketLocationResult>;
+    using GetBucketInfoOutcome = Outcome<OssError, GetBucketInfoResult>;
+    using GetBucketLoggingOutcome = Outcome<OssError, GetBucketLoggingResult>;
+    using GetBucketWebsiteOutcome = Outcome<OssError, GetBucketWebsiteResult>;
+    using GetBucketRefererOutcome = Outcome<OssError, GetBucketRefererResult>;
+    using GetBucketLifecycleOutcome = Outcome<OssError, GetBucketLifecycleResult>;
+    using GetBucketStatOutcome = Outcome<OssError, GetBucketStatResult>;
+    using GetBucketCorsOutcome = Outcome<OssError, GetBucketCorsResult>;
+    using GetBucketStorageCapacityOutcome = Outcome<OssError, GetBucketStorageCapacityResult>;
+
+    using GetObjectOutcome = Outcome<OssError, GetObjectResult>;
+    using PutObjectOutcome = Outcome<OssError, PutObjectResult>;
+    using DeleteObjecstOutcome = Outcome<OssError, DeleteObjectsResult>;
+    using ObjectMetaDataOutcome = Outcome<OssError, ObjectMetaData>;
+
+    using GetObjectAclOutcome = Outcome<OssError, GetObjectAclResult>;
+    using AppendObjectOutcome = Outcome<OssError, AppendObjectResult>;
+    using CopyObjectOutcome = Outcome<OssError, CopyObjectResult>;
+    using GetSymlinkOutcome = Outcome<OssError, GetSymlinkResult>;
+    using CreateSymlinkOutcome = Outcome<OssError, CreateSymlinkResult>;
+
+    /*multipart*/
+    using InitiateMultipartUploadOutcome = Outcome<OssError, InitiateMultipartUploadResult>;
+    using UploadPartCopyOutcome = Outcome<OssError, UploadPartCopyResult>;
+    using CompleteMultipartUploadOutcome = Outcome<OssError, CompleteMultipartUploadResult>;
+    using ListMultipartUploadsOutcome = Outcome<OssError, ListMultipartUploadsResult>;
+    using ListPartsOutcome = Outcome<OssError, ListPartsResult>;
+}
+}
