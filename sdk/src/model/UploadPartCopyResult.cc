@@ -76,46 +76,6 @@ UploadPartCopyResult& UploadPartCopyResult::operator =(
     return *this;
 }
 
-const std::string& UploadPartCopyResult::CopySourceIfMatch() const
-{
-    auto it = headers.find("x-oss-copy-source-if-match");
-    if(it != headers.end())
-    {
-        return it->first;
-    }
-    return EMPTY;
-}
-
-const std::string& UploadPartCopyResult::CopySourceIfNoneMatch() const
-{
-    auto it = headers.find("x-oss-copy-source-if-none-match");
-    if(it != headers.end())
-    {
-        return it->first;
-    }
-    return EMPTY;
-}
-
-const std::string& UploadPartCopyResult::CopySourceIfUnmodifiedSince() const
-{
-    auto it = headers.find("x-oss-copy-source-if-unmodified-since");
-    if(it != headers.end())
-    {
-        return it->first;
-    }
-    return EMPTY;
-}
-
-const std::string& UploadPartCopyResult::CopySourceIfModifiedSince() const
-{
-    auto it = headers.find("x-oss-copy-source-if-modified-since");
-    if(it != headers.end())
-    {
-        return it->first;
-    }
-    return EMPTY;
-}
-
 const std::string& UploadPartCopyResult::LastModified() const
 {
     return lastModified_;

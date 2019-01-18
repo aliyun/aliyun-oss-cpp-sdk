@@ -269,6 +269,44 @@ TEST_F(Crc64Test, GetObjectCrc64DisablePositiveTest)
     EXPECT_EQ(outcome.result().Metadata().CRC64(), crc);
 }
 
+TEST_F(Crc64Test, GetObjectCrc64SaveToHeaderTest)
+{
+    //default is enable
+    ClientConfiguration conf;
+    OssClient client(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    std::string data("This is a test of the emergency broadcast system.");
+    uint64_t crc = CRC64::CalcCRC(0, (void *)(data.c_str()), data.size());
+    auto key = TestUtils::GetObjectKey("GetObjectCrc64SaveToHeaderPositiveTest");
+    auto content = std::make_shared<std::stringstream>();
+    *content << data;
+    client.PutObject(BucketName, key, content);
+    EXPECT_EQ(client.DoesObjectExist(BucketName, key), true);
+
+    GetObjectRequest request(BucketName, key);
+    request.setFlags(request.Flags() | REQUEST_FLAG_SAVE_CLIENT_CRC64);
+    auto outcome = client.GetObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    uint64_t clientCRC64 = std::strtoull(outcome.result().Metadata().HttpMetaData().at("x-oss-hash-crc64ecma-by-client").c_str(), nullptr, 10);
+    EXPECT_EQ(crc, clientCRC64);
+
+    //range request
+    request.setRange(0, 1);
+    outcome = client.GetObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    crc = CRC64::CalcCRC(0, (void *)(data.c_str()), 2);
+    clientCRC64 = std::strtoull(outcome.result().Metadata().HttpMetaData().at("x-oss-hash-crc64ecma-by-client").c_str(), nullptr, 10);
+    EXPECT_EQ(crc, clientCRC64);
+
+    //NoSaveCRC
+    request.setFlags(request.Flags() & (~REQUEST_FLAG_SAVE_CLIENT_CRC64));
+    request.setRange(0, 1);
+    outcome = client.GetObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    EXPECT_TRUE(outcome.result().Metadata().HttpMetaData().find("x-oss-hash-crc64ecma-by-client") ==
+        outcome.result().Metadata().HttpMetaData().end());
+}
+
+
 TEST_F(Crc64Test, PutObjectByUrlCrc64EnablePositiveTest)
 {
     //default is enable

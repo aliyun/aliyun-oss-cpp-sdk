@@ -43,7 +43,7 @@ target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/
 	PRIVATE ${CMAKE_SOURCE_DIR}/test/external)
 
-if (${TARGET_ARCH} STREQUAL "WINDOWS")
+if (${TARGET_OS} STREQUAL "WINDOWS")
 target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/third_party/include)
 endif()	
@@ -51,10 +51,9 @@ endif()
 target_link_libraries(${PROJECT_NAME} cpp-sdk${STATIC_LIB_SUFFIX})	
 target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})
-if (${TARGET_ARCH} STREQUAL "LINUX")
+if (${TARGET_OS} STREQUAL "LINUX")
 target_link_libraries(${PROJECT_NAME} pthread)	
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
 target_compile_options(${PROJECT_NAME} 
 	PRIVATE "${SDK_COMPILER_FLAGS}")

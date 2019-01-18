@@ -39,6 +39,7 @@ namespace OSS
         void setContentEncoding(const std::string& value);
         void setContentMd5(const std::string& value);
         void setExpires(uint64_t expires);
+        void setExpires(const std::string& value);
         void setAcl(const CannedAccessControlList& acl);
         virtual std::shared_ptr<std::iostream> Body() const;
     protected:

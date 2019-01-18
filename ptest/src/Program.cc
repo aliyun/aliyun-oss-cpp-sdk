@@ -45,13 +45,14 @@ static std::string to_datetime_string(const std::chrono::system_clock::time_poin
 {
     auto tt = std::chrono::system_clock::to_time_t(tp);
     struct tm tm;
+    char date[60] = { 0 };
 #ifdef _WIN32
     localtime_s(&tm, &tt);
+    sprintf_s(date, "%d-%02d-%02d %02d:%02d:%02d",
 #else
     localtime_r(&tt, &tm);
+    sprintf(date, "%d-%02d-%02d %02d:%02d:%02d",
 #endif // _WIN32
-    char date[60] = { 0 };
-    snprintf(date, sizeof(date), "%d-%02d-%02d %02d:%02d:%02d",
         (int)tm.tm_year + 1900, (int)tm.tm_mon + 1, (int)tm.tm_mday,
         (int)tm.tm_hour, (int)tm.tm_min, (int)tm.tm_sec);
     return std::string(date);

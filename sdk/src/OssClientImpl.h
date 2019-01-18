@@ -126,7 +126,7 @@ namespace OSS
         void addOther(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const;
 
         OssError buildError(const Error &error) const;
-        ServiceResult buildResult(const std::shared_ptr<HttpResponse> &httpResponse) const;
+        ServiceResult buildResult(const OssRequest &request, const std::shared_ptr<HttpResponse> &httpResponse) const;
 
     private:
         std::string endpoint_;

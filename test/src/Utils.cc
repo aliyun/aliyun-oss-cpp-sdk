@@ -28,6 +28,7 @@
 #else
 #include <netdb.h>
 #include <unistd.h>
+#include <netinet/in.h>
 #endif
 #include <regex>
 #include <iomanip>
@@ -39,7 +40,9 @@
 #undef GetObject
 #endif 
 using namespace AlibabaCloud::OSS;
+#ifndef PATH_MAX
 #define PATH_MAX 1024
+#endif
 
 const std::list<std::string>& TestUtils::InvalidBucketNamesList()
 {
@@ -274,7 +277,7 @@ std::string TestUtils::GetIpByEndpoint(const std::string &endpoint)
     for (aip = ailist; aip != NULL; aip = aip->ai_next) {
         struct sockaddr_in *sinp = (struct sockaddr_in *)aip->ai_addr;
 #ifdef _WIN32
-        snprintf(m_ipaddr, sizeof(m_ipaddr), "%d.%d.%d.%d",
+        sprintf_s(m_ipaddr, "%d.%d.%d.%d",
             (*sinp).sin_addr.S_un.S_un_b.s_b1,
             (*sinp).sin_addr.S_un.S_un_b.s_b2,
             (*sinp).sin_addr.S_un.S_un_b.s_b3,

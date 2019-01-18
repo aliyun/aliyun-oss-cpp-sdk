@@ -177,7 +177,7 @@ std::string AlibabaCloud::OSS::ComputeContentMD5(std::istream& stream)
     EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
 
     auto currentPos = stream.tellg();
-    if (currentPos == -1) {
+    if (currentPos == static_cast<std::streampos>(-1)) {
         currentPos = 0;
         stream.clear();
     }
@@ -237,7 +237,7 @@ std::string AlibabaCloud::OSS::ComputeContentETag(std::istream& stream)
     EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
 
     auto currentPos = stream.tellg();
-    if (currentPos == -1) {
+    if (currentPos == static_cast<std::streampos>(-1)) {
         currentPos = 0;
         stream.clear();
     }
@@ -367,12 +367,13 @@ std::string AlibabaCloud::OSS::ToGmtTime(std::time_t &t)
 #else
     ::gmtime_r(&t, &tm);
 #endif
+
 #if defined(__GNUG__) && __GNUC__ < 5
     char tmbuff[26];
     strftime(tmbuff, 26, "%a, %d %b %Y %T", &tm);
     date << tmbuff << " GMT";
 #else
-    date << std::put_time(&tm, "%a, %d %b %Y %T GMT");
+    date << std::put_time(&tm, "%a, %d %b %Y %H:%M:%S GMT");
 #endif
     return date.str();    
 }
@@ -649,7 +650,7 @@ std::string AlibabaCloud::OSS::CombineQueryString(const ParameterCollection &par
 std::streampos AlibabaCloud::OSS::GetIOStreamLength(std::iostream &stream)
 {
     auto currentPos = stream.tellg();
-    if (currentPos == -1) {
+    if (currentPos == static_cast<std::streampos>(-1)) {
         currentPos = 0;
         stream.clear();
     }

@@ -30,29 +30,38 @@ set(TARGET_OUTPUT_NAME_PREFIX "alibabacloud-oss-" CACHE STRING "The target's out
 option(BUILD_SHARED_LIBS  "Enable shared library" OFF)
 option(BUILD_SAMPLE "Build sample" ON)
 option(BUILD_TESTS "Build unit and perfermence tests" OFF)
-option(BUILD_DEBUG "Build debug" OFF)
+option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
 
 
 #Platform
-if(CMAKE_HOST_UNIX)
-	set(PLATFORM_LINUX 1)
-	set(TARGET_ARCH "LINUX")
-elseif(CMAKE_HOST_WIN32)
-	set(PLATFORM_WINDOWS 1)
-	set(TARGET_ARCH "WINDOWS")
-elseif(CMAKE_HOST_APPLE)
-	set(PLATFORM_APPLE 1)
-	set(TARGET_ARCH "APPLE")
+if (CMAKE_CROSSCOMPILING)
+	if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
+		set(PLATFORM_ANDROID 1)
+		set(TARGET_OS "ANDROID")
+	else()
+		message(FATAL_ERROR "Do not support target platform")
+	endif()
 else()
-	message(FATAL_ERROR "Do not support unknown host OS")
+	if(CMAKE_HOST_UNIX)
+		set(PLATFORM_LINUX 1)
+		set(TARGET_OS "LINUX")
+	elseif(CMAKE_HOST_WIN32)
+		set(PLATFORM_WINDOWS 1)
+		set(TARGET_OS "WINDOWS")
+	elseif(CMAKE_HOST_APPLE)
+		set(PLATFORM_APPLE 1)
+		set(TARGET_OS "APPLE")
+	else()
+		message(FATAL_ERROR "Do not support unknown host OS")
+	endif()
 endif()
 
-message(STATUS "TARGET_ARCH: ${TARGET_ARCH}")
+message(STATUS "TARGET_OS: ${TARGET_OS}")
 
-add_definitions(-DPLATFORM_${TARGET_ARCH})
+add_definitions(-DPLATFORM_${TARGET_OS})
 
 #Find dependency Library, curl, openssl
-if (${TARGET_ARCH} STREQUAL "WINDOWS")
+if (${TARGET_OS} STREQUAL "WINDOWS")
 	set(CRYPTO_LIBS 
 		${CMAKE_SOURCE_DIR}/third_party/lib/Win32/ssleay32.lib 
 		${CMAKE_SOURCE_DIR}/third_party/lib/Win32/libeay32.lib)
@@ -85,23 +94,22 @@ else()
 endif()
 
 #Compiler flags
-set(CMAKE_CXX_STANDARD 11)
-if(MSVC)
+list(APPEND SDK_COMPILER_FLAGS "-std=c++11")
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	list(APPEND SDK_COMPILER_FLAGS "/MP")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+
 else()
-	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-		
-	else()
-	    #linux
-		list(APPEND SDK_COMPILER_FLAGS "-fno-exceptions" "-fPIC" "-fno-rtti")
-		list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
-		if (BUILD_DEBUG)
-		list(APPEND SDK_COMPILER_FLAGS "-g")
-		else()
-		list(APPEND SDK_COMPILER_FLAGS "-o2")
-		endif()
+	list(APPEND SDK_COMPILER_FLAGS "-fno-exceptions" "-fPIC" "-fno-rtti")
+	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
+	
+	if (ENABLE_COVERAGE)
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+        SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")	
+	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")	
 	endif()
 endif()
+
 
 if (BUILD_SHARED_LIBS)
 	set(STATIC_LIB_SUFFIX "-static")

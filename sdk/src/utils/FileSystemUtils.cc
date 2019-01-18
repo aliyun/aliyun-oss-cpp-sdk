@@ -25,6 +25,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
+#include <sys/stat.h>
 #define  oss_access(a)  ::_access((a), 0)
 #define  oss_mkdir(a)   ::_mkdir(a)
 #define  oss_rmdir(a)   ::_rmdir(a)

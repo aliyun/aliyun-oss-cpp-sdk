@@ -35,11 +35,10 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} cpp-sdk)	
 target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})
-if (${TARGET_ARCH} STREQUAL "LINUX")
-	target_link_libraries(${PROJECT_NAME} pthread)	
+if (${TARGET_OS} STREQUAL "LINUX")
+target_link_libraries(${PROJECT_NAME} pthread)	
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
 target_compile_options(${PROJECT_NAME} 
 	PRIVATE "${SDK_COMPILER_FLAGS}")
 

@@ -22,6 +22,7 @@
 static std::string dataPath_;
 #ifdef _WIN32
 #define delimiter "\\"
+#pragma warning( disable : 4996)
 #else
 #define delimiter "/"
 #endif

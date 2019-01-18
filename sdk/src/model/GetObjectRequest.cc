@@ -115,16 +115,6 @@ HeaderCollection GetObjectRequest::specialHeaders() const
         headers["If-Unmodified-Since"] = unmodifiedSince_;
     }
 
-    if (!modifiedSince_.empty())
-    {
-        headers["If-Modified-Since"] = modifiedSince_;
-    }
-
-    if (!modifiedSince_.empty())
-    {
-        headers["If-Modified-Since"] = modifiedSince_;
-    }
-
     if (matchingETags_.size() > 0) {
         std::stringstream ss;
         bool first = true;

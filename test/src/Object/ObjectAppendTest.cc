@@ -75,9 +75,12 @@ TEST_F(ObjectAppendTest, appendDataNormalTest)
     // put object
     std::string text = "hellowworld";
     AppendObjectRequest appendRequest(BucketName, objName, std::make_shared<std::stringstream>(text));
+    appendRequest.setExpires(TestUtils::GetGMTString(100));
     auto appendOutcome = Client->AppendObject(appendRequest);
     EXPECT_EQ(appendOutcome.isSuccess(), true);
     EXPECT_EQ(appendOutcome.result().Length(), text.size());
+
+    auto testOutcome = Client->GetObject(BucketName, objName);
 
     AppendObjectRequest  requestOther(BucketName, objName, std::make_shared<std::stringstream>(text));
     requestOther.setPosition(text.size());
@@ -121,11 +124,14 @@ TEST_F(ObjectAppendTest, appendDataNormalMeta1Test)
     std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectappend");
 
     // put object
-    std::string text = "hellowworld";
+    std::string text = "helloworld";
     ObjectMetaData MetaInfo;
     MetaInfo.UserMetaData()["author1"] = "chanju1-src";
 
     AppendObjectRequest appendRequest(BucketName, objName, std::make_shared<std::stringstream>(text), MetaInfo);
+    appendRequest.setCacheControl("max-age=3");
+    appendRequest.setContentDisposition("append-object-disposition");
+    appendRequest.setContentEncoding("myzip");
     auto appendOutcome = Client->AppendObject(appendRequest);
     EXPECT_EQ(appendOutcome.isSuccess(), true);
     EXPECT_EQ(appendOutcome.result().Length(), text.size());
@@ -137,6 +143,9 @@ TEST_F(ObjectAppendTest, appendDataNormalMeta1Test)
     (*getOutcome.result().Content().get()) >> strData;
     EXPECT_EQ(strData, text);
     EXPECT_EQ(getOutcome.result().Metadata().UserMetaData().at("author1"), "chanju1-src");
+    EXPECT_EQ(getOutcome.result().Metadata().HttpMetaData().at("Cache-Control"), "max-age=3");
+    EXPECT_EQ(getOutcome.result().Metadata().HttpMetaData().at("Content-Disposition"), "append-object-disposition");
+    EXPECT_EQ(getOutcome.result().Metadata().HttpMetaData().at("Content-Encoding"), "myzip");
 }
 
 TEST_F(ObjectAppendTest, appendDataNormalMeta2Test)

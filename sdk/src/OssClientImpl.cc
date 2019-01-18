@@ -84,6 +84,7 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
 
     //check crc64
     if (response->request().hasCheckCrc64() && 
+        !response->request().hasHeader(Http::RANGE) &&
         response->hasHeader("x-oss-hash-crc64ecma")) {
         uint64_t clientCrc64 = response->request().Crc64Result();
         uint64_t serverCrc64 = std::strtoull(response->Header("x-oss-hash-crc64ecma").c_str(), nullptr, 10);
@@ -197,6 +198,8 @@ void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, cons
     Url url(host);
     url.setPath(path);
 
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) host:%s, path:%s", this, httpRequest.get(), host.c_str(), path.c_str());
+    
     auto parameters = request.Parameters();
     if (!parameters.empty()) {
         std::stringstream queryString;
@@ -219,9 +222,7 @@ void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, co
 
     //crc64 check
     auto checkCRC64 = !!(request.Flags()&REQUEST_FLAG_CHECK_CRC64);
-    if (configuration().enableCrc64 &&
-        checkCRC64 &&
-        !httpRequest->hasHeader(Http::RANGE)) {
+    if (configuration().enableCrc64 && checkCRC64 ) {
         httpRequest->setCheckCrc64(true);
 #ifdef ENABLE_OSS_TEST
         if (!!(request.Flags()&0x80000000)) {
@@ -276,9 +277,14 @@ OssError OssClientImpl::buildError(const Error &error) const
     return err;
 }
 
-ServiceResult OssClientImpl::buildResult(const std::shared_ptr<HttpResponse> &httpResponse) const
+ServiceResult OssClientImpl::buildResult(const OssRequest &request, const std::shared_ptr<HttpResponse> &httpResponse) const
 {
     ServiceResult result;
+    auto flag = request.Flags();
+    if ((flag & REQUEST_FLAG_CHECK_CRC64) &&
+        (flag & REQUEST_FLAG_SAVE_CLIENT_CRC64)) {
+        httpResponse->addHeader("x-oss-hash-crc64ecma-by-client", std::to_string(httpResponse->request().Crc64Result()));
+    }
     result.setRequestId(httpResponse->Header("x-oss-request-id"));
     result.setPlayload(httpResponse->Body());
     result.setResponseCode(httpResponse->statusCode());
@@ -295,7 +301,7 @@ OssOutcome OssClientImpl::MakeRequest(const OssRequest &request, Http::Method me
 
     auto outcome = BASE::AttemptRequest(endpoint_, request, method);
     if (outcome.isSuccess()) {
-        return OssOutcome(buildResult(outcome.result()));
+        return OssOutcome(buildResult(request, outcome.result()));
     } else {
         return OssOutcome(buildError(outcome.error()));
     }
