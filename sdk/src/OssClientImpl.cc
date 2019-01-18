@@ -1083,6 +1083,175 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
     return downloader.Download();
 }
 
+/*Live Channel*/
+VoidOutcome OssClientImpl::PutLiveChannelStatus(const PutLiveChannelStatusRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Put);
+    if(outcome.isSuccess())
+    {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }else{
+        return VoidOutcome(outcome.error());
+    }
+}
+
+PutLiveChannelOutcome OssClientImpl::PutLiveChannel(const PutLiveChannelRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Put);
+    if(outcome.isSuccess())
+    {
+        PutLiveChannelResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            PutLiveChannelOutcome(std::move(result)):
+            PutLiveChannelOutcome(OssError("PutLiveChannelError", "Parse Error"));
+    }else{
+        return PutLiveChannelOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::PostVodPlaylist(const PostVodPlaylistRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Post);
+    if(outcome.isSuccess())
+    {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(std::move(result));
+    }else{
+        return VoidOutcome(outcome.error());
+    }
+}
+
+GetVodPlaylistOutcome OssClientImpl::GetVodPlaylist(const GetVodPlaylistRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetVodPlaylistResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return GetVodPlaylistOutcome(std::move(result));
+    }else{
+        return GetVodPlaylistOutcome(outcome.error());
+    }
+}
+
+GetLiveChannelStatOutcome OssClientImpl::GetLiveChannelStat(const GetLiveChannelStatRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetLiveChannelStatResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            GetLiveChannelStatOutcome(std::move(result)):
+            GetLiveChannelStatOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return GetLiveChannelStatOutcome(outcome.error());
+    }
+}
+
+GetLiveChannelInfoOutcome OssClientImpl::GetLiveChannelInfo(const GetLiveChannelInfoRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetLiveChannelInfoResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            GetLiveChannelInfoOutcome(std::move(result)):
+            GetLiveChannelInfoOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return GetLiveChannelInfoOutcome(outcome.error());
+    }
+}
+
+GetLiveChannelHistoryOutcome OssClientImpl::GetLiveChannelHistory(const GetLiveChannelHistoryRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetLiveChannelHistoryResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            GetLiveChannelHistoryOutcome(std::move(result)):
+            GetLiveChannelHistoryOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return GetLiveChannelHistoryOutcome(outcome.error());
+    }
+}
+
+ListLiveChannelOutcome OssClientImpl::ListLiveChannel(const ListLiveChannelRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        ListLiveChannelResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            ListLiveChannelOutcome(std::move(result)):
+            ListLiveChannelOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return ListLiveChannelOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::DeleteLiveChannel(const DeleteLiveChannelRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Delete);
+    if(outcome.isSuccess())
+    {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(std::move(result));
+    }else{
+        return VoidOutcome(outcome.error());
+    }
+}
+
+StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRequest &request) const
+{
+    if (!IsValidBucketName(request.bucket_) ||
+        !IsValidChannelName(request.ChannelName()) || 
+        !IsValidPlayListName(request.PlayList()) ||
+        0 == request.Expires()) {
+        return StringOutcome(OssError("ValidateError", "The Bucket or ChannelName or "
+            "PlayListName or Expires is invalid."));
+    }
+
+    ParameterCollection parameters;
+    const Credentials credentials = credentialsProvider_->getCredentials();
+    if (!credentials.SessionToken().empty()) {
+        parameters["security-token"] = credentials.SessionToken();
+    }
+    
+    parameters = request.Parameters();
+
+    std::string expireStr;
+    std::stringstream ss;
+    ss << request.Expires();
+    expireStr = ss.str();
+
+    SignUtils signUtils(signer_->version());
+    auto resource = std::string().append("/").append(request.Bucket()).append("/").append(request.ChannelName());
+    signUtils.build(expireStr, resource, parameters);
+    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
+    parameters["Expires"] = expireStr;
+    parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
+    parameters["Signature"] = signature;
+
+    ss.str("");
+    ss << CombineRTMPString(endpoint_, request.bucket_, configuration().isCname);
+    ss << "/live";
+    ss << CombinePathString(endpoint_, request.bucket_, request.key_);
+    ss << "?";
+    ss << CombineQueryString(parameters);
+
+    return StringOutcome(ss.str());
+}
+
 
 /*Requests control*/
 void OssClientImpl::DisableRequest()

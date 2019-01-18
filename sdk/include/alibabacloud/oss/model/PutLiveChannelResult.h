@@ -14,37 +14,30 @@
  * limitations under the License.
  */
 
-
 #pragma once
-
-#include <string>
-#include <map>
-#include <ctime>
+#include <memory>
 #include <iostream>
+#include <alibabacloud/oss/OssResult.h>
+#include <alibabacloud/oss/model/Owner.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
-    class SignUtils
+    class ALIBABACLOUD_OSS_EXPORT PutLiveChannelResult : public OssResult
     {
-    public: 
-        SignUtils(const std::string &version);
-        ~SignUtils();
-        void build(const std::string &method,
-                   const std::string &resource,
-                   const std::string &date,
-                   const HeaderCollection &headers,
-                   const ParameterCollection &parameters);
-        void build(const std::string &expires,
-                    const std::string &resource,
-                    const ParameterCollection &parameters);
-        const std::string &CanonicalString() const;
-    private:
-        std::string signVersion_;
-        std::string canonicalString_;
-    };
-}
-}
+    public:
+        PutLiveChannelResult();
+        PutLiveChannelResult(const std::string& data);
+        PutLiveChannelResult(const std::shared_ptr<std::iostream>& data);
+        PutLiveChannelResult& operator=(const std::string& data);
 
+        const std::string& PublishUrl() const;
+        const std::string& PlayUrl() const;
+    private:
+        std::string publishUrl_;
+        std::string playUrl_;
+    };
+} 
+}

@@ -122,5 +122,23 @@ namespace OSS
         std::string checkpointDir_;
         std::string mtime_;
     };
+
+    class ALIBABACLOUD_OSS_EXPORT LiveChannelRequest : public OssRequest
+    {
+    public:
+        LiveChannelRequest(const std::string &bucket, const std::string &channelName) :
+            OssRequest(bucket, channelName),
+            channelName_(channelName)
+        {}
+        void setBucket(const std::string &bucket);
+        const std::string& Bucket() const;
+
+        void setChannelName(const std::string &channelName);
+        const std::string& ChannelName() const;
+    protected:
+        virtual int validate() const;
+    protected:
+        std::string channelName_;
+    };
 }
 }

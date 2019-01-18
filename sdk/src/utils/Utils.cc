@@ -481,6 +481,53 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
 #endif
  }
 
+ bool AlibabaCloud::OSS::IsValidChannelName(const std::string &channelName)
+ {
+     if(channelName.empty() ||
+        std::string::npos != channelName.find('/') || 
+        channelName.size() > MaxLiveChannelNameLength)
+        return false;
+    
+    return true;
+ }
+
+ bool AlibabaCloud::OSS::IsValidPlayListName(const std::string &playlistName)
+ {
+     if(playlistName.empty())
+    {
+        return true;
+    }else{
+        if(!IsValidObjectKey(playlistName))
+        {
+            return false;
+        }
+        if(playlistName.size() < MinLiveChannelPlayListLength || 
+            playlistName.size() > MaxLiveChannelPlayListLength)
+        {
+            return false;
+        }
+        std::size_t lastPos = playlistName.find_last_of('.');
+        std::size_t slashPos = playlistName.find('/');
+        if(lastPos == std::string::npos || 
+            slashPos != std::string::npos ||
+            0 == lastPos || '.' == playlistName[lastPos-1])
+        {
+            return false;
+        }else{
+            std::string suffix = playlistName.substr(lastPos);
+            if(suffix.size() < 5)
+            {
+                return false;
+            }
+            if(ToLower(suffix.c_str()) != ".m3u8")
+            {
+                return false;
+            }
+            return true;
+        }
+    }
+ }
+
 const std::string& AlibabaCloud::OSS::LookupMimeType(const std::string &name)
 {
     const static std::map<std::string, std::string> mimeType = {
@@ -664,6 +711,23 @@ std::string AlibabaCloud::OSS::CombinePathString(
     return path;
 }
 
+std::string AlibabaCloud::OSS::CombineRTMPString(
+    const std::string &endpoint, 
+    const std::string &bucket,
+    bool isCname)
+{
+    Url url(endpoint);
+    if (!bucket.empty() && !isCname && !IsIp(url.host())) {
+        std::string host(bucket);
+        host.append(".").append(url.host());
+        url.setHost(host);
+    }
+
+    std::ostringstream out;
+    out << "rtmp://" << url.authority();
+    return out.str();
+}
+
 std::string AlibabaCloud::OSS::CombineQueryString(const ParameterCollection &parameters)
 {
     std::stringstream ss;
@@ -738,6 +802,25 @@ RuleStatus AlibabaCloud::OSS::ToRuleStatusType(const char *name)
     std::string statusName = ToLower(name);
     if (!statusName.compare("enabled")) return RuleStatus::Enabled;
     else return RuleStatus::Disabled;
+}
+
+const char *AlibabaCloud::OSS::ToLiveChannelStatusName(LiveChannelStatus status)
+{
+    if(status > LiveChannelStatus::LiveStatus)
+        return "";
+
+    static const char *StatusName[] = { "enabled", "disabled", "idle", "live" };
+    return StatusName[status - LiveChannelStatus::EnabledStatus];
+}
+
+LiveChannelStatus AlibabaCloud::OSS::ToLiveChannelStatusType(const char *name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("enabled")) return LiveChannelStatus::EnabledStatus;
+    else if (!statusName.compare("disabled")) return LiveChannelStatus::DisabledStatus;
+    else if (!statusName.compare("idle")) return LiveChannelStatus::IdleStatus;
+    else if (!statusName.compare("live")) return LiveChannelStatus::LiveStatus;
+    else return LiveChannelStatus::UnknownStatus;
 }
 
 

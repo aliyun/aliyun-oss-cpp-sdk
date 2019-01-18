@@ -106,3 +106,17 @@ void SignUtils::build(const std::string &method,
 
     canonicalString_ = ss.str();
 }
+
+void SignUtils::build(const std::string &expires,
+    const std::string &resource,
+    const ParameterCollection &parameters)
+{
+    std::stringstream ss;
+    ss << expires << '\n';
+    for(auto const& param : parameters)
+    {
+        ss << param.first << ":" << param.second << '\n';
+    }
+    ss << resource;
+    canonicalString_ = ss.str();
+}

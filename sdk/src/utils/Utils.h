@@ -62,12 +62,16 @@ namespace OSS
     bool IsValidBucketName(const std::string &bucketName);
     bool IsValidObjectKey(const std::string &key);
     bool IsValidLoggingPrefix(const std::string &prefix);
+    bool IsValidChannelName(const std::string &channelName);
+    bool IsValidPlayListName(const std::string &playListName);
 
 
     const std::string &LookupMimeType(const std::string& name);
     std::string CombineHostString(const std::string &endpoint, const std::string &bucket, bool isCname);
     std::string CombinePathString(const std::string &endpoint, const std::string &bucket, const std::string &key);
     std::string CombineQueryString(const ParameterCollection &parameters);
+    std::string CombineRTMPString(const std::string &endpoint, const std::string &bucket, bool isCname);
+
 
     std::streampos GetIOStreamLength(std::iostream &stream);
 
@@ -81,5 +85,8 @@ namespace OSS
 
     const char * ToRuleStatusName(RuleStatus status);
     RuleStatus ToRuleStatusType(const char *name);
+
+    const char * ToLiveChannelStatusName(LiveChannelStatus status);
+    LiveChannelStatus ToLiveChannelStatusType(const char *name);
 }
 }

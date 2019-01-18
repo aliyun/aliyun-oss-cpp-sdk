@@ -79,7 +79,19 @@ static const char * GetArgErrorMsg(const int code)
         "Range values has been modified since last download.",
         "Open temp file for download failed",
         /*GetObject -45*/
-        "The range is invalid. The start should not be less than 0 or less then the end. The end could be -1 to get the rest of the data."
+        "The range is invalid. The start should not be less than 0 or less then the end. The end could be -1 to get the rest of the data.",
+        /*LiveChannel -46*/
+        "The status param is invalid, it must be 'enabled' or 'disabled' ",
+        "The channelName param is invalid, it shouldn't contain '/' and length < 1023",
+        "The dest bucket name is invalid",
+        "The live channel description is invalied, it should be shorter than 129",
+        "The channel type is invalid, it shoudld only be HLS",
+        "The live channel frag duration param is invalid, it should be [1,100]",
+        "The live channel frag count param is invalid, it should be [1,100]",
+        "The live channel play list param is invalid, it should end with '.m3u8' & length in [6,128]",
+        "The snapshot param is invalid, please check.",
+        "The time param is invalid, endTime should bigger than startTime and difference smaller than 24*60*60",
+        "The Max Key param is invalid, it's default valus is 100, and smaller than 1000"
     };
 
     int index = code - ARG_ERROR_START;

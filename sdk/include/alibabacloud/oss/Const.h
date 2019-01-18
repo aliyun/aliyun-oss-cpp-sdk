@@ -36,6 +36,18 @@ namespace OSS
 	const int32_t PartSizeLowerLimit = 100 * 1024;
 	const int32_t MaxPathLength = 124;
 	const int32_t MinPathLength = 4;
+	const uint32_t MaxLiveChannelNameLength = 1023;
+	const uint32_t MaxLiveChannelDescriptionLength = 128;
+	const uint32_t MinLiveChannelFragCount = 1;
+	const uint32_t MaxLiveChannelFragCount = 100;
+	const uint32_t MinLiveChannelFragDuration = 1;
+	const uint32_t MaxLiveChannelFragDuration = 100;
+	const uint32_t MinLiveChannelPlayListLength = 6;
+	const uint32_t MaxLiveChannelPlayListLength = 128;
+	const uint32_t MinLiveChannelInterval = 1;
+	const uint32_t MaxLiveChannelInterval = 100;
+	const uint64_t SecondsOfDay = 24*60*60;
+	const uint32_t MaxListLiveChannelKeys = 1000;
 
 #ifdef _WIN32
     const char PATH_DELIMITER = '\\';

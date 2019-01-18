@@ -197,7 +197,17 @@ namespace OSS
         GetObjectOutcome ResumableDownloadObject(const DownloadObjectRequest& request) const;
 
         /*Live Channel*/
-
+        VoidOutcome PutLiveChannelStatus(const PutLiveChannelStatusRequest& request) const;
+        PutLiveChannelOutcome PutLiveChannel(const PutLiveChannelRequest& request) const;
+        VoidOutcome PostVodPlaylist(const PostVodPlaylistRequest& request) const;
+        GetVodPlaylistOutcome GetVodPlaylist(const GetVodPlaylistRequest& request) const;
+        GetLiveChannelStatOutcome GetLiveChannelStat(const GetLiveChannelStatRequest& request) const;
+        GetLiveChannelInfoOutcome GetLiveChannelInfo(const GetLiveChannelInfoRequest& request) const;
+        GetLiveChannelHistoryOutcome GetLiveChannelHistory(const GetLiveChannelHistoryRequest& request) const;
+        ListLiveChannelOutcome ListLiveChannel(const ListLiveChannelRequest& request) const;
+        VoidOutcome DeleteLiveChannel(const DeleteLiveChannelRequest& request) const;
+        StringOutcome GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRequest& request) const;
+        
         /*Aysnc APIs*/
         void ListObjectsAsync(const ListObjectsRequest& request, const ListObjectAsyncHandler& handler, const std::shared_ptr<const AsyncCallerContext>& context = nullptr) const;
         void GetObjectAsync(const GetObjectRequest& request, const GetObjectAsyncHandler& handler, const std::shared_ptr<const AsyncCallerContext>& context = nullptr) const;

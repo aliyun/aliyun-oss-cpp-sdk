@@ -14,37 +14,25 @@
  * limitations under the License.
  */
 
-
 #pragma once
-
-#include <string>
-#include <map>
-#include <ctime>
-#include <iostream>
+#include <alibabacloud/oss/Export.h>
+#include <alibabacloud/oss/OssRequest.h>
 #include <alibabacloud/oss/Types.h>
+#include <alibabacloud/oss/model/ObjectMetaData.h>
+#include <alibabacloud/oss/http/HttpType.h>
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
-    class SignUtils
+    class ALIBABACLOUD_OSS_EXPORT GetLiveChannelHistoryRequest : public LiveChannelRequest
     {
-    public: 
-        SignUtils(const std::string &version);
-        ~SignUtils();
-        void build(const std::string &method,
-                   const std::string &resource,
-                   const std::string &date,
-                   const HeaderCollection &headers,
-                   const ParameterCollection &parameters);
-        void build(const std::string &expires,
-                    const std::string &resource,
-                    const ParameterCollection &parameters);
-        const std::string &CanonicalString() const;
-    private:
-        std::string signVersion_;
-        std::string canonicalString_;
-    };
-}
-}
+    public:
+        GetLiveChannelHistoryRequest(const std::string& bucket, const std::string& channelName);
 
+    protected:
+        virtual ParameterCollection specialParameters() const;
+        virtual int validate() const;
+    };
+} 
+}

@@ -152,7 +152,6 @@ const std::string& OssObjectRequest::Key() const
     return OssRequest::key();
 }
 
-
 int OssResumableBaseRequest::validate() const
 {
     if (!IsValidBucketName(Bucket())) {
@@ -239,4 +238,39 @@ void OssResumableBaseRequest::setObjectMtime(const std::string &mtime)
 const std::string& OssResumableBaseRequest::ObjectMtime() const
 {
     return mtime_;
+}
+
+void LiveChannelRequest::setBucket(const std::string &bucket)
+{
+    bucket_ = bucket;
+}
+
+const std::string& LiveChannelRequest::Bucket() const
+{
+    return bucket_;
+}
+
+void LiveChannelRequest::setChannelName(const std::string &channelName)
+{
+    channelName_ = channelName;
+    key_ = channelName;
+}
+
+const std::string& LiveChannelRequest::ChannelName() const
+{
+    return channelName_;
+}
+
+int LiveChannelRequest::validate() const
+{
+    if (!IsValidBucketName(Bucket())) {
+        return ARG_ERROR_BUCKET_NAME;
+    }
+
+    if(!IsValidChannelName(channelName_))
+    {
+        return ARG_ERROR_LIVECHANNEL_BAD_CHANNELNAME_PARAM;
+    }
+
+    return 0;
 }

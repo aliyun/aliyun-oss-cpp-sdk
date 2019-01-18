@@ -524,7 +524,6 @@ TEST_F(UtilsFunctionTest, StringReplaceTest)
     EXPECT_EQ(test, "1234AABCD1234");
 }
 
-
 TEST_F(UtilsFunctionTest, UploadAndDownloadObject)
 {
     // create client and bucket
@@ -553,6 +552,44 @@ TEST_F(UtilsFunctionTest, UploadAndDownloadObject)
     Client = nullptr;
     EXPECT_EQ(RemoveFile(tmpFile), true);
     EXPECT_EQ(RemoveFile(targetFile), true);
+}
+
+TEST_F(UtilsFunctionTest, ToLiveChannelStatusNameTest)
+{
+    std::string str = ToLiveChannelStatusName(LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(str, "enabled");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(str, "disabled");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::IdleStatus);
+    EXPECT_EQ(str, "idle");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::LiveStatus);
+    EXPECT_EQ(str, "live");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::UnknownStatus);
+    EXPECT_EQ(str, "");
+}
+
+TEST_F(UtilsFunctionTest, ToLiveChannelStatusTypeTest)
+{
+    EXPECT_EQ(ToLiveChannelStatusType("enabled"), LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("EnaBled"), LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("Enabled"), LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("Disabled"), LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("DISabled"), LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("DISABLED"), LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("IDLE"), LiveChannelStatus::IdleStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("IDLe"), LiveChannelStatus::IdleStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("Live"), LiveChannelStatus::LiveStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("LIVE"), LiveChannelStatus::LiveStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("aaa"), LiveChannelStatus::UnknownStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("lived"), LiveChannelStatus::UnknownStatus);
 }
 
 }
