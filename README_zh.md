@@ -75,6 +75,27 @@ make
 sudo make install
 ```
 
+### Mac
+在Mac平台编译时，需要指定openssl 库的路径。例如 openssl安装在 /usr/local/Cellar/openssl/1.0.2p, 请使用如下命令
+```
+cmake -DOPENSSL_ROOT_DIR=/usr/local/Cellar/openssl/1.0.2p  \
+      -DOPENSSL_LIBRARIES=/usr/local/Cellar/openssl/1.0.2p/lib  \
+      -DOPENSSL_INCLUDE_DIRS=/usr/local/Cellar/openssl/1.0.2p/include/ ..
+make
+```
+
+### Android
+例如，在linux 环境下，基于android-ndk-r16 工具链构建工程。可以先把第三方库 `libcurl` 和 `libopenssl` 编译并安装到 `$ANDROID_NDK/sysroot` 下，然后使用如下命令
+```
+cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake  \
+      -DANDROID_NDK=$ANDROID_NDK    \
+      -DANDROID_ABI=armeabi-v7a     \
+      -DANDROID_TOOLCHAIN=clang     \
+      -DANDROID_PLATFORM=android-21 \
+      -DANDROID_STL=c++_shared ..
+make
+```
+
 ### CMake 选项
 
 #### BUILD_SHARED_LIBS

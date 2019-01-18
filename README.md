@@ -75,6 +75,27 @@ make
 sudo make install
 ```
 
+### Mac
+On Mac you should specify openssl path. For example, openssl is installed in /usr/local/Cellar/openssl/1.0.2p, run the following commands
+```
+cmake -DOPENSSL_ROOT_DIR=/usr/local/Cellar/openssl/1.0.2p  \
+      -DOPENSSL_LIBRARIES=/usr/local/Cellar/openssl/1.0.2p/lib  \
+      -DOPENSSL_INCLUDE_DIRS=/usr/local/Cellar/openssl/1.0.2p/include/ ..
+make
+```
+
+### Android
+Build and install third-party libraries, including `libcurl` and `libopenssl` to `$ANDROID_NDK/sysroot`, run the following commands
+```
+cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake  \
+      -DANDROID_NDK=$ANDROID_NDK    \
+      -DANDROID_ABI=armeabi-v7a     \
+      -DANDROID_TOOLCHAIN=clang     \
+      -DANDROID_PLATFORM=android-21 \
+      -DANDROID_STL=c++_shared ..
+make
+```
+
 ### CMake Option
 
 #### BUILD_SHARED_LIBS
