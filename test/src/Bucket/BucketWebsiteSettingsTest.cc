@@ -104,22 +104,16 @@ TEST_F(BucketWebsiteSettingsTest, SetBucketWebsiteTest)
     request.setErrorDocument(errorPage);
     auto outcome = Client->SetBucketWebsite(request);
     EXPECT_EQ(outcome.isSuccess(), true);
-    int cnt = 0;
-    do {
-        TestUtils::WaitForCacheExpire(10);
-        gOutcome = Client->GetBucketWebsite(GetBucketWebsiteRequest(BucketName));
-    } while (!gOutcome.isSuccess() && cnt++ < 3);
+    TestUtils::WaitForCacheExpire(5);
+    gOutcome = Client->GetBucketWebsite(GetBucketWebsiteRequest(BucketName));
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_STREQ(gOutcome.result().IndexDocument().c_str(), indexPage.c_str());
     EXPECT_STREQ(gOutcome.result().ErrorDocument().c_str(), errorPage.c_str());
 
     outcome = Client->SetBucketWebsite(BucketName, "index2.html", "NotFound2.html");
     EXPECT_EQ(outcome.isSuccess(), true);
-    cnt = 0;
-    do {
-        TestUtils::WaitForCacheExpire(5);
-        gOutcome = Client->GetBucketWebsite(BucketName);
-    } while (!gOutcome.isSuccess() && cnt++ < 3);
+    TestUtils::WaitForCacheExpire(5);
+    gOutcome = Client->GetBucketWebsite(BucketName);
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_EQ(gOutcome.result().IndexDocument(), "index2.html");
     EXPECT_EQ(gOutcome.result().ErrorDocument(), "NotFound2.html");

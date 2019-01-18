@@ -150,6 +150,11 @@ std::string AlibabaCloud::OSS::Base64EncodeUrlSafe(const char *src, int len)
     return out;
 }
 
+std::string AlibabaCloud::OSS::ComputeContentMD5(std::string data) 
+{
+    return ComputeContentMD5(data.c_str(), data.size());
+}
+
 std::string AlibabaCloud::OSS::ComputeContentMD5(const char * data, size_t size)
 {
     if (!data) {
@@ -213,6 +218,12 @@ static std::string HexToString(const unsigned char *data, size_t size)
         ss << hex[(data[i] >> 4)] << hex[(data[i] & 0x0F)];
     return ss.str();
 }
+
+std::string AlibabaCloud::OSS::ComputeContentETag(const std::string data)
+{
+    return ComputeContentETag(data.c_str(), data.size());
+}
+
 std::string AlibabaCloud::OSS::ComputeContentETag(const char * data, size_t size)
 {
     if (!data) {
@@ -415,7 +426,7 @@ std::time_t AlibabaCloud::OSS::UtcToUnixTime(const std::string &t)
         tt = timegm(&tm);
 #endif // _WIN32
     }
-    return tt;
+    return tt < 0 ? -1 : tt;
 }
 
 bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)

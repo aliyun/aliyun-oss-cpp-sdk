@@ -26,6 +26,10 @@ public:
     void PutObjectCallable();
     void GetObjectCallable();
 
+    void UploadObjectProgress();
+    void MultiCopyObjectProcess();
+    void DownloadObjectProcess();
+
     void CopyObject();
     void RestoreArchiveObject(const std::string bucket, const std::string key, int maxWaitTimeInSeconds);
 	

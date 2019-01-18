@@ -106,6 +106,9 @@ namespace OSS
         /*Generate Post Policy*/
 
         /*Resumable Operation*/
+        PutObjectOutcome ResumableUploadObject(const UploadObjectRequest& request) const;
+        CopyObjectOutcome ResumableCopyObject(const MultiCopyObjectRequest& request) const;
+        GetObjectOutcome ResumableDownloadObject(const DownloadObjectRequest& request) const;
 
         /*Live Channel*/
 

@@ -20,11 +20,17 @@
 #include <set>
 #include <tinyxml2/tinyxml2.h>
 #include <alibabacloud/oss/http/HttpType.h>
+#include <alibabacloud/oss/Const.h>
+#include <fstream>
 #include "utils/Utils.h"
 #include "utils/SignUtils.h"
 #include "auth/HmacSha1Signer.h"
 #include "OssClientImpl.h"
-#include "../utils/LogUtils.h"
+#include "utils/LogUtils.h"
+#include "utils/FileSystemUtils.h"
+#include "ResumableUploader.h"
+#include "ResumableDownloader.h"
+#include "ResumableCopier.h"
 
 using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
@@ -989,6 +995,95 @@ ListPartsOutcome OssClientImpl::ListParts(const ListPartsRequest &request) const
     }
 }
 
+/*Resumable Operation*/
+PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest& request) const 
+{
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    int code = reqeustBase.validate();
+    if (code != 0) {
+        return PutObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
+    }
+
+    if (request.ObjectSize() <= request.PartSize())
+    {
+        std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(request.FilePath(), std::ios::in | std::ios::binary);
+        PutObjectRequest putObjectReq(request.Bucket(), request.Key(), content, request.MetaData());
+        if (request.TransferProgress().Handler) {
+            putObjectReq.setTransferProgress(request.TransferProgress());
+        }
+        return PutObject(putObjectReq);
+    }
+    else
+    {
+        ResumableUploader uploader(request, this);
+        return uploader.Upload();
+    }
+}
+
+CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectRequest& request) const 
+{
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    int code = reqeustBase.validate();
+    if (code != 0) {
+        return CopyObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
+    }
+
+    auto getObjectMetaReq = GetObjectMetaRequest(request.SrcBucket(), request.SrcKey());
+    auto outcome = GetObjectMeta(getObjectMetaReq);
+    if (!outcome.isSuccess()) {
+        return CopyObjectOutcome(outcome.error());
+    }
+
+    auto objectSize = outcome.result().ContentLength();
+    if (objectSize < (int64_t)request.PartSize()) {
+        auto copyObjectReq = CopyObjectRequest(request.Bucket(), request.Key(), request.MetaData());
+        return CopyObject(copyObjectReq);
+    }
+
+    ResumableCopier copier(request, this, objectSize);
+    return copier.Copy();
+}
+
+GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequest &request) const 
+{
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    int code = reqeustBase.validate();
+    if (code != 0) {
+        return GetObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
+    }
+
+    auto getObjectMetaReq = GetObjectMetaRequest(request.Bucket(), request.Key());
+    auto outcome = GetObjectMeta(getObjectMetaReq);
+    if (!outcome.isSuccess()) {
+        return GetObjectOutcome(outcome.error());
+    }
+
+    auto objectSize = outcome.result().ContentLength();
+    if (objectSize < (int64_t)request.PartSize()) {
+        auto getObjectReq = GetObjectRequest(request.Bucket(), request.Key(), request.ModifiedSinceConstraint(), request.UnmodifiedSinceConstraint(),request.MatchingETagsConstraint(), request.NonmatchingETagsConstraint(), request.ResponseHeaderParameters());
+        if (request.RangeIsSet()) {
+            getObjectReq.setRange(request.RangeStart(), request.RangeEnd());
+        }
+        if (request.TransferProgress().Handler) {
+            getObjectReq.setTransferProgress(request.TransferProgress());
+        }
+        getObjectReq.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(request.FilePath(), std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary); });
+        auto outcome = this->GetObject(getObjectReq);
+        std::shared_ptr<std::iostream> content = nullptr;
+        outcome.result().setContent(content);
+        std::ifstream tmpFileStream(request.TempFilePath());
+        if (tmpFileStream.is_open()) {
+            tmpFileStream.close();
+            RemoveFile(request.TempFilePath());
+        }
+        return outcome;
+    }
+
+    ResumableDownloader downloader(request, this, objectSize);
+    return downloader.Download();
+}
+
+
 /*Requests control*/
 void OssClientImpl::DisableRequest()
 {
@@ -1001,4 +1096,3 @@ void OssClientImpl::EnableRequest()
     BASE::enableRequest();
     OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) EnableRequest", this);
 }
-

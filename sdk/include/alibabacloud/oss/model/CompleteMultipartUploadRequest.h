@@ -37,16 +37,20 @@ namespace OSS
         void setEncodingType(const std::string& encodingType);
         void setPartList(const AlibabaCloud::OSS::PartList& partList);
         void setUploadId(const std::string& uploadId);
+        void setAcl(CannedAccessControlList acl);
 
     protected:
         virtual std::string payload() const;
         virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
         virtual int validate() const;
     private:
         AlibabaCloud::OSS::PartList partList_;
         std::string uploadId_;
         std::string encodingType_;
         bool encodingTypeIsSet_;
+        CannedAccessControlList acl_;
+        bool hasSetAcl_;
     };
 } 
 }

@@ -179,6 +179,28 @@ static taskResult upload_async(const OssClient &client, const std::string &key, 
     return result;
 }
 
+static taskResult upload_resumable(const OssClient &client, const std::string &key, const std::string &fileToUpload)
+{
+    taskResult result;
+    result.startTimePoint = std::chrono::system_clock::now();
+    result.transferSize = get_file_size(fileToUpload);
+
+    std::stringstream ss;
+    auto outcome = client.ResumableUploadObject(UploadObjectRequest(Config::BucketName, key, fileToUpload));
+    if (outcome.isSuccess()) {
+        ss << "Resumable upload object : " << key << " succeeded ! " << std::endl;
+    }
+    else {
+        ss << "Resumable upload object : " << key << " Failed with error, code:" << outcome.error().Code() <<
+            ", message:" << outcome.error().Message() << std::endl;
+    }
+    result.success = outcome.isSuccess();
+    result.stopTimePoint = std::chrono::system_clock::now();
+
+    log_msg(std::cout, ss.str());
+    return result;
+}
+
 struct SubTaskInfo {
     int partNum;
     int64_t offset;
@@ -345,6 +367,28 @@ static taskResult download_async(const OssClient &client, const std::string &key
     return result;
 }
 
+static taskResult download_resumable(const OssClient &client, const std::string &key, const std::string &fileToSave)
+{
+    taskResult result;
+    result.startTimePoint = std::chrono::system_clock::now();
+
+    std::stringstream ss;
+    auto outcome = client.ResumableDownloadObject(DownloadObjectRequest(Config::BucketName, key, fileToSave));
+    if (outcome.isSuccess()) {
+        ss << "Resumable download object : " << key << " succeeded ! " << std::endl;
+        result.transferSize = outcome.result().Metadata().ContentLength();
+    }
+    else {
+        ss << "Resumable download object : " << key << " Failed with error, code:" << outcome.error().Code() <<
+            ", message:" << outcome.error().Message() << std::endl;
+    }
+    result.success = outcome.isSuccess();
+    result.stopTimePoint = std::chrono::system_clock::now();
+
+    log_msg(std::cout, ss.str());
+    return result;
+}
+
 static void runSingleTask(int taskId)
 {
     taskResult result;
@@ -381,7 +425,7 @@ static void runSingleTask(int taskId)
             result = upload(client, key, fileName);
         }
         else if (Config::Command == "upload_resumable") {
-
+            result = upload_resumable(client, key, fileName);
         }
         else if (Config::Command == "upload_async") {
             result = upload_async(client, key, fileName);
@@ -393,7 +437,7 @@ static void runSingleTask(int taskId)
             result = download(client, key, fileName);
         }
         else if (Config::Command == "download_resumable") {
-
+            result = download_resumable(client, key, fileName);
         }
         else if (Config::Command == "download_async") {
             result = download_async(client, key, fileName);

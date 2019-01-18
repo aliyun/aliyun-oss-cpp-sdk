@@ -97,6 +97,9 @@
 #include <alibabacloud/oss/model/ListMultipartUploadsResult.h>
 #include <alibabacloud/oss/model/ListPartsRequest.h>
 #include <alibabacloud/oss/model/ListPartsResult.h>
+#include <alibabacloud/oss/model/UploadObjectRequest.h>
+#include <alibabacloud/oss/model/MultiCopyObjectRequest.h>
+#include <alibabacloud/oss/model/DownloadObjectRequest.h>
 
 #include <alibabacloud/oss/Types.h>
 

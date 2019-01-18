@@ -745,3 +745,17 @@ void OssClient::EnableRequest()
     client_->EnableRequest();
 }
 
+PutObjectOutcome OssClient::ResumableUploadObject(const UploadObjectRequest &request) const
+{
+    return client_->ResumableUploadObject(request);
+}
+
+CopyObjectOutcome OssClient::ResumableCopyObject(const MultiCopyObjectRequest &request) const 
+{
+    return client_->ResumableCopyObject(request);
+}
+
+GetObjectOutcome OssClient::ResumableDownloadObject(const DownloadObjectRequest &request) const 
+{
+    return client_->ResumableDownloadObject(request);
+}

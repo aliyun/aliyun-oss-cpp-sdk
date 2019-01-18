@@ -41,6 +41,8 @@ namespace OSS
         std::string serviceName()const;
         const ClientConfiguration &configuration()const;
 
+        bool isEnableRequest() const;
+
     protected:
         ClientOutcome AttemptRequest(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const;
         ClientOutcome AttemptOnceRequest(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const;
@@ -50,7 +52,6 @@ namespace OSS
         void setRequestDateOffset(uint64_t offset) const;
         uint64_t getRequestDateOffset() const;
 
-        bool isEnableRequest() const;
         void disableRequest();
         void enableRequest();
     private:

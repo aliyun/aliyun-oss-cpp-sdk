@@ -67,21 +67,21 @@ std::string BucketAclSettingsTest::BucketName = "";
 TEST_F(BucketAclSettingsTest, SetBucketAclUseRequestTest)
 {
     Client->SetBucketAcl(SetBucketAclRequest(BucketName, CannedAccessControlList::PublicRead));
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
     auto aclOutcome = Client->GetBucketAcl(GetBucketAclRequest(BucketName));
     EXPECT_EQ(aclOutcome.isSuccess(), true);
     EXPECT_EQ(aclOutcome.result().Acl(), CannedAccessControlList::PublicRead);
 
     //set to readwrite
     Client->SetBucketAcl(SetBucketAclRequest(BucketName, CannedAccessControlList::PublicReadWrite));
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
     aclOutcome = Client->GetBucketAcl(GetBucketAclRequest(BucketName));
     EXPECT_EQ(aclOutcome.isSuccess(), true);
     EXPECT_EQ(aclOutcome.result().Acl(), CannedAccessControlList::PublicReadWrite);
 
     //set to private
     Client->SetBucketAcl(SetBucketAclRequest(BucketName, CannedAccessControlList::Private));
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
     aclOutcome = Client->GetBucketAcl(GetBucketAclRequest(BucketName));
     EXPECT_EQ(aclOutcome.isSuccess(), true);
     EXPECT_EQ(aclOutcome.result().Acl(), CannedAccessControlList::Private);
@@ -94,7 +94,7 @@ TEST_F(BucketAclSettingsTest, SetBucketAclUseDefaultTest)
 
     //set to Default
     Client->SetBucketAcl(SetBucketAclRequest(BucketName, CannedAccessControlList::Default));
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
     auto aclOutcome1 = Client->GetBucketAcl(GetBucketAclRequest(BucketName));
     EXPECT_EQ(aclOutcome1.isSuccess(), true);
    
@@ -110,9 +110,9 @@ TEST_F(BucketAclSettingsTest, SetBucketAclPublicReadTest)
     SetBucketAclRequest request(BucketName, CannedAccessControlList::Default);
     request.setAcl(CannedAccessControlList::PublicRead);
     Client->SetBucketAcl(request);
-    TestUtils::WaitForCacheExpire(10);
+    TestUtils::WaitForCacheExpire(5);
     auto aclOutcome1 = Client->GetBucketAcl(GetBucketAclRequest(BucketName));
-    TestUtils::WaitForCacheExpire(10);
+    TestUtils::WaitForCacheExpire(5);
     aclOutcome1 = Client->GetBucketAcl(GetBucketAclRequest(BucketName));
     EXPECT_EQ(aclOutcome1.isSuccess(), true);
     EXPECT_EQ(aclOutcome1.result().Acl(), CannedAccessControlList::PublicRead);
@@ -133,6 +133,16 @@ TEST_F(BucketAclSettingsTest, SetBucketAclNegativeTest)
     auto aclOutcome = Client->SetBucketAcl("no-exist-bucket", CannedAccessControlList::PublicRead);
     EXPECT_EQ(aclOutcome.isSuccess(), false);
     EXPECT_EQ(aclOutcome.error().Code(), "NoSuchBucket");
+}
+#endif
+
+#if 0
+//NG
+TEST_F(BucketAclSettingsTest, SetBucketAclNegativeTest)
+{
+    auto aclOutcome = Client->SetBucketAcl("no-exist-bucket", CannedAccessControlList::PublicRead);
+    EXPECT_EQ(aclOutcome.isSuccess(), false);
+    EXPECT_EQ(aclOutcome.error().code(), "NoSuchBucket");
 }
 #endif
 

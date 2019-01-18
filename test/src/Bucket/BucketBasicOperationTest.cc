@@ -159,7 +159,6 @@ TEST_F(BucketBasicOperationTest, CreateAndDeleteBucketTest)
 
     //create a new bucket
     Client->CreateBucket(CreateBucketRequest(bucketName));
-    //TestUtils::WaitForCacheExpire(5);
     EXPECT_EQ(TestUtils::BucketExists(*Client, bucketName), true);
 
     //delete the bucket
@@ -178,7 +177,6 @@ TEST_F(BucketBasicOperationTest, CreateAndDeleteIABucketTest)
 
     //create a new bucket
     auto outcome = Client->CreateBucket(CreateBucketRequest(bucketName, StorageClass::IA));
-    //TestUtils::WaitForCacheExpire(8);
     EXPECT_EQ(TestUtils::BucketExists(*Client, bucketName), true);
 
     auto objectName = bucketName;
@@ -207,7 +205,6 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoTest)
 
     //create a new bucket
     Client->CreateBucket(CreateBucketRequest(bucketName, StorageClass::IA));
-    //TestUtils::WaitForCacheExpire(5);
 
     GetBucketInfoRequest request(bucketName);
     auto bfOutcome = Client->GetBucketInfo(request);
@@ -215,13 +212,13 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoTest)
     EXPECT_EQ(bfOutcome.result().Acl(), CannedAccessControlList::Private);
     
     Client->SetBucketAcl(SetBucketAclRequest(bucketName, CannedAccessControlList::PublicRead));
-    TestUtils::WaitForCacheExpire(8);
+    TestUtils::WaitForCacheExpire(5);
     bfOutcome = Client->GetBucketInfo(request);
     EXPECT_EQ(bfOutcome.isSuccess(), true);
     EXPECT_EQ(bfOutcome.result().Acl(), CannedAccessControlList::PublicRead);
 
     Client->SetBucketAcl(SetBucketAclRequest(bucketName, CannedAccessControlList::PublicReadWrite));
-    TestUtils::WaitForCacheExpire(8);
+    TestUtils::WaitForCacheExpire(5);
     bfOutcome = Client->GetBucketInfo(request);
     EXPECT_EQ(bfOutcome.isSuccess(), true);
     EXPECT_EQ(bfOutcome.result().Acl(), CannedAccessControlList::PublicReadWrite);
@@ -235,8 +232,6 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoTest)
 
     //delete the bucket
     Client->DeleteBucket(DeleteBucketRequest(bucketName));
-    //TestUtils::WaitForCacheExpire(5);
-    //EXPECT_EQ(TestUtils::BucketExists(client, bucketName), false);
 }
 
 TEST_F(BucketBasicOperationTest, GetBucketLocationTest)
@@ -249,7 +244,6 @@ TEST_F(BucketBasicOperationTest, GetBucketLocationTest)
 
     //create a new bucket
     Client->CreateBucket(CreateBucketRequest(bucketName));
-    //TestUtils::WaitForCacheExpire(5);
     EXPECT_EQ(TestUtils::BucketExists(*Client, bucketName), true);
 
     //get bucket location
@@ -259,8 +253,6 @@ TEST_F(BucketBasicOperationTest, GetBucketLocationTest)
 
     //delete the bucket
     Client->DeleteBucket(DeleteBucketRequest(bucketName));
-    //TestUtils::WaitForCacheExpire(5);
-    //EXPECT_EQ(TestUtils::BucketExists(client, bucketName), false);
 }
 
 TEST_F(BucketBasicOperationTest, GetBucketLocationNegativeTest)
@@ -280,14 +272,12 @@ TEST_F(BucketBasicOperationTest, GetBucketStatTest)
 
     //create a new bucket
     Client->CreateBucket(CreateBucketRequest(bucketName));
-    //TestUtils::WaitForCacheExpire(5);
     EXPECT_EQ(TestUtils::BucketExists(*Client, bucketName), true);
 
     //put object
     auto objectName = bucketName;
     objectName.append("firstobject");
     Client->PutObject(PutObjectRequest(bucketName, objectName, std::make_shared<std::stringstream>("1234")));
-    //TestUtils::WaitForCacheExpire(5);
 
     auto bsOutcome = Client->GetBucketStat(GetBucketStatRequest(bucketName));
     EXPECT_EQ(bsOutcome.isSuccess(), true);
@@ -298,8 +288,6 @@ TEST_F(BucketBasicOperationTest, GetBucketStatTest)
     //delete the bucket
     Client->DeleteObject(DeleteObjectRequest(bucketName, objectName));
     Client->DeleteBucket(DeleteBucketRequest(bucketName));
-    //TestUtils::WaitForCacheExpire(5);
-    //EXPECT_EQ(TestUtils::BucketExists(client, bucketName), false);
 }
 
 TEST_F(BucketBasicOperationTest, GetNonExistBucketInfoTest)

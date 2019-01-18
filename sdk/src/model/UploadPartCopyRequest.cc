@@ -51,6 +51,53 @@ UploadPartCopyRequest::UploadPartCopyRequest(const std::string &bucket, const st
 {
 }
 
+UploadPartCopyRequest::UploadPartCopyRequest(const std::string& bucket, const std::string& key,
+    const std::string& srcBucket, const std::string& srcKey,
+    const std::string& uploadId, int partNumber,
+    const std::string& sourceIfMatchETag,
+    const std::string& sourceIfNotMatchETag,
+    const std::string& sourceIfModifiedSince,
+    const std::string& sourceIfUnModifiedSince) :
+    OssObjectRequest(bucket, key),
+    uploadId_(uploadId),
+    sourceBucket_(srcBucket),
+    sourceKey_(srcKey),
+    partNumber_(partNumber),
+    sourceRangeIsSet_(false)
+{
+    if (!sourceIfMatchETag.empty()) {
+        sourceIfMatchETag_ = sourceIfMatchETag;
+        sourceIfMatchETagIsSet_ = true;
+    }
+    else {
+        sourceIfMatchETagIsSet_ = false;
+    }
+
+    if (!sourceIfNotMatchETag.empty()) {
+        sourceIfNotMatchETag_ = sourceIfNotMatchETag;
+        sourceIfNotMatchETagIsSet_ = true;
+    }
+    else {
+        sourceIfNotMatchETagIsSet_ = false;
+    }
+
+    if (!sourceIfModifiedSince.empty()) {
+        sourceIfModifiedSince_ = sourceIfModifiedSince;
+        sourceIfModifiedSinceIsSet_ = true;
+    }
+    else {
+        sourceIfModifiedSinceIsSet_ = false;
+    }
+
+    if (!sourceIfUnModifiedSince.empty()) {
+        sourceIfUnModifiedSince_ = sourceIfUnModifiedSince;
+        sourceIfUnModifiedSinceIsSet_ = true;
+    }
+    else {
+        sourceIfUnModifiedSinceIsSet_ = false;
+    }
+}
+
 void UploadPartCopyRequest::setPartNumber(uint32_t partNumber)
 {
     partNumber_ = partNumber; 

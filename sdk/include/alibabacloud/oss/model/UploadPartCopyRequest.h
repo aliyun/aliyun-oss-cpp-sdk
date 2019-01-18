@@ -33,6 +33,14 @@ namespace OSS
         UploadPartCopyRequest(const std::string& bucket, const std::string& key,
                               const std::string& srcBucket, const std::string& srcKey,
                               const std::string& uploadId, int partNumber);
+        UploadPartCopyRequest(const std::string& bucket, const std::string& key,
+                              const std::string& srcBucket, const std::string& srcKey,
+                              const std::string& uploadId, int partNumber,
+                              const std::string& sourceIfMatchETag,
+                              const std::string& sourceIfNotMatchETag,
+                              const std::string& sourceIfModifiedSince,
+                              const std::string& sourceIfUnModifiedSince);
+
         void setPartNumber(uint32_t partNumber); 
         void setUploadId(const std::string& uploadId);
         void SetCopySource(const std::string& srcBucket, const std::string& srcKey);

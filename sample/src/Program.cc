@@ -63,6 +63,9 @@ int main(void)
 
 
     ObjectSample objectSample(bucketName);
+	objectSample.UploadObjectProgress();
+	objectSample.MultiCopyObjectProcess();
+	objectSample.DownloadObjectProcess();
     objectSample.PutObjectFromBuffer();
     objectSample.PutObjectFromFile();
     objectSample.GetObjectToBuffer();
@@ -87,5 +90,5 @@ int main(void)
     signedUrlSample.GetObjectByUrlToFile();
 
     ShutdownSdk();
-    return 1;
+    return 0;
 }

@@ -219,6 +219,17 @@ TEST_F(FileSystemUtilsFunctionTest, RenameFileTest)
     EXPECT_FALSE(GetPathLastModifyTime(newTestPath, t));
 }
 
+TEST_F(FileSystemUtilsFunctionTest, GetFileLastModifyTimeEmptyPathTest)
+{
+	time_t t;
+	std::string testPath = "";
+	EXPECT_FALSE(GetPathLastModifyTime(testPath, t));
+#if defined(_WIN32) && _MSC_VER < 1900
+	testPath.clear();
+	testPath.push_back(PATH_DELIMITER);
+	EXPECT_FALSE(GetPathLastModifyTime(testPath, t));
+#endif
+}
 
 }
 }

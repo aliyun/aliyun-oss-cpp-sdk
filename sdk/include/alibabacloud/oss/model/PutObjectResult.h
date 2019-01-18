@@ -27,7 +27,8 @@ namespace OSS
     public:
         PutObjectResult();
         PutObjectResult(const HeaderCollection& header);
-        const std::string& ETag() const;
+        PutObjectResult(const std::string eTag, const uint64_t crc64) :eTag_(eTag), crc64_(crc64) {}
+        const std::string &ETag() const;
         uint64_t CRC64();
      private:
         std::string eTag_;

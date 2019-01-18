@@ -27,9 +27,11 @@ namespace OSS
 {
     #define UNUSED_PARAM(x) ((void)(x))
 
+    std::string ComputeContentMD5(const std::string data);
     std::string ComputeContentMD5(const char *data, size_t size);
     std::string ComputeContentMD5(std::istream & stream); 
 
+    std::string ComputeContentETag(const std::string data);
     std::string ComputeContentETag(const char *data, size_t size);
     std::string ComputeContentETag(std::istream & stream);
 

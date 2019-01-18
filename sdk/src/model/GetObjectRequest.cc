@@ -36,6 +36,21 @@ GetObjectRequest::GetObjectRequest(const std::string &bucket, const std::string 
     setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
 }
 
+GetObjectRequest::GetObjectRequest(const std::string& bucket, const std::string& key,
+    const std::string &modifiedSince, const std::string &unmodifiedSince,
+    const std::vector<std::string> &matchingETags, const std::vector<std::string> &nonmatchingETags,
+    const std::map<std::string, std::string> &responseHeaderParameters_) : 
+    OssObjectRequest(bucket, key),
+    rangeIsSet_(false), 
+    modifiedSince_(modifiedSince), 
+    unmodifiedSince_(unmodifiedSince), 
+    matchingETags_(matchingETags),
+    nonmatchingETags_(nonmatchingETags), 
+    process_(""),
+    responseHeaderParameters_(responseHeaderParameters_)
+{
+}
+
 void GetObjectRequest::setRange(int64_t start, int64_t end)
 {
     range_[0] = start;

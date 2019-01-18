@@ -27,13 +27,14 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT CopyObjectResult : public OssResult
     {
     public:
-       public:
         CopyObjectResult();
         CopyObjectResult(const std::string& data);
         CopyObjectResult(const std::shared_ptr<std::iostream>& data);
         CopyObjectResult& operator=(const std::string& data);
         const std::string& ETag() const { return etag_; }
         const std::string& LastModified() const { return lastModified_; }
+
+        void setEtag(const std::string& etag) { etag_ = etag; }
      private:
         std::string etag_;
         std::string lastModified_;

@@ -77,7 +77,8 @@ TEST_F(CallableTest, MultipartUploadCallableBasicTest)
     auto fileKey = TestUtils::GetObjectKey("MultipartUploadCallable-FileObject");
     auto tmpFile = TestUtils::GetObjectKey("MultipartUploadCallable-FileObject").append(".tmp");
     TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
-    auto fileContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::out | std::ios::binary);
+    {
+    auto fileContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::in | std::ios::binary);
     auto fileInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, fileKey));
     EXPECT_EQ(fileInitOutcome.isSuccess(), true);
 
@@ -111,6 +112,7 @@ TEST_F(CallableTest, MultipartUploadCallableBasicTest)
 
     memContent = nullptr;
     fileContent = nullptr;
+    }
     EXPECT_EQ(RemoveFile(tmpFile), true);
 }
 
@@ -127,7 +129,7 @@ TEST_F(CallableTest, MultipartUploadCopyCallableBasicTest)
     std::string fileObjKey = TestUtils::GetObjectKey("PutObjectFromFile");
     std::string tmpFile = TestUtils::GetTargetFileName("PutObjectFromFile").append(".tmp");
     TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
-    auto fileObjContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::out | std::ios::binary);
+    auto fileObjContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::in | std::ios::binary);
     auto putFileObjOutcome = Client->PutObject(PutObjectRequest(BucketName, fileObjKey, fileObjContent));
     EXPECT_EQ(putFileObjOutcome.isSuccess(), true);
     EXPECT_EQ(Client->DoesObjectExist(BucketName, fileObjKey), true);

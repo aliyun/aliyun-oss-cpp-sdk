@@ -138,7 +138,7 @@ TEST_F(BucketCorsSettingsTest, EnableBucketCorsAddAndDeleteSingleRuleTest)
     ruleList.push_back(ConstructDummyCorsRule());
     auto outcome = Client->SetBucketCors(BucketName, ruleList);// (request);
     EXPECT_EQ(outcome.isSuccess(), true);
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
     
     auto gOutcome = Client->GetBucketCors(GetBucketCorsRequest(BucketName));
     EXPECT_EQ(gOutcome.isSuccess(), true);
@@ -161,7 +161,7 @@ TEST_F(BucketCorsSettingsTest, EnableBucketCorsAddAndDeleteMultipleRulesTest)
     request.addCORSRule(ConstructDummyCorsRuleWithMultiAllowedMethod());
     auto outcome = Client->SetBucketCors(request);
     EXPECT_EQ(outcome.isSuccess(), true);
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
 
     auto gOutcome = Client->GetBucketCors(GetBucketCorsRequest(BucketName));
     EXPECT_EQ(gOutcome.isSuccess(), true);
@@ -181,7 +181,7 @@ TEST_F(BucketCorsSettingsTest, EnableBucketCorsSetAndDeleteMultipleRulesTest)
     request.addCORSRule(ConstructDummyCorsRuleWithMultiAllowedMethod());
     auto outcome = Client->SetBucketCors(request);
     EXPECT_EQ(outcome.isSuccess(), true);
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
 
     auto gOutcome = Client->GetBucketCors(GetBucketCorsRequest(BucketName));
     EXPECT_EQ(gOutcome.isSuccess(), true);
@@ -271,7 +271,7 @@ TEST_F(BucketCorsSettingsTest, SetBucketCorsRequestAllowedOriginAsteriskTest)
 
     outcome = Client->SetBucketCors(request);
     EXPECT_EQ(outcome.isSuccess(), true);
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
 
     Client->DeleteBucketCors(DeleteBucketCorsRequest(BucketName));
 }
@@ -300,7 +300,7 @@ TEST_F(BucketCorsSettingsTest, SetBucketCorsRequestAllowedHeaderAsteriskTest)
 
     outcome = Client->SetBucketCors(request);
     EXPECT_EQ(outcome.isSuccess(), true);
-    TestUtils::WaitForCacheExpire(15);
+    TestUtils::WaitForCacheExpire(5);
 
     Client->DeleteBucketCors(DeleteBucketCorsRequest(BucketName));
 }

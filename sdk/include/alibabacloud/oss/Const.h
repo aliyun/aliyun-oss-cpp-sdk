@@ -15,7 +15,8 @@
  */
 
 #pragma once
-#include <cstdint> 
+#include <cstdint>
+
 namespace AlibabaCloud
 {
 namespace OSS
