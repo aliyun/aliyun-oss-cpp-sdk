@@ -397,6 +397,27 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
     return date.str();
 }
 
+std::time_t AlibabaCloud::OSS::UtcToUnixTime(const std::string &t)
+{
+    const char* date = t.c_str();
+    std::tm tm;
+    std::time_t tt = -1;
+    int ms;
+    auto result = sscanf(date, "%4d-%2d-%2dT%2d:%2d:%2d.%dZ",
+        &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec, &ms);
+
+    if (result == 7) {
+        tm.tm_year = tm.tm_year - 1900;
+        tm.tm_mon = tm.tm_mon - 1;
+#ifdef _WIN32
+        tt = _mkgmtime64(&tm);
+#else
+        tt = timegm(&tm);
+#endif // _WIN32
+    }
+    return tt;
+}
+
 bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
 {
 #if defined(__GNUG__) && __GNUC__ < 5

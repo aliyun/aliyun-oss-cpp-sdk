@@ -54,6 +54,7 @@ namespace OSS
     std::string ToUpper(const char* source);
     std::string ToGmtTime(std::time_t &t);
     std::string ToUtcTime(std::time_t &t);
+    std::time_t UtcToUnixTime(const std::string &t);
 
     bool IsIp(const std::string &host);
     bool IsValidBucketName(const std::string &bucketName);

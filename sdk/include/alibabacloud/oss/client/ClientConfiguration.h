@@ -97,6 +97,10 @@ namespace OSS
         */
         bool enableCrc64;
         /**
+        * enable or disable auto correct http request date.
+        */
+        bool enableDateSkewAdjustment;
+        /**
         * Rate limit data upload speed.
         */
         std::shared_ptr<RateLimiter> sendRateLimiter;

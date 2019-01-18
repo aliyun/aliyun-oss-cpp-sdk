@@ -115,7 +115,7 @@ namespace OSS
 
     protected:
         virtual std::shared_ptr<HttpRequest> buildHttpRequest(const std::string & endpoint, const ServiceRequest &msg, Http::Method method) const;
-        virtual bool hasResponseError(const std::shared_ptr<HttpResponse>&response) const;
+        virtual bool hasResponseError(const std::shared_ptr<HttpResponse>&response)  const;
         OssOutcome MakeRequest(const OssRequest &request, Http::Method method) const;
 
     private:

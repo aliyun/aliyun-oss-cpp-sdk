@@ -102,7 +102,6 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
     return false;
 }
 
-
 void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const HeaderCollection &headers) const
 {
     for (auto const& header : headers) {
@@ -113,8 +112,12 @@ void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, 
     httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
 
     //Date
+    if (httpRequest->hasHeader("x-oss-date")) {
+        httpRequest->addHeader(Http::DATE, httpRequest->Header("x-oss-date"));
+    }
     if (!httpRequest->hasHeader(Http::DATE)) {
         std::time_t t = std::time(nullptr);
+        t += getRequestDateOffset();
         httpRequest->addHeader(Http::DATE, ToGmtTime(t));
     }
 }

@@ -50,6 +50,7 @@ namespace OSS
     std::string ALIBABACLOUD_OSS_EXPORT Base64EncodeUrlSafe(const char* src, int len);
     std::string ALIBABACLOUD_OSS_EXPORT ToGmtTime(std::time_t& t);
     std::string ALIBABACLOUD_OSS_EXPORT ToUtcTime(std::time_t& t);
+    std::time_t ALIBABACLOUD_OSS_EXPORT UtcToUnixTime(const std::string& t);
     uint64_t    ALIBABACLOUD_OSS_EXPORT ComputeCRC64(uint64_t crc, void* buf, size_t len);
     uint64_t    ALIBABACLOUD_OSS_EXPORT CombineCRC64(uint64_t crc1, uint64_t crc2, uintmax_t len2);
 

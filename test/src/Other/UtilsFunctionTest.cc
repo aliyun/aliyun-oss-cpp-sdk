@@ -265,6 +265,34 @@ TEST_F(UtilsFunctionTest, ToUtcTimeTest)
     EXPECT_STREQ(timeStr.c_str(), "2018-03-07T08:35:19.000Z");
 }
 
+TEST_F(UtilsFunctionTest, UtcToUnixTimeTest)
+{
+    std::string date = "1970-01-01T00:00:00.000Z";
+    std::time_t t = UtcToUnixTime(date);
+    EXPECT_EQ(t, 0);
+
+    date = "2018-03-07T08:35:19.123Z";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, 1520411719);
+
+    //invalid case
+    date = "2018-03-07T08:35:19Z";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+
+    date = "2018-03-07T08:35:19.abcZ";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+
+    date = "18-03-07T08:35:19.000Z";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+
+    date = "";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+}
+
 TEST_F(UtilsFunctionTest, LookupMimeTypeTest)
 {
     EXPECT_STREQ(LookupMimeType("name.html").c_str(), "text/html");

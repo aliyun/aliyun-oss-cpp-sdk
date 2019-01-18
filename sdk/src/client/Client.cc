@@ -15,11 +15,14 @@
  */
 
 #include <alibabacloud/oss/client/RetryStrategy.h>
+#include <tinyxml2/tinyxml2.h>
 #include "Client.h"
 #include "../http/CurlHttpClient.h"
 #include "../utils/Executor.h"
+#include "../utils/Utils.h"
 #include "../auth/Signer.h"
 #include <sstream>
+#include <ctime>
 
 /*!
  * \class AlibabaCloud::Client Client.h 
@@ -27,8 +30,10 @@
  */
 
 using namespace AlibabaCloud::OSS;
+using namespace tinyxml2;
 
 Client::Client(const std::string & servicename, const ClientConfiguration &configuration) :
+    requestDateOffset_(0),
     serviceName_(servicename),
     configuration_(configuration),
     httpClient_(std::make_shared<CurlHttpClient>(configuration))
@@ -60,6 +65,16 @@ Client::ClientOutcome Client::AttemptRequest(const std::string & endpoint, const
             return outcome;
         }
         else {
+            if (configuration_.enableDateSkewAdjustment &&
+                outcome.error().Status() == 403 &&
+                outcome.error().Message().find("RequestTimeTooSkewed")) {
+                auto serverTimeStr = analyzeServerTime(outcome.error().Message());
+                auto serverTime = UtcToUnixTime(serverTimeStr);
+                if (serverTime != -1) {
+                    std::time_t localTime = std::time(nullptr);
+                    setRequestDateOffset(serverTime - localTime);
+                }
+            }
             RetryStrategy *retryStrategy = configuration().retryStrategy.get();
             if (retryStrategy == nullptr || !retryStrategy->shouldRetry(outcome.error(), retry)) {
                 return outcome;
@@ -78,12 +93,26 @@ Client::ClientOutcome Client::AttemptOnceRequest(const std::string & endpoint, c
 
     auto r = buildHttpRequest(endpoint, request, method);
     auto response = httpClient_->makeRequest(r); 
-
+    
     if(hasResponseError(response)) {
         return ClientOutcome(buildError(response));
     } else {
         return ClientOutcome(response);
     }
+}
+
+std::string Client::analyzeServerTime(const std::string &message) const
+{
+    XMLDocument doc;
+    if (doc.Parse(message.c_str(), message.size()) == XML_SUCCESS) {
+        XMLElement* root = doc.RootElement();
+        if (root && !std::strncmp("Error", root->Name(), 5)) {
+            XMLElement *node;
+            node = root->FirstChildElement("ServerTime");
+            return (node ? node->GetText() : "");
+        }
+    }
+    return "";
 }
 
 Error Client::buildError(const std::shared_ptr<HttpResponse> &response) const
@@ -137,3 +166,12 @@ bool Client::isEnableRequest() const
     return httpClient_->isEnable();
 }
    
+void Client::setRequestDateOffset(uint64_t offset) const
+{
+    requestDateOffset_ = offset;
+}
+
+uint64_t Client::getRequestDateOffset() const
+{
+    return requestDateOffset_;
+}
