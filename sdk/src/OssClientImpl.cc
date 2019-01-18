@@ -20,11 +20,17 @@
 #include <set>
 #include <tinyxml2/tinyxml2.h>
 #include <alibabacloud/oss/http/HttpType.h>
+#include <alibabacloud/oss/Const.h>
+#include <fstream>
 #include "utils/Utils.h"
 #include "utils/SignUtils.h"
 #include "auth/HmacSha1Signer.h"
 #include "OssClientImpl.h"
-#include "../utils/LogUtils.h"
+#include "utils/LogUtils.h"
+#include "utils/FileSystemUtils.h"
+#include "ResumableUploader.h"
+#include "ResumableDownloader.h"
+#include "ResumableCopier.h"
 
 using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
@@ -84,6 +90,7 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
 
     //check crc64
     if (response->request().hasCheckCrc64() && 
+        !response->request().hasHeader(Http::RANGE) &&
         response->hasHeader("x-oss-hash-crc64ecma")) {
         uint64_t clientCrc64 = response->request().Crc64Result();
         uint64_t serverCrc64 = std::strtoull(response->Header("x-oss-hash-crc64ecma").c_str(), nullptr, 10);
@@ -101,7 +108,6 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
     return false;
 }
 
-
 void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const HeaderCollection &headers) const
 {
     for (auto const& header : headers) {
@@ -112,8 +118,12 @@ void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, 
     httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
 
     //Date
+    if (httpRequest->hasHeader("x-oss-date")) {
+        httpRequest->addHeader(Http::DATE, httpRequest->Header("x-oss-date"));
+    }
     if (!httpRequest->hasHeader(Http::DATE)) {
         std::time_t t = std::time(nullptr);
+        t += getRequestDateOffset();
         httpRequest->addHeader(Http::DATE, ToGmtTime(t));
     }
 }
@@ -197,6 +207,8 @@ void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, cons
     Url url(host);
     url.setPath(path);
 
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) host:%s, path:%s", this, httpRequest.get(), host.c_str(), path.c_str());
+    
     auto parameters = request.Parameters();
     if (!parameters.empty()) {
         std::stringstream queryString;
@@ -219,9 +231,7 @@ void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, co
 
     //crc64 check
     auto checkCRC64 = !!(request.Flags()&REQUEST_FLAG_CHECK_CRC64);
-    if (configuration().enableCrc64 &&
-        checkCRC64 &&
-        !httpRequest->hasHeader(Http::RANGE)) {
+    if (configuration().enableCrc64 && checkCRC64 ) {
         httpRequest->setCheckCrc64(true);
 #ifdef ENABLE_OSS_TEST
         if (!!(request.Flags()&0x80000000)) {
@@ -276,9 +286,14 @@ OssError OssClientImpl::buildError(const Error &error) const
     return err;
 }
 
-ServiceResult OssClientImpl::buildResult(const std::shared_ptr<HttpResponse> &httpResponse) const
+ServiceResult OssClientImpl::buildResult(const OssRequest &request, const std::shared_ptr<HttpResponse> &httpResponse) const
 {
     ServiceResult result;
+    auto flag = request.Flags();
+    if ((flag & REQUEST_FLAG_CHECK_CRC64) &&
+        (flag & REQUEST_FLAG_SAVE_CLIENT_CRC64)) {
+        httpResponse->addHeader("x-oss-hash-crc64ecma-by-client", std::to_string(httpResponse->request().Crc64Result()));
+    }
     result.setRequestId(httpResponse->Header("x-oss-request-id"));
     result.setPlayload(httpResponse->Body());
     result.setResponseCode(httpResponse->statusCode());
@@ -295,7 +310,7 @@ OssOutcome OssClientImpl::MakeRequest(const OssRequest &request, Http::Method me
 
     auto outcome = BASE::AttemptRequest(endpoint_, request, method);
     if (outcome.isSuccess()) {
-        return OssOutcome(buildResult(outcome.result()));
+        return OssOutcome(buildResult(request, outcome.result()));
     } else {
         return OssOutcome(buildError(outcome.error()));
     }
@@ -980,6 +995,264 @@ ListPartsOutcome OssClientImpl::ListParts(const ListPartsRequest &request) const
     }
 }
 
+/*Resumable Operation*/
+PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest& request) const 
+{
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    int code = reqeustBase.validate();
+    if (code != 0) {
+        return PutObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
+    }
+
+    if (request.ObjectSize() <= request.PartSize())
+    {
+        std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(request.FilePath(), std::ios::in | std::ios::binary);
+        PutObjectRequest putObjectReq(request.Bucket(), request.Key(), content, request.MetaData());
+        if (request.TransferProgress().Handler) {
+            putObjectReq.setTransferProgress(request.TransferProgress());
+        }
+        return PutObject(putObjectReq);
+    }
+    else
+    {
+        ResumableUploader uploader(request, this);
+        return uploader.Upload();
+    }
+}
+
+CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectRequest& request) const 
+{
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    int code = reqeustBase.validate();
+    if (code != 0) {
+        return CopyObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
+    }
+
+    auto getObjectMetaReq = GetObjectMetaRequest(request.SrcBucket(), request.SrcKey());
+    auto outcome = GetObjectMeta(getObjectMetaReq);
+    if (!outcome.isSuccess()) {
+        return CopyObjectOutcome(outcome.error());
+    }
+
+    auto objectSize = outcome.result().ContentLength();
+    if (objectSize < (int64_t)request.PartSize()) {
+        auto copyObjectReq = CopyObjectRequest(request.Bucket(), request.Key(), request.MetaData());
+        return CopyObject(copyObjectReq);
+    }
+
+    ResumableCopier copier(request, this, objectSize);
+    return copier.Copy();
+}
+
+GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequest &request) const 
+{
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    int code = reqeustBase.validate();
+    if (code != 0) {
+        return GetObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
+    }
+
+    auto getObjectMetaReq = GetObjectMetaRequest(request.Bucket(), request.Key());
+    auto outcome = GetObjectMeta(getObjectMetaReq);
+    if (!outcome.isSuccess()) {
+        return GetObjectOutcome(outcome.error());
+    }
+
+    auto objectSize = outcome.result().ContentLength();
+    if (objectSize < (int64_t)request.PartSize()) {
+        auto getObjectReq = GetObjectRequest(request.Bucket(), request.Key(), request.ModifiedSinceConstraint(), request.UnmodifiedSinceConstraint(),request.MatchingETagsConstraint(), request.NonmatchingETagsConstraint(), request.ResponseHeaderParameters());
+        if (request.RangeIsSet()) {
+            getObjectReq.setRange(request.RangeStart(), request.RangeEnd());
+        }
+        if (request.TransferProgress().Handler) {
+            getObjectReq.setTransferProgress(request.TransferProgress());
+        }
+        getObjectReq.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(request.FilePath(), std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary); });
+        auto outcome = this->GetObject(getObjectReq);
+        std::shared_ptr<std::iostream> content = nullptr;
+        outcome.result().setContent(content);
+        std::ifstream tmpFileStream(request.TempFilePath());
+        if (tmpFileStream.is_open()) {
+            tmpFileStream.close();
+            RemoveFile(request.TempFilePath());
+        }
+        return outcome;
+    }
+
+    ResumableDownloader downloader(request, this, objectSize);
+    return downloader.Download();
+}
+
+/*Live Channel*/
+VoidOutcome OssClientImpl::PutLiveChannelStatus(const PutLiveChannelStatusRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Put);
+    if(outcome.isSuccess())
+    {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }else{
+        return VoidOutcome(outcome.error());
+    }
+}
+
+PutLiveChannelOutcome OssClientImpl::PutLiveChannel(const PutLiveChannelRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Put);
+    if(outcome.isSuccess())
+    {
+        PutLiveChannelResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            PutLiveChannelOutcome(std::move(result)):
+            PutLiveChannelOutcome(OssError("PutLiveChannelError", "Parse Error"));
+    }else{
+        return PutLiveChannelOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::PostVodPlaylist(const PostVodPlaylistRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Post);
+    if(outcome.isSuccess())
+    {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(std::move(result));
+    }else{
+        return VoidOutcome(outcome.error());
+    }
+}
+
+GetVodPlaylistOutcome OssClientImpl::GetVodPlaylist(const GetVodPlaylistRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetVodPlaylistResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return GetVodPlaylistOutcome(std::move(result));
+    }else{
+        return GetVodPlaylistOutcome(outcome.error());
+    }
+}
+
+GetLiveChannelStatOutcome OssClientImpl::GetLiveChannelStat(const GetLiveChannelStatRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetLiveChannelStatResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            GetLiveChannelStatOutcome(std::move(result)):
+            GetLiveChannelStatOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return GetLiveChannelStatOutcome(outcome.error());
+    }
+}
+
+GetLiveChannelInfoOutcome OssClientImpl::GetLiveChannelInfo(const GetLiveChannelInfoRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetLiveChannelInfoResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            GetLiveChannelInfoOutcome(std::move(result)):
+            GetLiveChannelInfoOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return GetLiveChannelInfoOutcome(outcome.error());
+    }
+}
+
+GetLiveChannelHistoryOutcome OssClientImpl::GetLiveChannelHistory(const GetLiveChannelHistoryRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        GetLiveChannelHistoryResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            GetLiveChannelHistoryOutcome(std::move(result)):
+            GetLiveChannelHistoryOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return GetLiveChannelHistoryOutcome(outcome.error());
+    }
+}
+
+ListLiveChannelOutcome OssClientImpl::ListLiveChannel(const ListLiveChannelRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Get);
+    if(outcome.isSuccess())
+    {
+        ListLiveChannelResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone()?
+            ListLiveChannelOutcome(std::move(result)):
+            ListLiveChannelOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
+        return ListLiveChannelOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::DeleteLiveChannel(const DeleteLiveChannelRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Delete);
+    if(outcome.isSuccess())
+    {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(std::move(result));
+    }else{
+        return VoidOutcome(outcome.error());
+    }
+}
+
+StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRequest &request) const
+{
+    if (!IsValidBucketName(request.bucket_) ||
+        !IsValidChannelName(request.ChannelName()) || 
+        !IsValidPlayListName(request.PlayList()) ||
+        0 == request.Expires()) {
+        return StringOutcome(OssError("ValidateError", "The Bucket or ChannelName or "
+            "PlayListName or Expires is invalid."));
+    }
+
+    ParameterCollection parameters;
+    const Credentials credentials = credentialsProvider_->getCredentials();
+    if (!credentials.SessionToken().empty()) {
+        parameters["security-token"] = credentials.SessionToken();
+    }
+    
+    parameters = request.Parameters();
+
+    std::string expireStr;
+    std::stringstream ss;
+    ss << request.Expires();
+    expireStr = ss.str();
+
+    SignUtils signUtils(signer_->version());
+    auto resource = std::string().append("/").append(request.Bucket()).append("/").append(request.ChannelName());
+    signUtils.build(expireStr, resource, parameters);
+    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
+    parameters["Expires"] = expireStr;
+    parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
+    parameters["Signature"] = signature;
+
+    ss.str("");
+    ss << CombineRTMPString(endpoint_, request.bucket_, configuration().isCname);
+    ss << "/live";
+    ss << CombinePathString(endpoint_, request.bucket_, request.key_);
+    ss << "?";
+    ss << CombineQueryString(parameters);
+
+    return StringOutcome(ss.str());
+}
+
+
 /*Requests control*/
 void OssClientImpl::DisableRequest()
 {
@@ -992,4 +1265,3 @@ void OssClientImpl::EnableRequest()
     BASE::enableRequest();
     OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) EnableRequest", this);
 }
-

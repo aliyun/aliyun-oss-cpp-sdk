@@ -67,7 +67,7 @@ void HttpMessage::removeHeader(const std::string & name)
 }
 
 
-bool HttpMessage::hasHeader(const std::string &name)
+bool HttpMessage::hasHeader(const std::string &name) const
 {
     return  (headers_.find(name) != headers_.end()) ? true : false;
 }

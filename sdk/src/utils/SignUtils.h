@@ -37,6 +37,9 @@ namespace OSS
                    const std::string &date,
                    const HeaderCollection &headers,
                    const ParameterCollection &parameters);
+        void build(const std::string &expires,
+                    const std::string &resource,
+                    const ParameterCollection &parameters);
         const std::string &CanonicalString() const;
     private:
         std::string signVersion_;

@@ -8538,36 +8538,31 @@ class TypeParameterizedTest {
   // specified in INSTANTIATE_TYPED_TEST_CASE_P(Prefix, TestCase,
   // Types).  Valid values for 'index' are [0, N - 1] where N is the
   // length of Types.
-  static bool Register(const char* prefix, const CodeLocation& code_location,
-                       const char* case_name, const char* test_names, int index,
-                       const std::vector<std::string>& type_names =
-                           GenerateNames<DefaultNameGenerator, Types>()) {
-    typedef typename Types::Head Type;
-    typedef Fixture<Type> FixtureClass;
-    typedef typename GTEST_BIND_(TestSel, Type) TestClass;
+  static bool Register(const char* prefix, const char* case_name,
+     const char* test_names, int index) {
+     typedef typename Types::Head Type;
+     typedef Fixture<Type> FixtureClass;
+     typedef typename GTEST_BIND_(TestSel, Type) TestClass;
 
-    // First, registers the first type-parameterized test in the type
-    // list.
-    MakeAndRegisterTestInfo(
-        (std::string(prefix) + (prefix[0] == '\0' ? "" : "/") + case_name +
-         "/" + type_names[index])
-            .c_str(),
-        StripTrailingSpaces(GetPrefixUntilComma(test_names)).c_str(),
-        GetTypeName<Type>().c_str(),
-        NULL,  // No value parameter.
-        code_location, GetTypeId<FixtureClass>(), TestClass::SetUpTestCase,
-        TestClass::TearDownTestCase, new TestFactoryImpl<TestClass>);
+     // First, registers the first type-parameterized test in the type
+     // list.
+     MakeAndRegisterTestInfo(
+         (std::string(prefix) + (prefix[0] == '\0' ? "" : "/") + case_name + "/"
+             + StreamableToString(index)).c_str(),
+         GetPrefixUntilComma(test_names).c_str(),
+         GetTypeName<Type>().c_str(),
+         NULL,  // No value parameter.
+         GetTypeId<FixtureClass>(),
+         TestClass::SetUpTestCase,
+         TestClass::TearDownTestCase,
+         new TestFactoryImpl<TestClass>);
 
-    // Next, recurses (at compile time) with the tail of the type list.
-    return TypeParameterizedTest<Fixture, TestSel,
-                                 typename Types::Tail>::Register(prefix,
-                                                                 code_location,
-                                                                 case_name,
-                                                                 test_names,
-                                                                 index + 1,
-                                                                 type_names);
-  }
+         // Next, recurses (at compile time) with the tail of the type list.
+         return TypeParameterizedTest<Fixture, TestSel, typename Types::Tail>
+             ::Register(prefix, case_name, test_names, index + 1);
+     }
 };
+
 
 // The base case for the compile time recursion.
 template <GTEST_TEMPLATE_ Fixture, class TestSel>
@@ -8588,38 +8583,21 @@ class TypeParameterizedTest<Fixture, TestSel, Types0> {
 // something such that we can call this function in a namespace scope.
 template <GTEST_TEMPLATE_ Fixture, typename Tests, typename Types>
 class TypeParameterizedTestCase {
- public:
-  static bool Register(const char* prefix, CodeLocation code_location,
-                       const TypedTestCasePState* state, const char* case_name,
-                       const char* test_names,
-                       const std::vector<std::string>& type_names =
-                           GenerateNames<DefaultNameGenerator, Types>()) {
-    std::string test_name = StripTrailingSpaces(
-        GetPrefixUntilComma(test_names));
-    if (!state->TestExists(test_name)) {
-      fprintf(stderr, "Failed to get code location for test %s.%s at %s.",
-              case_name, test_name.c_str(),
-              FormatFileLocation(code_location.file.c_str(),
-                                 code_location.line).c_str());
-      fflush(stderr);
-      posix::Abort();
-    }
-    const CodeLocation& test_location = state->GetCodeLocation(test_name);
+public:
+     static bool Register(const char* prefix, const char* case_name,
+         const char* test_names) {
+         typedef typename Tests::Head Head;
 
-    typedef typename Tests::Head Head;
+         // First, register the first test in 'Test' for each type in 'Types'.
+         TypeParameterizedTest<Fixture, Head, Types>::Register(
+             prefix, case_name, test_names, 0);
 
-    // First, register the first test in 'Test' for each type in 'Types'.
-    TypeParameterizedTest<Fixture, Head, Types>::Register(
-        prefix, test_location, case_name, test_names, 0, type_names);
-
-    // Next, recurses (at compile time) with the tail of the test list.
-    return TypeParameterizedTestCase<Fixture, typename Tests::Tail,
-                                     Types>::Register(prefix, code_location,
-                                                      state, case_name,
-                                                      SkipComma(test_names),
-                                                      type_names);
-  }
+         // Next, recurses (at compile time) with the tail of the test list.
+         return TypeParameterizedTestCase<Fixture, typename Tests::Tail, Types>
+             ::Register(prefix, case_name, SkipComma(test_names));
+     }
 };
+
 
 // The base case for the compile time recursion.
 template <GTEST_TEMPLATE_ Fixture, typename Types>

@@ -152,3 +152,125 @@ const std::string& OssObjectRequest::Key() const
     return OssRequest::key();
 }
 
+int OssResumableBaseRequest::validate() const
+{
+    if (!IsValidBucketName(Bucket())) {
+        return ARG_ERROR_BUCKET_NAME;
+    }
+
+    if (!IsValidObjectKey(Key())) {
+        return ARG_ERROR_OBJECT_NAME;
+    }
+
+    return 0;
+}
+
+const char *OssResumableBaseRequest::validateMessage(int code) const
+{
+    return GetModelErrorMsg(code);
+}
+
+void OssResumableBaseRequest::setBucket(const std::string &bucket)
+{
+    bucket_ = bucket;
+}
+
+const std::string& OssResumableBaseRequest::Bucket() const
+{
+    return OssRequest::bucket();
+}
+
+void OssResumableBaseRequest::setKey(const std::string &key)
+{
+    key_ = key;
+}
+
+const std::string& OssResumableBaseRequest::Key() const
+{
+    return OssRequest::key();
+}
+
+void OssResumableBaseRequest::setPartSize(uint64_t partSize)
+{
+    partSize_ = partSize;
+}
+
+uint64_t OssResumableBaseRequest::PartSize() const
+{
+    return partSize_;
+}
+
+void OssResumableBaseRequest::setObjectSize(uint64_t objectSize)
+{
+    objectSize_ = objectSize;
+}
+
+uint64_t OssResumableBaseRequest::ObjectSize() const
+{
+    return objectSize_;
+}
+
+void OssResumableBaseRequest::setThreadNum(uint32_t threadNum)
+{
+    threadNum_ = threadNum;
+}
+
+uint32_t OssResumableBaseRequest::ThreadNum() const
+{
+    return threadNum_;
+}
+
+void OssResumableBaseRequest::setCheckpointDir(const std::string &checkpointDir)
+{
+    checkpointDir_ = checkpointDir;
+}
+
+const std::string& OssResumableBaseRequest::CheckpointDir() const
+{
+    return checkpointDir_;
+}
+
+void OssResumableBaseRequest::setObjectMtime(const std::string &mtime)
+{
+    mtime_ = mtime;
+}
+
+const std::string& OssResumableBaseRequest::ObjectMtime() const
+{
+    return mtime_;
+}
+
+void LiveChannelRequest::setBucket(const std::string &bucket)
+{
+    bucket_ = bucket;
+}
+
+const std::string& LiveChannelRequest::Bucket() const
+{
+    return bucket_;
+}
+
+void LiveChannelRequest::setChannelName(const std::string &channelName)
+{
+    channelName_ = channelName;
+    key_ = channelName;
+}
+
+const std::string& LiveChannelRequest::ChannelName() const
+{
+    return channelName_;
+}
+
+int LiveChannelRequest::validate() const
+{
+    if (!IsValidBucketName(Bucket())) {
+        return ARG_ERROR_BUCKET_NAME;
+    }
+
+    if(!IsValidChannelName(channelName_))
+    {
+        return ARG_ERROR_LIVECHANNEL_BAD_CHANNELNAME_PARAM;
+    }
+
+    return 0;
+}

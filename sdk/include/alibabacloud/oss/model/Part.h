@@ -22,6 +22,8 @@ namespace AlibabaCloud
 namespace OSS
 {
     class ListPartsResult;
+    class ResumableUploader;
+    class ResumableCopier;
     class ALIBABACLOUD_OSS_EXPORT Part
     {
     public:
@@ -34,6 +36,8 @@ namespace OSS
         const std::string& ETag() const { return eTag_; }
     private:
         friend class ListPartsResult;
+        friend class ResumableUploader;
+        friend class ResumableCopier;
         int32_t partNumber_;
         int64_t size_;
         uint64_t cRC64_;

@@ -97,7 +97,25 @@
 #include <alibabacloud/oss/model/ListMultipartUploadsResult.h>
 #include <alibabacloud/oss/model/ListPartsRequest.h>
 #include <alibabacloud/oss/model/ListPartsResult.h>
-
+#include <alibabacloud/oss/model/UploadObjectRequest.h>
+#include <alibabacloud/oss/model/MultiCopyObjectRequest.h>
+#include <alibabacloud/oss/model/DownloadObjectRequest.h>
+#include <alibabacloud/oss/model/PutLiveChannelStatusRequest.h>
+#include <alibabacloud/oss/model/PutLiveChannelRequest.h>
+#include <alibabacloud/oss/model/PutLiveChannelResult.h>
+#include <alibabacloud/oss/model/PostVodPlaylistRequest.h>
+#include <alibabacloud/oss/model/GetVodPlaylistRequest.h>
+#include <alibabacloud/oss/model/GetVodPlaylistResult.h>
+#include <alibabacloud/oss/model/GetLiveChannelStatRequest.h>
+#include <alibabacloud/oss/model/GetLiveChannelStatResult.h>
+#include <alibabacloud/oss/model/GetLiveChannelInfoRequest.h>
+#include <alibabacloud/oss/model/GetLiveChannelInfoResult.h>
+#include <alibabacloud/oss/model/GetLiveChannelHistoryRequest.h>
+#include <alibabacloud/oss/model/GetLiveChannelHistoryResult.h>
+#include <alibabacloud/oss/model/ListLiveChannelRequest.h>
+#include <alibabacloud/oss/model/ListLiveChannelResult.h>
+#include <alibabacloud/oss/model/DeleteLiveChannelRequest.h>
+#include <alibabacloud/oss/model/GenerateRTMPSignedUrlRequest.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -140,5 +158,13 @@ namespace OSS
     using CompleteMultipartUploadOutcome = Outcome<OssError, CompleteMultipartUploadResult>;
     using ListMultipartUploadsOutcome = Outcome<OssError, ListMultipartUploadsResult>;
     using ListPartsOutcome = Outcome<OssError, ListPartsResult>;
+
+    /*livechannel*/
+    using PutLiveChannelOutcome = Outcome<OssError, PutLiveChannelResult>;
+    using GetLiveChannelStatOutcome = Outcome<OssError, GetLiveChannelStatResult>;
+    using GetLiveChannelInfoOutcome = Outcome<OssError, GetLiveChannelInfoResult>;
+    using GetLiveChannelHistoryOutcome = Outcome<OssError, GetLiveChannelHistoryResult>;
+    using ListLiveChannelOutcome = Outcome<OssError, ListLiveChannelResult>;
+    using GetVodPlaylistOutcome = Outcome<OssError, GetVodPlaylistResult>;
 }
 }

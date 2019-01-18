@@ -587,7 +587,7 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
     auto & body = response->Body();
     if (body != nullptr) {
         body->flush();
-        if (res != CURLE_OK && transferState.recvBodyPos != -1) {
+        if (res != CURLE_OK && transferState.recvBodyPos != static_cast<std::streampos>(-1)) {
             OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) setResponseBody, tellp:%lld, recvBodyPos:%lld",
                 request.get(), body->tellp(), transferState.recvBodyPos);
             body->clear();
@@ -598,7 +598,7 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         response->addBody(std::make_shared<std::stringstream>());
     }
 
-    if (requestBodyPos != -1) {
+    if (requestBodyPos != static_cast<std::streampos>(-1)) {
         request->Body()->clear();
         request->Body()->seekg(requestBodyPos);
     }

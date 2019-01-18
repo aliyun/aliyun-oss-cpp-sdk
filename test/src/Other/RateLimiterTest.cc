@@ -135,7 +135,7 @@ TEST_F(RateLimiterTest, DefaultRateLimiterTest)
     auto diff_get = timer.elapsed();
     EXPECT_EQ(outcome.isSuccess(), true);
 
-    EXPECT_NEAR(diff_put, diff_get, 1000);
+    EXPECT_NEAR(diff_put, diff_get, 1000LL);
 }
 
 TEST_F(RateLimiterTest, PutObjectRateLimiterTest)
@@ -158,7 +158,7 @@ TEST_F(RateLimiterTest, PutObjectRateLimiterTest)
     outcome = client.PutObject(BucketName, key, content);
     EXPECT_EQ(outcome.isSuccess(), true);
     auto diff_500k = timer.elapsed();
-    EXPECT_NEAR(diff_500k, 10000, 2000);
+    EXPECT_NEAR(diff_500k, 10000LL, 2000LL);
 
     std::cout << "diff_no_limit:" << diff_no_limit << " ms, diff_500k:" << diff_500k << " ms" << std::endl;
 }
@@ -186,7 +186,7 @@ TEST_F(RateLimiterTest, GetObjectRateLimiterTest)
     outcome = client.GetObject(BucketName, key);
     auto diff_1024k = timer.elapsed();
     EXPECT_EQ(outcome.isSuccess(), true);
-    EXPECT_NEAR(diff_1024k, 10000, 2000);
+    EXPECT_NEAR(diff_1024k, 10000LL, 2000LL);
     std::cout << "diff_no_limit:" << diff_no_limit << " ms, diff_1024k:" << diff_1024k << " ms" << std::endl;
 }
 
@@ -215,14 +215,14 @@ TEST_F(RateLimiterTest, SetRateWhenUploadingTest)
     outcome = callableOutcome.get();
     EXPECT_EQ(outcome.isSuccess(), true);
     auto diff_limit = timer.elapsed();
-    EXPECT_NEAR(diff_limit, 15000, 2500);
+    EXPECT_NEAR(diff_limit, 15000LL, 2500LL);
 
     sendRateLimiter->setRate(0);
     timer.reset();
     outcome = client.PutObject(BucketName, key, content);
     auto diff_no_limit1 = timer.elapsed();
     EXPECT_EQ(outcome.isSuccess(), true);
-    EXPECT_NEAR(diff_no_limit, diff_no_limit1, 2000);
+    EXPECT_NEAR(diff_no_limit, diff_no_limit1, 2000LL);
 
     std::cout << "diff_no_limit:"  << diff_no_limit << 
                 " ms, diff_limit:" << diff_limit   << 
@@ -258,7 +258,7 @@ TEST_F(RateLimiterTest, SetRateWhenDownloadingTest)
     outcome = callableOutcome.get();
     EXPECT_EQ(outcome.isSuccess(), true);
     auto diff_limit = timer.elapsed();
-    EXPECT_NEAR(diff_limit, 30000, 2000);
+    EXPECT_NEAR(diff_limit, 30000LL, 2000LL);
 
     recvRateLimiter->setRate(0);
     timer.reset();
@@ -269,7 +269,7 @@ TEST_F(RateLimiterTest, SetRateWhenDownloadingTest)
         EXPECT_TRUE(true);
     }
     else {
-        EXPECT_NEAR(diff_no_limit, diff_no_limit1, 2000);
+        EXPECT_NEAR(diff_no_limit, diff_no_limit1, 2000LL);
     }
 
     std::cout << "diff_no_limit:" << diff_no_limit <<

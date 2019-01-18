@@ -237,6 +237,9 @@ TEST_F(HttpClientTest, HttpResponseTest)
     const char * msg = "just for test";
     response.setStatusMsg(msg);
     EXPECT_STREQ(response.statusMsg().c_str(), msg);
+    std::string msgStr("just for test");
+    response.setStatusMsg(msgStr);
+    EXPECT_EQ(response.statusMsg(), msgStr);
 }
 
 TEST_F(HttpClientTest, DisableEnableRequestTest)

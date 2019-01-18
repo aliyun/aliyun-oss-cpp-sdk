@@ -1103,6 +1103,272 @@ TEST_F(MultipartUploadTest, MultipartUploadPartCopyWithSpecialKeyNameTest)
     EXPECT_EQ(calcMd5, TestFileMd5);
 }
 
+TEST_F(MultipartUploadTest, UploadPartCopyWithSourceIfMatchTest)
+{
+    std::string sourceKey = TestUtils::GetObjectKey("upload-part-copy-object-source");
+    std::string targetKey = TestUtils::GetObjectKey("upload-part-copy-object-target");
+
+    // put the source obj
+    auto putObjectContent = TestUtils::GetRandomStream(102400);
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+    std::string eTag = putObjectOutcome.result().ETag();
+
+    // apply upload id
+    auto uploadPartCopyInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, targetKey));
+    EXPECT_EQ(uploadPartCopyInitOutcome.isSuccess(), true);
+    auto uploadId = uploadPartCopyInitOutcome.result().UploadId();
+
+    {
+        UploadPartCopyRequest request(BucketName, targetKey);
+        request.SetCopySource(BucketName, sourceKey);
+        request.setUploadId(uploadId);
+        request.setPartNumber(1);
+        request.SetSourceIfMatchETag("ErrorETag");
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        // http status code : 412
+        EXPECT_EQ(outcome.error().Code(), "PreconditionFailed");
+    }
+
+    // success upload part copy with the real ETag
+    UploadPartCopyRequest request(BucketName, targetKey);
+    request.SetCopySource(BucketName, sourceKey);
+    request.setUploadId(uploadId);
+    request.setPartNumber(1);
+    request.SetSourceIfMatchETag(eTag);
+    auto outcome = Client->UploadPartCopy(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+}
+
+TEST_F(MultipartUploadTest, UploadPartCopyWithSourceIfNoneMatchTest)
+{
+    std::string sourceKey = TestUtils::GetObjectKey("upload-part-copy-object-source");
+    std::string targetKey = TestUtils::GetObjectKey("upload-part-copy-object-target");
+
+    // put the source obj
+    auto putObjectContent = TestUtils::GetRandomStream(102400);
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+    std::string eTag = putObjectOutcome.result().ETag();
+
+    // apply upload id
+    auto uploadPartCopyInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, targetKey));
+    EXPECT_EQ(uploadPartCopyInitOutcome.isSuccess(), true);
+    auto uploadId = uploadPartCopyInitOutcome.result().UploadId();
+
+    {
+        UploadPartCopyRequest request(BucketName, targetKey);
+        request.SetCopySource(BucketName, sourceKey);
+        request.setUploadId(uploadId);
+        request.setPartNumber(1);
+        request.SetSourceIfNotMatchETag(eTag);
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ServerError:304");
+    }
+
+    // success upload part copy with the real ETag
+    UploadPartCopyRequest request(BucketName, targetKey);
+    request.SetCopySource(BucketName, sourceKey);
+    request.setUploadId(uploadId);
+    request.setPartNumber(1);
+    request.SetSourceIfNotMatchETag("ErrorETag");
+    auto outcome = Client->UploadPartCopy(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+}
+
+TEST_F(MultipartUploadTest, UploadPartCopyWithIfUnmodifiedSinceTest)
+{
+    std::string sourceKey = TestUtils::GetObjectKey("upload-part-copy-object-source");
+    std::string targetKey = TestUtils::GetObjectKey("upload-part-copy-object-target");
+
+    // put the source obj
+    auto putObjectContent = TestUtils::GetRandomStream(102400);
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+    std::string eTag = putObjectOutcome.result().ETag();
+
+    // apply upload id
+    auto uploadPartCopyInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, targetKey));
+    EXPECT_EQ(uploadPartCopyInitOutcome.isSuccess(), true);
+    auto uploadId = uploadPartCopyInitOutcome.result().UploadId();
+
+    std::string beforeChangeTime = TestUtils::GetGMTString(-100);
+    std::string afterChangeTime = TestUtils::GetGMTString(100);
+
+    // the target time before the last modified time of sourceObj
+    {
+        UploadPartCopyRequest request(BucketName, targetKey);
+        request.SetCopySource(BucketName, sourceKey);
+        request.setUploadId(uploadId);
+        request.setPartNumber(1);
+        request.SetSourceIfUnModifiedSince(beforeChangeTime);
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        // http status code : 412
+        EXPECT_EQ(outcome.error().Code(), "PreconditionFailed");
+    }
+
+    // the target time equals the last modified time of sourceObj
+    {
+        auto objectMetaOutcome = Client->GetObjectMeta(BucketName, sourceKey);
+        EXPECT_EQ(objectMetaOutcome.isSuccess(), true);
+
+        UploadPartCopyRequest request(BucketName, targetKey);
+        request.SetCopySource(BucketName, sourceKey);
+        request.setUploadId(uploadId);
+        request.setPartNumber(1);
+        request.SetSourceIfUnModifiedSince(objectMetaOutcome.result().LastModified());
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+    }
+
+    // the target time after the last modified time of sourceObj
+    UploadPartCopyRequest request(BucketName, targetKey);
+    request.SetCopySource(BucketName, sourceKey);
+    request.setUploadId(uploadId);
+    request.setPartNumber(1);
+    request.SetSourceIfUnModifiedSince(afterChangeTime);
+    auto outcome = Client->UploadPartCopy(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+}
+
+TEST_F(MultipartUploadTest, UploadPartCopyWithIfModifiedSinceTest)
+{
+    std::string sourceKey = TestUtils::GetObjectKey("upload-part-copy-object-source");
+    std::string targetKey = TestUtils::GetObjectKey("upload-part-copy-object-target");
+
+    // put the source obj
+    auto putObjectContent = TestUtils::GetRandomStream(102400);
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+
+    // apply upload id
+    auto uploadPartCopyInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, targetKey));
+    EXPECT_EQ(uploadPartCopyInitOutcome.isSuccess(), true);
+    auto uploadId = uploadPartCopyInitOutcome.result().UploadId();
+
+    // time
+    std::string beforeChangeTime = TestUtils::GetGMTString(-100);
+    std::string afterChangeTime = TestUtils::GetGMTString(100);
+
+    {
+        UploadPartCopyRequest request(BucketName, targetKey);
+        request.SetCopySource(BucketName, sourceKey);
+        request.setUploadId(uploadId);
+        request.setPartNumber(1);
+        request.SetSourceIfModifiedSince(beforeChangeTime);
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+    }
+
+    {
+        UploadPartCopyRequest request(BucketName, targetKey);
+        request.SetCopySource(BucketName, sourceKey);
+        request.setUploadId(uploadId);
+        request.setPartNumber(1);
+        request.SetSourceIfModifiedSince(afterChangeTime);
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ServerError:304");
+    }
+}
+
+TEST_F(MultipartUploadTest, UnormalUploadPartCopyTest)
+{
+    std::string sourceBucket = TestUtils::GetBucketName("unormal-upload-part-copy-bucket-source");
+    std::string targetBucket = TestUtils::GetBucketName("unormal-upload-part-copy-bucket-target");
+    std::string sourceKey = TestUtils::GetObjectKey("unormal-upload-part-copy-object-source");
+    std::string targetKey = TestUtils::GetObjectKey("unormal-upload-part-copy-object-target");
+    // Set length of parts less than minimum limit(100KB)
+
+    EXPECT_EQ(Client->CreateBucket(sourceBucket).isSuccess(), true);
+    EXPECT_EQ(Client->CreateBucket(targetBucket).isSuccess(), true);
+
+    // put object into source bucket
+    auto putObjectContent = TestUtils::GetRandomStream(102400);
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(sourceBucket, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+    std::string eTag = putObjectOutcome.result().ETag();
+
+    // apply upload id for target bucket
+    auto uploadPartCopyInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(targetBucket, targetKey));
+    EXPECT_EQ(uploadPartCopyInitOutcome.isSuccess(), true);
+    auto uploadId = uploadPartCopyInitOutcome.result().UploadId();
+
+    // Copy part to non-existent target bucket
+    {
+        std::string nonexistentTargetBucket = TestUtils::GetBucketName("nonexistent-target-key");
+        UploadPartCopyRequest request(nonexistentTargetBucket, targetKey);
+        request.SetCopySource(sourceBucket, sourceKey);
+        request.setUploadId(uploadId);
+        request.setPartNumber(1);
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "NoSuchBucket");
+    }
+
+    // Copy part from non-existent source bucket
+    {
+        std::string nonexistentSourceBucket = TestUtils::GetBucketName("nonexistent-source-bucket");
+        UploadPartCopyRequest request(targetBucket, targetKey, nonexistentSourceBucket, sourceKey, uploadId, 1);
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "NoSuchBucket");
+    }
+
+    // Copy part with non-existent source key
+    {
+        std::string nonexistentSourceKey = "nonexistent-source-key";
+        UploadPartCopyRequest request(targetBucket, targetKey, sourceBucket, nonexistentSourceKey, uploadId, 1);
+        auto outcome = Client->UploadPartCopy(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "NoSuchKey");
+    }
+
+    // Copy part with non-existent upload id
+    {
+        auto outcome = Client->UploadPartCopy(UploadPartCopyRequest(targetBucket, targetKey,
+            sourceBucket, sourceKey, "id", 1));
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "NoSuchUpload");
+    }
+
+    // Upload part copy
+    PartList partETags;
+    auto firstUploadOutcome = Client->UploadPartCopy(UploadPartCopyRequest(targetBucket, targetKey,
+        sourceBucket, sourceKey, uploadId, 1));
+    EXPECT_EQ(firstUploadOutcome.isSuccess(), true);
+    // EXPECT_EQ(firstUploadOutcome.result().ETag(), eTag);
+    // partETags.push_back(Part(1, firstUploadOutcome.result().ETag()));
+
+    auto secondUploadOutcome = Client->UploadPartCopy(UploadPartCopyRequest(targetBucket, targetKey,
+        sourceBucket, sourceKey, uploadId, 2));
+    EXPECT_EQ(secondUploadOutcome.isSuccess(), true);
+    // EXPECT_EQ(secondUploadOutcome.result().ETag(), eTag);
+    // partETags.push_back(Part(2, secondUploadOutcome.result().ETag()));
+
+    auto partListOutcome = Client->ListParts(ListPartsRequest(targetBucket, targetKey, uploadId));
+    EXPECT_EQ(partListOutcome.isSuccess(), true);
+    EXPECT_EQ(partListOutcome.result().PartList().size(), 2U);
+
+    // Try to complete multipart upload with all uploaded parts
+    CompleteMultipartUploadRequest request(targetBucket, targetKey, partListOutcome.result().PartList(), uploadId);
+    auto completeOutcome = Client->CompleteMultipartUpload(request);
+    EXPECT_EQ(completeOutcome.isSuccess(), true);
+
+    // get the source object
+    EXPECT_EQ(Client->DoesObjectExist(targetBucket, targetKey), true);
+
+    // delete source bucket and target bucket
+    EXPECT_EQ(Client->DeleteObject(sourceBucket, sourceKey).isSuccess(), true);
+    EXPECT_EQ(Client->DeleteObject(targetBucket, targetKey).isSuccess(), true);
+    EXPECT_EQ(Client->DeleteBucket(sourceBucket).isSuccess(), true);
+    EXPECT_EQ(Client->DeleteBucket(targetBucket).isSuccess(), true);
+}
+
+
 TEST_F(MultipartUploadTest, ListMultipartUploadsTest)
 {
     //get target object name

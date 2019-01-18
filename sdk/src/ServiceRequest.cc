@@ -22,9 +22,10 @@ using namespace AlibabaCloud::OSS;
 ServiceRequest::ServiceRequest() :
     flags_(0),
     path_("/"),
-    responseStreamFactory_([] { return std::make_shared<std::stringstream>(); }),
-    transferProgress_{nullptr, nullptr}
+    responseStreamFactory_([] { return std::make_shared<std::stringstream>(); })
 {
+    transferProgress_.Handler = nullptr;
+    transferProgress_.UserData = nullptr;
 }
 
 std::string ServiceRequest::Path() const

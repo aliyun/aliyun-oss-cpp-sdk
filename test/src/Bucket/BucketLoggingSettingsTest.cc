@@ -107,14 +107,14 @@ TEST_F(BucketLoggingSettingsTest, EnableLoggingTest)
     auto sOutcome = Client->SetBucketLogging(SetBucketLoggingRequest(BucketName, BucketName, "LoggingTest"));
     EXPECT_EQ(sOutcome.isSuccess(), true);
 
-    TestUtils::WaitForCacheExpire(20);
+    TestUtils::WaitForCacheExpire(5);
     auto gOutcome = Client->GetBucketLogging(GetBucketLoggingRequest(BucketName));
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_EQ(gOutcome.result().TargetPrefix(), "LoggingTest");
 
     auto dOutcome = Client->DeleteBucketLogging(DeleteBucketLoggingRequest(BucketName));
     EXPECT_EQ(dOutcome.isSuccess(), true);
-    TestUtils::WaitForCacheExpire(20);
+    TestUtils::WaitForCacheExpire(5);
     gOutcome = Client->GetBucketLogging(GetBucketLoggingRequest(BucketName));
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_EQ(gOutcome.result().TargetBucket().empty(), true);
@@ -160,7 +160,7 @@ TEST_F(BucketLoggingSettingsTest, EnableLoggingWithEmtpyPrefixNameTest)
     int i = 0;
     while (blOutcome.result().TargetBucket() != BucketName) {
         std::cout << "GetBucketLogging, cnt:" << i++ << ", requestid:" << blOutcome.result().RequestId() << std::endl;
-        TestUtils::WaitForCacheExpire(10);
+        TestUtils::WaitForCacheExpire(5);
         blOutcome = Client->GetBucketLogging(BucketName);
     }
     EXPECT_EQ(blOutcome.isSuccess(), true);

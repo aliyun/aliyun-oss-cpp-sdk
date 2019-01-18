@@ -41,8 +41,16 @@ CompleteMultipartUploadRequest::CompleteMultipartUploadRequest(
     OssObjectRequest(bucket, key),
     partList_(partList),
     uploadId_(uploadId),
-    encodingTypeIsSet_(false)
+    encodingTypeIsSet_(false),
+    hasSetAcl_(false)
 {
+}
+
+
+void CompleteMultipartUploadRequest::setAcl(CannedAccessControlList acl)
+{
+    acl_ = acl;
+    hasSetAcl_ = true;
 }
 
 int CompleteMultipartUploadRequest::validate() const
@@ -84,6 +92,16 @@ ParameterCollection CompleteMultipartUploadRequest::specialParameters()const
         parameters["encoding-type"] = encodingType_;
     }
     return parameters;
+}
+
+HeaderCollection CompleteMultipartUploadRequest::specialHeaders() const
+{
+    HeaderCollection headers;
+    if (hasSetAcl_)
+    {
+        headers["x-oss-object-acl"] = ToAclName(acl_);
+    }
+    return headers;
 }
 
 std::string CompleteMultipartUploadRequest::payload() const

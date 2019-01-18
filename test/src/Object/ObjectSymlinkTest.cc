@@ -213,6 +213,16 @@ TEST_F(ObjectSymlinkTest, CreateSymlinkNegativeTest)
     EXPECT_EQ(outcome.isSuccess(), false);
     EXPECT_EQ(outcome.error().Code(), "NoSuchBucket");
 }
-
+/*
+TEST_F(ObjectSymlinkTest, CreateSymlinkNegativeTest)
+{
+    auto name = TestUtils::GetBucketName("no-exist-symlink");
+    CreateSymlinkRequest setRequestRepeat(name, "test-key");
+    setRequestRepeat.SetSymlinkTarget("test-key-link");
+    auto outcome = Client->CreateSymlink(setRequestRepeat);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().code(), "NoSuchBucket");
+}
+*/
 }
 }

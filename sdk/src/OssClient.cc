@@ -735,6 +735,56 @@ CopyObjectOutcome OssClient::ModifyObjectMeta(const std::string& bucket, const s
     return client_->CopyObject(copyRequest);
 }
 
+VoidOutcome OssClient::PutLiveChannelStatus(const PutLiveChannelStatusRequest &request) const
+{
+    return client_->PutLiveChannelStatus(request);
+}
+
+PutLiveChannelOutcome OssClient::PutLiveChannel(const PutLiveChannelRequest &request) const
+{
+    return client_->PutLiveChannel(request);
+}
+
+VoidOutcome OssClient::PostVodPlaylist(const PostVodPlaylistRequest &request) const
+{
+    return client_->PostVodPlaylist(request);
+}
+
+GetVodPlaylistOutcome OssClient::GetVodPlaylist(const GetVodPlaylistRequest &request) const
+{
+    return client_->GetVodPlaylist(request);
+}
+
+GetLiveChannelStatOutcome OssClient::GetLiveChannelStat(const GetLiveChannelStatRequest &request) const
+{
+    return client_->GetLiveChannelStat(request);
+}
+
+GetLiveChannelInfoOutcome OssClient::GetLiveChannelInfo(const GetLiveChannelInfoRequest &request) const
+{
+    return client_->GetLiveChannelInfo(request);
+}
+
+GetLiveChannelHistoryOutcome OssClient::GetLiveChannelHistory(const GetLiveChannelHistoryRequest &request) const
+{
+    return client_->GetLiveChannelHistory(request);
+}
+
+ListLiveChannelOutcome OssClient::ListLiveChannel(const ListLiveChannelRequest &request) const
+{
+    return client_->ListLiveChannel(request);
+}
+
+VoidOutcome OssClient::DeleteLiveChannel(const DeleteLiveChannelRequest &request) const
+{
+    return client_->DeleteLiveChannel(request);
+}
+
+StringOutcome OssClient::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRequest &request) const
+{
+    return client_->GenerateRTMPSignedUrl(request);
+}
+
 void OssClient::DisableRequest()
 {
     client_->DisableRequest();
@@ -745,3 +795,17 @@ void OssClient::EnableRequest()
     client_->EnableRequest();
 }
 
+PutObjectOutcome OssClient::ResumableUploadObject(const UploadObjectRequest &request) const
+{
+    return client_->ResumableUploadObject(request);
+}
+
+CopyObjectOutcome OssClient::ResumableCopyObject(const MultiCopyObjectRequest &request) const 
+{
+    return client_->ResumableCopyObject(request);
+}
+
+GetObjectOutcome OssClient::ResumableDownloadObject(const DownloadObjectRequest &request) const 
+{
+    return client_->ResumableDownloadObject(request);
+}

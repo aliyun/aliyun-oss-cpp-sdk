@@ -1,10 +1,12 @@
 #include <iostream>
 #include "../Config.h"
 #include "ObjectSample.h"
+#include <alibabacloud/oss/Const.h>
 #include <memory>
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+
 
 static void waitTimeinSec(int time)
 {
@@ -310,6 +312,150 @@ void ObjectSample::PutObjectProgress()
     }
     else {
         PrintError(__FUNCTION__, outcome.error());
+    }
+}
+
+void ObjectSample::UploadObjectProgress() 
+{
+    //case 1: checkpoint dir is not enabled
+    {
+        UploadObjectRequest request(bucket_, "UploadObjectProgress", Config::FileToUpload);
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableUploadObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+
+    //case 2: checkpoint dir is enabled
+    {
+        UploadObjectRequest request(bucket_, "UploadObjectProgress", Config::FileToUpload, Config::CheckpointDir);
+  
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableUploadObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+
+    //case 3: checkpoint dir, multi threads is enabled
+    {
+        UploadObjectRequest request(bucket_, "UploadObjectProgress", Config::FileToUpload, Config::CheckpointDir, DefaultPartSize, 4);
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableUploadObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+}
+
+void ObjectSample::MultiCopyObjectProcess() 
+{
+    //case 1: checkpoint dir is not enabled
+    {
+        MultiCopyObjectRequest request(bucket_, "MultiCopyObjectProcess", bucket_, "MultiCopyObjectProcess_Src");
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableCopyObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+
+    //case 2: checkpoint dir is config
+    {
+        MultiCopyObjectRequest request(bucket_, "MultiCopyObjectProcess", bucket_, "MultiCopyObjectProcess_Src", Config::CheckpointDir);
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableCopyObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+
+    //case 3: checkpoint dir is config, multi threads is config
+    {
+        MultiCopyObjectRequest request(bucket_, "MultiCopyObjectProcess", bucket_, "MultiCopyObjectProcess_Src", Config::CheckpointDir, DefaultPartSize, 4);
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableCopyObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+}
+
+void ObjectSample::DownloadObjectProcess() 
+{
+    //case 1: no checkpoint dir is coinfig
+    {
+        DownloadObjectRequest request(bucket_, "DownloadObjectProgress", Config::FileDownloadTo);
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableDownloadObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().Metadata().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+
+    //case 2: checkpoint dir is config
+    {
+        DownloadObjectRequest request(bucket_, "DownloadObjectProgress", Config::FileDownloadTo, Config::CheckpointDir);
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableDownloadObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().Metadata().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
+    }
+
+    //case 3: checkpoint dir is config, multi threads is config
+    {
+        DownloadObjectRequest request(bucket_, "DownloadObjectProgress", Config::FileDownloadTo, Config::CheckpointDir, DefaultPartSize, 4);
+
+        TransferProgress progressCallback = { ProgressCallback , this };
+        request.setTransferProgress(progressCallback);
+        auto outcome = client->ResumableDownloadObject(request);
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << "[" << this << "]" << " success, ETag:" << outcome.result().Metadata().ETag() << std::endl;
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+        }
     }
 }
 

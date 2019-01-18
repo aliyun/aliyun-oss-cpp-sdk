@@ -27,9 +27,11 @@ namespace OSS
 {
     #define UNUSED_PARAM(x) ((void)(x))
 
+    std::string ComputeContentMD5(const std::string data);
     std::string ComputeContentMD5(const char *data, size_t size);
     std::string ComputeContentMD5(std::istream & stream); 
 
+    std::string ComputeContentETag(const std::string data);
     std::string ComputeContentETag(const char *data, size_t size);
     std::string ComputeContentETag(std::istream & stream);
 
@@ -54,17 +56,22 @@ namespace OSS
     std::string ToUpper(const char* source);
     std::string ToGmtTime(std::time_t &t);
     std::string ToUtcTime(std::time_t &t);
+    std::time_t UtcToUnixTime(const std::string &t);
 
     bool IsIp(const std::string &host);
     bool IsValidBucketName(const std::string &bucketName);
     bool IsValidObjectKey(const std::string &key);
     bool IsValidLoggingPrefix(const std::string &prefix);
+    bool IsValidChannelName(const std::string &channelName);
+    bool IsValidPlayListName(const std::string &playListName);
 
 
     const std::string &LookupMimeType(const std::string& name);
     std::string CombineHostString(const std::string &endpoint, const std::string &bucket, bool isCname);
     std::string CombinePathString(const std::string &endpoint, const std::string &bucket, const std::string &key);
     std::string CombineQueryString(const ParameterCollection &parameters);
+    std::string CombineRTMPString(const std::string &endpoint, const std::string &bucket, bool isCname);
+
 
     std::streampos GetIOStreamLength(std::iostream &stream);
 
@@ -78,5 +85,8 @@ namespace OSS
 
     const char * ToRuleStatusName(RuleStatus status);
     RuleStatus ToRuleStatusType(const char *name);
+
+    const char * ToLiveChannelStatusName(LiveChannelStatus status);
+    LiveChannelStatus ToLiveChannelStatusType(const char *name);
 }
 }

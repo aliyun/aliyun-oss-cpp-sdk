@@ -39,7 +39,7 @@ namespace OSS
         void addHeader(const std::string &name, const std::string &value);
         void setHeader(const std::string &name, const std::string &value);
         void removeHeader(const std::string &name);
-        bool hasHeader(const std::string &name);
+        bool hasHeader(const std::string &name) const ;
         std::string Header(const std::string &name)const;
         const HeaderCollection &Headers()const;
 

@@ -33,10 +33,6 @@ namespace OSS
         UploadPartCopyResult(const std::shared_ptr<std::iostream>& data,
              const HeaderCollection &header);
         UploadPartCopyResult& operator=(const std::string& data);
-        const std::string& CopySourceIfMatch() const;
-        const std::string& CopySourceIfNoneMatch() const;
-        const std::string& CopySourceIfUnmodifiedSince() const;
-        const std::string& CopySourceIfModifiedSince() const;
         const std::string& LastModified() const;
         const std::string& ETag() const;
      private:

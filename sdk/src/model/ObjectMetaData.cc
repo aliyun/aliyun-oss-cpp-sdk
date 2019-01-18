@@ -156,7 +156,7 @@ void ObjectMetaData::setCacheControl(const std::string &value)
     metaData_[Http::CACHE_CONTROL] = value;
 }
 
-void ObjectMetaData::ObjectMetaData::setContentDisposition(const std::string &value)
+void ObjectMetaData::setContentDisposition(const std::string &value)
 {
     metaData_[Http::CONTENT_DISPOSITION] = value;
 }

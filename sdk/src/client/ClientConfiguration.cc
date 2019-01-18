@@ -55,7 +55,8 @@ bool DefaultRetryStrategy::shouldRetry(const Error & error, long attemptedRetrie
     long responseCode = error.Status();
 
     //http code
-    if (responseCode > 499 && responseCode < 599) {
+    if ((responseCode == 403 && error.Message().find("RequestTimeTooSkewed")) ||
+        (responseCode > 499 && responseCode < 599)) {
         return true;
     }
     else {
@@ -98,6 +99,7 @@ ClientConfiguration::ClientConfiguration() :
     verifySSL(false),
     isCname(false),
     enableCrc64(true),
+    enableDateSkewAdjustment(true),
     sendRateLimiter(nullptr),
     recvRateLimiter(nullptr)
 {

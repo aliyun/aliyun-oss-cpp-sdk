@@ -25,6 +25,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
+#include <sys/stat.h>
 #define  oss_access(a)  ::_access((a), 0)
 #define  oss_mkdir(a)   ::_mkdir(a)
 #define  oss_rmdir(a)   ::_rmdir(a)
@@ -59,6 +60,13 @@ bool AlibabaCloud::OSS::CreateDirectory(const std::string &folder)
     return true;
 }
 
+bool AlibabaCloud::OSS::IsDirectoryExist(std::string folder) {
+    if (folder[folder.length() - 1] != PATH_DELIMITER && folder[folder.length() - 1] != '/') {
+        folder += PATH_DELIMITER;
+    }
+    return !oss_access(folder.c_str());
+}
+
 bool AlibabaCloud::OSS::RemoveDirectory(const std::string &folder)
 {
     return !oss_rmdir(folder.c_str());
@@ -78,7 +86,15 @@ bool AlibabaCloud::OSS::RenameFile(const std::string &from, const std::string &t
 bool AlibabaCloud::OSS::GetPathLastModifyTime(const std::string & path, time_t &t)
 {
     struct stat buf;
-    if (stat(path.c_str(), &buf) != 0)
+	auto filename = path.c_str();
+#if defined(_WIN32) && _MSC_VER < 1900
+	std::string tmp;
+	if (!path.empty() && (path.rbegin()[0] == PATH_DELIMITER)) {
+		tmp = path.substr(0, path.size() - 1);
+		filename = tmp.c_str();
+	} 
+#endif
+	if (stat(filename, &buf) != 0)
         return false;
 
     t = buf.st_mtime;

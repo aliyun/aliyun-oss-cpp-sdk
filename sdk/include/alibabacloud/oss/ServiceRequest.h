@@ -28,6 +28,7 @@ namespace OSS
     const int REQUEST_FLAG_CONTENTMD5    = (1 << 0);
     const int REQUEST_FLAG_PARAM_IN_PATH = (1 << 1);
     const int REQUEST_FLAG_CHECK_CRC64   = (1 << 2);
+    const int REQUEST_FLAG_SAVE_CLIENT_CRC64 = (1 << 3);
 
     class ALIBABACLOUD_OSS_EXPORT ServiceRequest
     {

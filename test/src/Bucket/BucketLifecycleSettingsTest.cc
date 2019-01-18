@@ -63,23 +63,12 @@ protected:
         SetBucketLifecycleRequest request(BucketName);
         request.addLifecycleRule(rule);
         auto outcome = Client->SetBucketLifecycle(request);
-        if (!outcome.isSuccess()) {
-            TestUtils::WaitForCacheExpire(1);
-            outcome = Client->SetBucketLifecycle(request);
-        }
         if (!outcome.isSuccess())
             return false;
 
-        TestUtils::WaitForCacheExpire(10);
+        TestUtils::WaitForCacheExpire(5);
         auto gOutcome = Client->GetBucketLifecycle(BucketName);
-        TestUtils::WaitForCacheExpire(10);
-        gOutcome = Client->GetBucketLifecycle(BucketName);
-        if (!gOutcome.isSuccess()) {
-            TestUtils::WaitForCacheExpire(5);
-            gOutcome = Client->GetBucketLifecycle(BucketName);
-        }
         Client->DeleteBucketLifecycle(BucketName);
-
         TestUtils::WaitForCacheExpire(5);
 
         if (!gOutcome.isSuccess())
@@ -242,7 +231,6 @@ TEST_F(BucketLifecycleSettingsTest, LifecycleBasicSettingTest)
     rule.setStatus(RuleStatus::Enabled);
     rule.Expiration().setDays(200);
     EXPECT_TRUE(TestRule(rule));
-    TestUtils::WaitForCacheExpire(2);
 
     rule = LifecycleRule();
     rule.setID("StandardExpireRule-002");
@@ -250,7 +238,6 @@ TEST_F(BucketLifecycleSettingsTest, LifecycleBasicSettingTest)
     rule.setStatus(RuleStatus::Disabled);
     rule.Expiration().setDays(365);
     EXPECT_TRUE(TestRule(rule));
-    TestUtils::WaitForCacheExpire(2);
 
     rule = LifecycleRule();
     rule.setID("StandardExpireRule-003");
@@ -258,7 +245,6 @@ TEST_F(BucketLifecycleSettingsTest, LifecycleBasicSettingTest)
     rule.setStatus(RuleStatus::Enabled);
     rule.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(200, true));
     EXPECT_TRUE(TestRule(rule));
-    TestUtils::WaitForCacheExpire(2);
 
     rule = LifecycleRule();
     rule.setID("StandardExpireRule-004");
@@ -266,7 +252,6 @@ TEST_F(BucketLifecycleSettingsTest, LifecycleBasicSettingTest)
     rule.setStatus(RuleStatus::Disabled);
     rule.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(365, true));
     EXPECT_TRUE(TestRule(rule));
-    TestUtils::WaitForCacheExpire(2);
 }
 
 TEST_F(BucketLifecycleSettingsTest, LifecycleAdvancedSettingTest)

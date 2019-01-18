@@ -106,8 +106,21 @@ namespace OSS
         /*Generate Post Policy*/
 
         /*Resumable Operation*/
+        PutObjectOutcome ResumableUploadObject(const UploadObjectRequest& request) const;
+        CopyObjectOutcome ResumableCopyObject(const MultiCopyObjectRequest& request) const;
+        GetObjectOutcome ResumableDownloadObject(const DownloadObjectRequest& request) const;
 
         /*Live Channel*/
+        VoidOutcome PutLiveChannelStatus(const PutLiveChannelStatusRequest &request) const;
+        PutLiveChannelOutcome PutLiveChannel(const PutLiveChannelRequest &request) const;
+        VoidOutcome PostVodPlaylist(const PostVodPlaylistRequest &request) const;
+        GetVodPlaylistOutcome GetVodPlaylist(const GetVodPlaylistRequest& request) const;
+        GetLiveChannelStatOutcome GetLiveChannelStat(const GetLiveChannelStatRequest &request) const;
+        GetLiveChannelInfoOutcome GetLiveChannelInfo(const GetLiveChannelInfoRequest &request) const;
+        GetLiveChannelHistoryOutcome GetLiveChannelHistory(const GetLiveChannelHistoryRequest &request) const;
+        ListLiveChannelOutcome ListLiveChannel(const ListLiveChannelRequest &request) const;
+        VoidOutcome DeleteLiveChannel(const DeleteLiveChannelRequest &request) const;
+        StringOutcome GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRequest &request) const;
 
         /*Requests control*/
         void DisableRequest();
@@ -115,7 +128,7 @@ namespace OSS
 
     protected:
         virtual std::shared_ptr<HttpRequest> buildHttpRequest(const std::string & endpoint, const ServiceRequest &msg, Http::Method method) const;
-        virtual bool hasResponseError(const std::shared_ptr<HttpResponse>&response) const;
+        virtual bool hasResponseError(const std::shared_ptr<HttpResponse>&response)  const;
         OssOutcome MakeRequest(const OssRequest &request, Http::Method method) const;
 
     private:
@@ -126,7 +139,7 @@ namespace OSS
         void addOther(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const;
 
         OssError buildError(const Error &error) const;
-        ServiceResult buildResult(const std::shared_ptr<HttpResponse> &httpResponse) const;
+        ServiceResult buildResult(const OssRequest &request, const std::shared_ptr<HttpResponse> &httpResponse) const;
 
     private:
         std::string endpoint_;

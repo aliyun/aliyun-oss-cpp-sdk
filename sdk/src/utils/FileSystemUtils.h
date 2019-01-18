@@ -26,5 +26,6 @@ namespace OSS
     bool RemoveFile(const std::string &filepath);
     bool RenameFile(const std::string &from, const std::string &to);
     bool GetPathLastModifyTime(const std::string &path, time_t &t);
+    bool IsDirectoryExist(std::string folder);
 }
 }

@@ -20,6 +20,7 @@ file(GLOB sample_service_src "src/service/*")
 file(GLOB sample_bucket_src "src/bucket/*")
 file(GLOB sample_object_src "src/object/*")
 file(GLOB sample_presignedurl_src "src/presignedurl/*")
+file(GLOB sample_livechannel_src "src/LiveChannel/*")
 
 
 add_executable(${PROJECT_NAME} 
@@ -27,7 +28,8 @@ add_executable(${PROJECT_NAME}
 	${sample_service_src}
 	${sample_bucket_src}
 	${sample_object_src}
-	${sample_presignedurl_src})
+	${sample_presignedurl_src}
+	${sample_livechannel_src})
 
 target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include)
@@ -35,11 +37,10 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} cpp-sdk)	
 target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})
-if (${TARGET_ARCH} STREQUAL "LINUX")
-	target_link_libraries(${PROJECT_NAME} pthread)	
+if (${TARGET_OS} STREQUAL "LINUX")
+target_link_libraries(${PROJECT_NAME} pthread)	
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
 target_compile_options(${PROJECT_NAME} 
 	PRIVATE "${SDK_COMPILER_FLAGS}")
 

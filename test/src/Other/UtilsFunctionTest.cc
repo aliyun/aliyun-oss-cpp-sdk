@@ -42,7 +42,18 @@ protected:
     void TearDown() override
     {
     }
+
+    static int64_t GetFileLength(const std::string& file);
 };
+
+int64_t UtilsFunctionTest::GetFileLength(const std::string& file)
+{
+    std::fstream f(file, std::ios::in | std::ios::binary);
+    f.seekg(0, f.end);
+    int64_t size = f.tellg();
+    f.close();
+    return size;
+}
 
 TEST_F(UtilsFunctionTest, Base64EncodeTest)
 {
@@ -243,6 +254,45 @@ TEST_F(UtilsFunctionTest, ToGmtTimeTest)
     EXPECT_STREQ(timeStr.c_str(), "Wed, 07 Mar 2018 08:35:19 GMT");
 }
 
+TEST_F(UtilsFunctionTest, ToUtcTimeTest)
+{
+    std::time_t t = 0;
+    std::string timeStr = ToUtcTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "1970-01-01T00:00:00.000Z");
+
+    t = 1520411719;
+    timeStr = ToUtcTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "2018-03-07T08:35:19.000Z");
+}
+
+TEST_F(UtilsFunctionTest, UtcToUnixTimeTest)
+{
+    std::string date = "1970-01-01T00:00:00.000Z";
+    std::time_t t = UtcToUnixTime(date);
+    EXPECT_EQ(t, 0);
+
+    date = "2018-03-07T08:35:19.123Z";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, 1520411719);
+
+    //invalid case
+    date = "2018-03-07T08:35:19Z";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+
+    date = "2018-03-07T08:35:19.abcZ";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+
+    date = "18-03-07T08:35:19.000Z";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+
+    date = "";
+    t = UtcToUnixTime(date);
+    EXPECT_EQ(t, -1);
+}
+
 TEST_F(UtilsFunctionTest, LookupMimeTypeTest)
 {
     EXPECT_STREQ(LookupMimeType("name.html").c_str(), "text/html");
@@ -394,7 +444,7 @@ TEST_F(UtilsFunctionTest, GetIOStreamLengthResetContentPositionTest)
     auto length = GetIOStreamLength(of);
     of.close();
     auto md5_file = TestUtils::GetFileMd5(fileName);
-    EXPECT_EQ(length, 1024);
+    EXPECT_EQ(length, 1024LL);
     RemoveFile(fileName);
 }
 
@@ -472,6 +522,74 @@ TEST_F(UtilsFunctionTest, StringReplaceTest)
 
     StringReplace(test, "abcd", "A");
     EXPECT_EQ(test, "1234AABCD1234");
+}
+
+TEST_F(UtilsFunctionTest, UploadAndDownloadObject)
+{
+    // create client and bucket
+    auto BucketName = TestUtils::GetBucketName("utils-function-bucket-test");
+    auto key = TestUtils::GetObjectKey("utils-function-object-test");
+    std::shared_ptr<OssClient> Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+    TestUtils::EnsureBucketExist(*Client, BucketName);
+
+    // create local file
+    std::string tmpFile = TestUtils::GetTargetFileName("UtilsFunctionObject").append(".tmp");
+    TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
+    ObjectMetaData meta;
+    // upload obect
+    auto uploadObjectOutcome = TestUtils::UploadObject(*Client, BucketName, key, tmpFile, meta);
+    EXPECT_EQ(uploadObjectOutcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+    // download object
+    std::string targetFile = TestUtils::GetTargetFileName("TargetFile").append(".tmp");
+    TestUtils::DownloadObject(*Client, BucketName, key, targetFile);
+
+    EXPECT_EQ(GetFileLength(targetFile), GetFileLength(tmpFile));
+
+    // delete bucket
+    TestUtils::CleanBucket(*Client, BucketName);
+    Client = nullptr;
+    EXPECT_EQ(RemoveFile(tmpFile), true);
+    EXPECT_EQ(RemoveFile(targetFile), true);
+}
+
+TEST_F(UtilsFunctionTest, ToLiveChannelStatusNameTest)
+{
+    std::string str = ToLiveChannelStatusName(LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(str, "enabled");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(str, "disabled");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::IdleStatus);
+    EXPECT_EQ(str, "idle");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::LiveStatus);
+    EXPECT_EQ(str, "live");
+
+    str.clear();
+    str = ToLiveChannelStatusName(LiveChannelStatus::UnknownStatus);
+    EXPECT_EQ(str, "");
+}
+
+TEST_F(UtilsFunctionTest, ToLiveChannelStatusTypeTest)
+{
+    EXPECT_EQ(ToLiveChannelStatusType("enabled"), LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("EnaBled"), LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("Enabled"), LiveChannelStatus::EnabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("Disabled"), LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("DISabled"), LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("DISABLED"), LiveChannelStatus::DisabledStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("IDLE"), LiveChannelStatus::IdleStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("IDLe"), LiveChannelStatus::IdleStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("Live"), LiveChannelStatus::LiveStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("LIVE"), LiveChannelStatus::LiveStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("aaa"), LiveChannelStatus::UnknownStatus);
+    EXPECT_EQ(ToLiveChannelStatusType("lived"), LiveChannelStatus::UnknownStatus);
 }
 
 }

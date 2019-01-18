@@ -5,6 +5,7 @@
 #include "bucket/BucketSample.h"
 #include "object/ObjectSample.h"
 #include "presignedurl/PresignedUrlSample.h"
+#include "LiveChannel/LiveChannelSample.h"
 
 using namespace AlibabaCloud::OSS;
 
@@ -63,6 +64,9 @@ int main(void)
 
 
     ObjectSample objectSample(bucketName);
+	objectSample.UploadObjectProgress();
+	objectSample.MultiCopyObjectProcess();
+	objectSample.DownloadObjectProcess();
     objectSample.PutObjectFromBuffer();
     objectSample.PutObjectFromFile();
     objectSample.GetObjectToBuffer();
@@ -86,6 +90,17 @@ int main(void)
     signedUrlSample.GetObjectByUrlToBuffer();
     signedUrlSample.GetObjectByUrlToFile();
 
+    // LiveChannel
+    LiveChannelSample liveChannelSample(bucketName, "test_channel");
+    liveChannelSample.PutLiveChannel();
+    liveChannelSample.GetLiveChannelInfo();
+    liveChannelSample.GetLiveChannelStat();
+    liveChannelSample.ListLiveChannel();
+    liveChannelSample.GetLiveChannelHistory();
+    liveChannelSample.PostVodPlayList();
+    liveChannelSample.GetVodPlayList();
+    liveChannelSample.PutLiveChannelStatus();
+    liveChannelSample.DeleteLiveChannel();
     ShutdownSdk();
-    return 1;
+    return 0;
 }

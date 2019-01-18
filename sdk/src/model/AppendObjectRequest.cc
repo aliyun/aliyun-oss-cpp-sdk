@@ -67,6 +67,11 @@ void AppendObjectRequest::setExpires(uint64_t expires)
 	metaData_.addHeader(Http::EXPIRES, std::to_string(expires));
 }
 
+void AppendObjectRequest::setExpires(const std::string& value)
+{
+    metaData_.addHeader(Http::EXPIRES, value);
+}
+
 void AppendObjectRequest::setAcl(const CannedAccessControlList& acl)
 {
 	metaData_.addHeader("x-oss-object-acl", ToAclName(acl));

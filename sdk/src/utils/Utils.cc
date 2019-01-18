@@ -150,6 +150,11 @@ std::string AlibabaCloud::OSS::Base64EncodeUrlSafe(const char *src, int len)
     return out;
 }
 
+std::string AlibabaCloud::OSS::ComputeContentMD5(std::string data) 
+{
+    return ComputeContentMD5(data.c_str(), data.size());
+}
+
 std::string AlibabaCloud::OSS::ComputeContentMD5(const char * data, size_t size)
 {
     if (!data) {
@@ -177,7 +182,7 @@ std::string AlibabaCloud::OSS::ComputeContentMD5(std::istream& stream)
     EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
 
     auto currentPos = stream.tellg();
-    if (currentPos == -1) {
+    if (currentPos == static_cast<std::streampos>(-1)) {
         currentPos = 0;
         stream.clear();
     }
@@ -213,6 +218,12 @@ static std::string HexToString(const unsigned char *data, size_t size)
         ss << hex[(data[i] >> 4)] << hex[(data[i] & 0x0F)];
     return ss.str();
 }
+
+std::string AlibabaCloud::OSS::ComputeContentETag(const std::string data)
+{
+    return ComputeContentETag(data.c_str(), data.size());
+}
+
 std::string AlibabaCloud::OSS::ComputeContentETag(const char * data, size_t size)
 {
     if (!data) {
@@ -237,7 +248,7 @@ std::string AlibabaCloud::OSS::ComputeContentETag(std::istream& stream)
     EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
 
     auto currentPos = stream.tellg();
-    if (currentPos == -1) {
+    if (currentPos == static_cast<std::streampos>(-1)) {
         currentPos = 0;
         stream.clear();
     }
@@ -367,12 +378,13 @@ std::string AlibabaCloud::OSS::ToGmtTime(std::time_t &t)
 #else
     ::gmtime_r(&t, &tm);
 #endif
+
 #if defined(__GNUG__) && __GNUC__ < 5
     char tmbuff[26];
     strftime(tmbuff, 26, "%a, %d %b %Y %T", &tm);
     date << tmbuff << " GMT";
 #else
-    date << std::put_time(&tm, "%a, %d %b %Y %T GMT");
+    date << std::put_time(&tm, "%a, %d %b %Y %H:%M:%S GMT");
 #endif
     return date.str();    
 }
@@ -394,6 +406,27 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
     date << std::put_time(&tm, "%Y-%m-%dT%X.000Z");
 #endif
     return date.str();
+}
+
+std::time_t AlibabaCloud::OSS::UtcToUnixTime(const std::string &t)
+{
+    const char* date = t.c_str();
+    std::tm tm;
+    std::time_t tt = -1;
+    int ms;
+    auto result = sscanf(date, "%4d-%2d-%2dT%2d:%2d:%2d.%dZ",
+        &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec, &ms);
+
+    if (result == 7) {
+        tm.tm_year = tm.tm_year - 1900;
+        tm.tm_mon = tm.tm_mon - 1;
+#ifdef _WIN32
+        tt = _mkgmtime64(&tm);
+#else
+        tt = timegm(&tm);
+#endif // _WIN32
+    }
+    return tt < 0 ? -1 : tt;
 }
 
 bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
@@ -446,6 +479,53 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
      std::regex ipPattern("^[a-zA-Z][a-zA-Z0-9\\-]{0,31}$");
      return std::regex_match(prefix, ipPattern);
 #endif
+ }
+
+ bool AlibabaCloud::OSS::IsValidChannelName(const std::string &channelName)
+ {
+     if(channelName.empty() ||
+        std::string::npos != channelName.find('/') || 
+        channelName.size() > MaxLiveChannelNameLength)
+        return false;
+    
+    return true;
+ }
+
+ bool AlibabaCloud::OSS::IsValidPlayListName(const std::string &playlistName)
+ {
+     if(playlistName.empty())
+    {
+        return true;
+    }else{
+        if(!IsValidObjectKey(playlistName))
+        {
+            return false;
+        }
+        if(playlistName.size() < MinLiveChannelPlayListLength || 
+            playlistName.size() > MaxLiveChannelPlayListLength)
+        {
+            return false;
+        }
+        std::size_t lastPos = playlistName.find_last_of('.');
+        std::size_t slashPos = playlistName.find('/');
+        if(lastPos == std::string::npos || 
+            slashPos != std::string::npos ||
+            0 == lastPos || '.' == playlistName[lastPos-1])
+        {
+            return false;
+        }else{
+            std::string suffix = playlistName.substr(lastPos);
+            if(suffix.size() < 5)
+            {
+                return false;
+            }
+            if(ToLower(suffix.c_str()) != ".m3u8")
+            {
+                return false;
+            }
+            return true;
+        }
+    }
  }
 
 const std::string& AlibabaCloud::OSS::LookupMimeType(const std::string &name)
@@ -631,6 +711,23 @@ std::string AlibabaCloud::OSS::CombinePathString(
     return path;
 }
 
+std::string AlibabaCloud::OSS::CombineRTMPString(
+    const std::string &endpoint, 
+    const std::string &bucket,
+    bool isCname)
+{
+    Url url(endpoint);
+    if (!bucket.empty() && !isCname && !IsIp(url.host())) {
+        std::string host(bucket);
+        host.append(".").append(url.host());
+        url.setHost(host);
+    }
+
+    std::ostringstream out;
+    out << "rtmp://" << url.authority();
+    return out.str();
+}
+
 std::string AlibabaCloud::OSS::CombineQueryString(const ParameterCollection &parameters)
 {
     std::stringstream ss;
@@ -649,7 +746,7 @@ std::string AlibabaCloud::OSS::CombineQueryString(const ParameterCollection &par
 std::streampos AlibabaCloud::OSS::GetIOStreamLength(std::iostream &stream)
 {
     auto currentPos = stream.tellg();
-    if (currentPos == -1) {
+    if (currentPos == static_cast<std::streampos>(-1)) {
         currentPos = 0;
         stream.clear();
     }
@@ -705,6 +802,25 @@ RuleStatus AlibabaCloud::OSS::ToRuleStatusType(const char *name)
     std::string statusName = ToLower(name);
     if (!statusName.compare("enabled")) return RuleStatus::Enabled;
     else return RuleStatus::Disabled;
+}
+
+const char *AlibabaCloud::OSS::ToLiveChannelStatusName(LiveChannelStatus status)
+{
+    if(status > LiveChannelStatus::LiveStatus)
+        return "";
+
+    static const char *StatusName[] = { "enabled", "disabled", "idle", "live" };
+    return StatusName[status - LiveChannelStatus::EnabledStatus];
+}
+
+LiveChannelStatus AlibabaCloud::OSS::ToLiveChannelStatusType(const char *name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("enabled")) return LiveChannelStatus::EnabledStatus;
+    else if (!statusName.compare("disabled")) return LiveChannelStatus::DisabledStatus;
+    else if (!statusName.compare("idle")) return LiveChannelStatus::IdleStatus;
+    else if (!statusName.compare("live")) return LiveChannelStatus::LiveStatus;
+    else return LiveChannelStatus::UnknownStatus;
 }
 
 
