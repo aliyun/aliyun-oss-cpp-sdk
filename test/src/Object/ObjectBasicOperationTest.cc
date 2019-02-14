@@ -682,6 +682,7 @@ TEST_F(ObjectBasicOperationTest, PutObjectBasicTest)
     PutObjectRequest request(BucketName, key, content);
     auto pOutcome = Client->PutObject(request);
     EXPECT_EQ(pOutcome.isSuccess(), true);
+    EXPECT_TRUE(pOutcome.result().Content() == nullptr);
 
     auto outome = Client->GetObject(BucketName, key);
     EXPECT_EQ(outome.isSuccess(), true);

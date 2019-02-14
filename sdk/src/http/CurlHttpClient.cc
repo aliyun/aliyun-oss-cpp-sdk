@@ -202,7 +202,8 @@ namespace OSS
         TransferProgressHandler progress;
         void *userData;
         bool enableCrc64;
-        uint64_t crc64Value;
+        uint64_t sendCrc64Value;
+        uint64_t recvCrc64Value;
         int sendSpeed;
         int recvSpeed;
     };
@@ -237,7 +238,7 @@ namespace OSS
         }
 
         if (state->enableCrc64) {
-            state->crc64Value = CRC64::CalcCRC(state->crc64Value, (void *)ptr, got);
+            state->sendCrc64Value = CRC64::CalcCRC(state->sendCrc64Value, (void *)ptr, got);
         }
 
         return got;
@@ -287,7 +288,7 @@ namespace OSS
         }
 
         if (state->enableCrc64) {
-            state->crc64Value = CRC64::CalcCRC(state->crc64Value, (void *)ptr, wanted);
+            state->recvCrc64Value = CRC64::CalcCRC(state->recvCrc64Value, (void *)ptr, wanted);
         }
 
         return wanted;
@@ -459,7 +460,7 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         true, -1, 
         request->TransferProgress().Handler,
         request->TransferProgress().UserData,
-        request->hasCheckCrc64(), initCRC64,
+        request->hasCheckCrc64(), initCRC64, initCRC64, 
         0, 0
     };
 
@@ -576,8 +577,17 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
             break;
         };
     }
-    
-    request->setCrc64Result(transferState.crc64Value);
+   
+    switch (request->method())
+    {
+    case Http::Method::Put:
+    case Http::Method::Post:
+        request->setCrc64Result(transferState.sendCrc64Value);
+        break;
+    default:
+        request->setCrc64Result(transferState.recvCrc64Value);
+        break;
+    }
     request->setTransferedBytes(transferState.transferred);
 
     curlContainer_->Release(curl);

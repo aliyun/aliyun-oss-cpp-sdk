@@ -123,7 +123,8 @@ Error Client::buildError(const std::shared_ptr<HttpResponse> &response) const
     long responseCode = response->statusCode();
     error.setStatus(responseCode);
     std::stringstream ss;
-    if (responseCode > 299 && responseCode < 600) {
+    if ((responseCode == 203) || 
+        (responseCode > 299 && responseCode < 600)) {
         ss << "ServerError:" << responseCode;
         error.setCode(ss.str());
         if (response->Body() != nullptr) {

@@ -36,8 +36,8 @@ ObjectMetaData& ObjectMetaData::operator=(const HeaderCollection& data)
             metaData_[header.first] = header.second;
     }
 
-    if (metaData_.find("ETag") != metaData_.end()) {
-        metaData_["ETag"] = TrimQuotes(metaData_.at("ETag").c_str());
+    if (metaData_.find(Http::ETAG) != metaData_.end()) {
+        metaData_[Http::ETAG] = TrimQuotes(metaData_.at(Http::ETAG).c_str());
     }
 
     return *this;
@@ -181,14 +181,21 @@ void ObjectMetaData::addHeader(const std::string &key, const std::string &value)
     metaData_[key] = value;
 }
 
+bool ObjectMetaData::hasHeader(const std::string& key) const
+{
+    return (metaData_.find(key) != metaData_.end());
+}
+
+void ObjectMetaData::removeHeader(const std::string& key)
+{
+    if (metaData_.find(key) != metaData_.end()) {
+        metaData_.erase(key);
+    }
+}
+
 MetaData &ObjectMetaData::HttpMetaData()
 {
     return metaData_;
-}
-
-MetaData &ObjectMetaData::UserMetaData()
-{
-    return userMetaData_;
 }
 
 const MetaData &ObjectMetaData::HttpMetaData() const
@@ -196,7 +203,44 @@ const MetaData &ObjectMetaData::HttpMetaData() const
     return metaData_;
 }
 
+void ObjectMetaData::addUserHeader(const std::string &key, const std::string &value)
+{
+    userMetaData_[key] = value;
+}
+
+bool ObjectMetaData::hasUserHeader(const std::string& key) const
+{
+    return (userMetaData_.find(key) != userMetaData_.end());
+}
+
+void ObjectMetaData::removeUserHeader(const std::string& key)
+{
+    if (userMetaData_.find(key) != userMetaData_.end()) {
+        userMetaData_.erase(key);
+    }
+}
+
+MetaData &ObjectMetaData::UserMetaData()
+{
+    return userMetaData_;
+}
+
 const MetaData &ObjectMetaData::UserMetaData() const
 {
     return userMetaData_;
+}
+
+HeaderCollection ObjectMetaData::toHeaderCollection() const
+{
+    HeaderCollection headers;
+    for (auto const&header : metaData_) {
+        headers[header.first] = header.second;
+    }
+
+    for (auto const&header : userMetaData_) {
+        std::string key("x-oss-meta-");
+        key.append(header.first);
+        headers[key] = header.second;
+    }
+    return headers;
 }

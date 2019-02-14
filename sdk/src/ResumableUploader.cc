@@ -128,13 +128,24 @@ PutObjectOutcome ResumableUploader::Upload()
     });
 
     CompleteMultipartUploadRequest completeMultipartUploadReq(request_.Bucket(), request_.Key(), uploadedParts, uploadID_);
-    if (request_.MetaData().HttpMetaData().find("x-oss-object-acl")
-        != request_.MetaData().HttpMetaData().end()) {
-        std::string aclName = request_.MetaData().HttpMetaData().at("x-oss-object-acl");
-        completeMultipartUploadReq.setAcl(ToAclType(aclName.c_str()));
+    if (request_.MetaData().hasHeader("x-oss-object-acl")) {
+        completeMultipartUploadReq.MetaData().HttpMetaData()["x-oss-object-acl"] =
+            request_.MetaData().HttpMetaData().at("x-oss-object-acl");
     }
     if (!request_.EncodingType().empty()) {
         completeMultipartUploadReq.setEncodingType(request_.EncodingType());
+    }
+    if (request_.MetaData().hasHeader("x-oss-callback")) {
+        completeMultipartUploadReq.MetaData().HttpMetaData()["x-oss-callback"] =
+            request_.MetaData().HttpMetaData().at("x-oss-callback");
+        if (request_.MetaData().hasHeader("x-oss-callback-var")) {
+            completeMultipartUploadReq.MetaData().HttpMetaData()["x-oss-callback-var"] =
+                request_.MetaData().HttpMetaData().at("x-oss-callback-var");
+        }
+        if (request_.MetaData().hasHeader("x-oss-pub-key-url")) {
+            completeMultipartUploadReq.MetaData().HttpMetaData()["x-oss-pub-key-url"] =
+                request_.MetaData().HttpMetaData().at("x-oss-pub-key-url");
+        }
     }
     auto outcome = client_->CompleteMultipartUpload(completeMultipartUploadReq);
     if (!outcome.isSuccess()) {
@@ -161,7 +172,12 @@ PutObjectOutcome ResumableUploader::Upload()
     if (!recordPath_.empty()) {
         RemoveFile(recordPath_);
     }
-    return PutObjectOutcome(PutObjectResult(outcome.result().ETag(), outcome.result().CRC64()));
+
+    HeaderCollection headers;
+    headers[Http::ETAG] = outcome.result().ETag();
+    headers["x-oss-hash-crc64ecma"] = std::to_string(outcome.result().CRC64());
+    headers["x-oss-request-id"] = outcome.result().RequestId();
+    return PutObjectOutcome(PutObjectResult(headers, outcome.result().Content()));
 }
 
 int ResumableUploader::prepare(OssError& err)

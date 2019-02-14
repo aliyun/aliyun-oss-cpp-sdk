@@ -32,7 +32,8 @@ const static std::set<std::string> ParamtersToSign =
     "response-content-type", "response-content-language", "response-expires",
     "response-cache-control", "response-content-disposition", "response-content-encoding",
     "append", "position", "lifecycle", "delete", "live", "status", "comp", "vod",
-    "startTime", "endTime", "x-oss-process", "security-token", "objectMeta"
+    "startTime", "endTime", "x-oss-process", "security-token", "objectMeta",
+    "callback", "callback-var"
 };
 
 SignUtils::SignUtils(const std::string &version):

@@ -18,6 +18,7 @@
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/OssRequest.h>
 #include <alibabacloud/oss/model/Part.h>
+#include <alibabacloud/oss/model/ObjectMetaData.h>
 #include <sstream>
 #include <iostream>
 
@@ -38,7 +39,8 @@ namespace OSS
         void setPartList(const AlibabaCloud::OSS::PartList& partList);
         void setUploadId(const std::string& uploadId);
         void setAcl(CannedAccessControlList acl);
-
+        void setCallback(const std::string& callback, const std::string& callbackVar = "");
+        ObjectMetaData& MetaData();
     protected:
         virtual std::string payload() const;
         virtual ParameterCollection specialParameters() const;
@@ -49,8 +51,7 @@ namespace OSS
         std::string uploadId_;
         std::string encodingType_;
         bool encodingTypeIsSet_;
-        CannedAccessControlList acl_;
-        bool hasSetAcl_;
+        ObjectMetaData metaData_;
     };
 } 
 }

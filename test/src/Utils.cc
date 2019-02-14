@@ -421,3 +421,40 @@ void TestUtils::LogPrintCallback(LogLevel level, const std::string &stream)
     UNUSED_PARAM(level);
     std::cout << stream;
 }
+
+std::string TestUtils::Base64Decode(std::string const& data)
+{
+    int in_len = data.size();
+    int i = 0;
+    int in_ = 0;
+    unsigned char part4[4];
+    std::string ret;
+
+    while (in_len-- && (data[in_] != '=')) {
+        unsigned char ch = data[in_++];
+        if ('A' <= ch && ch <= 'Z')  ch = ch - 'A';           // A - Z
+        else if ('a' <= ch && ch <= 'z') ch = ch - 'a' + 26;  // a - z
+        else if ('0' <= ch && ch <= '9') ch = ch - '0' + 52;  // 0 - 9
+        else if ('+' == ch) ch = 62;                          // +
+        else if ('/' == ch) ch = 63;                          // /
+        else if ('=' == ch) ch = 64;                          // =
+        else ch = 0xff;                                       // something wrong
+        part4[i++] = ch;
+        if (i == 4) {
+            ret += (part4[0] << 2) + ((part4[1] & 0x30) >> 4);
+            ret += ((part4[1] & 0xf) << 4) + ((part4[2] & 0x3c) >> 2);
+            ret += ((part4[2] & 0x3) << 6) + part4[3];
+            i = 0;
+        }
+    }
+
+    if (i) {
+        for (int j = i; j < 4; j++)
+            part4[j] = 0xFF;
+        ret += (part4[0] << 2) + ((part4[1] & 0x30) >> 4);
+        ret += ((part4[1] & 0xf) << 4) + ((part4[2] & 0x3c) >> 2);
+        ret += ((part4[2] & 0x3) << 6) + part4[3];
+    }
+
+    return ret;
+}

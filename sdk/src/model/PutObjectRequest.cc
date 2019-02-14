@@ -64,6 +64,20 @@ void PutObjectRequest::setExpires(const std::string &value)
     metaData_.addHeader(Http::EXPIRES, value);
 }
 
+void PutObjectRequest::setCallback(const std::string& callback, const std::string& callbackVar)
+{
+    metaData_.removeHeader("x-oss-callback");
+    metaData_.removeHeader("x-oss-callback-var");
+
+    if (!callback.empty()) {
+        metaData_.addHeader("x-oss-callback", callback);
+    }
+
+    if (!callbackVar.empty()) {
+        metaData_.addHeader("x-oss-callback-var", callbackVar);
+    }
+}
+
 ObjectMetaData &PutObjectRequest::MetaData()
 {
     return metaData_;
@@ -76,16 +90,7 @@ std::shared_ptr<std::iostream> PutObjectRequest::Body() const
 
 HeaderCollection PutObjectRequest::specialHeaders() const
 {
-    HeaderCollection headers;
-    for (auto const&header : metaData_.HttpMetaData()) {
-        headers[header.first] = header.second;
-    }
-
-    for (auto const&header : metaData_.UserMetaData()) {
-        std::string key("x-oss-meta-");
-        key.append(header.first);
-        headers[key] = header.second;
-    }
+    auto headers = metaData_.toHeaderCollection();
 
     if (headers.find(Http::CONTENT_TYPE) == headers.end()) {
         headers[Http::CONTENT_TYPE] = LookupMimeType(Key());

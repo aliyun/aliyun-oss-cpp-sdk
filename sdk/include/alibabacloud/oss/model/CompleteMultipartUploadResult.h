@@ -39,6 +39,7 @@ namespace OSS
         const std::string& ETag() const;
         const std::string& EncodingType() const;
         uint64_t CRC64() const;
+        const std::shared_ptr<std::iostream>& Content() const;
     private:
         std::string location_;
         std::string bucket_;
@@ -46,6 +47,7 @@ namespace OSS
         std::string eTag_;
         std::string encodingType_;
         uint64_t crc64_;
+        std::shared_ptr<std::iostream> content_;
     };
 } 
 }

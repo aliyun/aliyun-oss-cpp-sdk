@@ -117,6 +117,7 @@
 #include <alibabacloud/oss/model/ListLiveChannelResult.h>
 #include <alibabacloud/oss/model/DeleteLiveChannelRequest.h>
 #include <alibabacloud/oss/model/GenerateRTMPSignedUrlRequest.h>
+#include <alibabacloud/oss/model/ObjectCallbackBuilder.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud

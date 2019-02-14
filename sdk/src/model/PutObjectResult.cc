@@ -21,12 +21,13 @@
 using namespace AlibabaCloud::OSS;
 
 PutObjectResult::PutObjectResult():
-    OssResult()
+    OssResult(),
+    content_(nullptr)
 {
 }
 
-PutObjectResult::PutObjectResult(const HeaderCollection & header) :
-    OssResult()
+PutObjectResult::PutObjectResult(const HeaderCollection& header, const std::shared_ptr<std::iostream>& content):
+    PutObjectResult()
 {
     if (header.find(Http::ETAG) != header.end())
     {
@@ -40,6 +41,15 @@ PutObjectResult::PutObjectResult(const HeaderCollection & header) :
     if (header.find("x-oss-request-id") != header.end()) {
         requestId_ = header.at("x-oss-request-id");
     }
+
+    if (content != nullptr && content->peek() != EOF) {
+        content_ = content;
+    }
+}
+
+PutObjectResult::PutObjectResult(const HeaderCollection & header):
+    PutObjectResult(header, nullptr)
+{
 }
 
 const std::string& PutObjectResult::ETag() const
@@ -50,4 +60,9 @@ const std::string& PutObjectResult::ETag() const
 uint64_t PutObjectResult::CRC64() 
 {
     return crc64_;
+}
+
+const std::shared_ptr<std::iostream>& PutObjectResult::Content() const
+{
+    return content_;
 }

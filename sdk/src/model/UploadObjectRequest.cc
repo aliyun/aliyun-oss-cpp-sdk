@@ -71,6 +71,20 @@ void UploadObjectRequest::setAcl(CannedAccessControlList& acl)
     metaData_.addHeader("x-oss-object-acl", ToAclName(acl));
 }
 
+void UploadObjectRequest::setCallback(const std::string& callback, const std::string& callbackVar)
+{
+    metaData_.removeHeader("x-oss-callback");
+    metaData_.removeHeader("x-oss-callback-var");
+
+    if (!callback.empty()) {
+        metaData_.addHeader("x-oss-callback", callback);
+    }
+
+    if (!callbackVar.empty()) {
+        metaData_.addHeader("x-oss-callback-var", callbackVar);
+    }
+}
+
 int UploadObjectRequest::validate() const 
 {
     if(partSize_ < PartSizeLowerLimit){

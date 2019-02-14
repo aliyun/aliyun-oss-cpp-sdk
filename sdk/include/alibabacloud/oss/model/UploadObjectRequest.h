@@ -46,13 +46,14 @@ namespace OSS
         const std::string& EncodingType() const{return encodingType_;}
         const std::string& FilePath() const{return filePath_;}
         const ObjectMetaData& MetaData() const { return metaData_; }
+        ObjectMetaData& MetaData() { return metaData_; }
 
         void setCacheControl(const std::string& value){metaData_.addHeader(Http::CACHE_CONTROL, value);}
         void setContentDisposition(const std::string& value){metaData_.addHeader(Http::CONTENT_DISPOSITION, value);}
         void setContentEncoding(const std::string& value){metaData_.addHeader(Http::CONTENT_ENCODING, value);}
         void setExpires(const std::string& value){metaData_.addHeader(Http::EXPIRES, value);}
         void setAcl(CannedAccessControlList& acl);
-
+        void setCallback(const std::string& callback, const std::string& callbackVar = "");
         void setEncodingType(const std::string& type) {encodingType_ = type; }       
 
     protected:
