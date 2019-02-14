@@ -96,6 +96,17 @@ TEST_F(PutAndGetLiveChannelStatusTest, PutLiveChannelStatusAndGetTest)
     EXPECT_EQ(getStatOutcome.result().RemoteAddr(), "");
     EXPECT_EQ(getStatOutcome.result().VideoBandWidth(), 0u);
     EXPECT_EQ(getStatOutcome.result().AudioBandWidth(), 0u);
+
+	PutLiveChannelStatusRequest request5(BucketName, channelName);
+	request5.setStatus(LiveChannelStatus::IdleStatus);
+	auto putOutcome5 = Client->PutLiveChannelStatus(request5);
+	EXPECT_EQ(putOutcome5.isSuccess(), false);
+
+	PutLiveChannelStatusRequest request6(BucketName, channelName);
+	request6.setStatus(LiveChannelStatus::EnabledStatus);
+	auto putOutcome6 = Client->PutLiveChannelStatus(request6);
+	EXPECT_EQ(putOutcome6.isSuccess(), true);
+
 }
 
 TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelResultTest)

@@ -97,6 +97,16 @@ TEST_F(PostAndGetVodPlayListTest, PostVodPlayListTest)
     postOutcome = Client->PostVodPlaylist(request2);
     EXPECT_EQ(postOutcome.isSuccess(), false);
 
+	PostVodPlaylistRequest request3(BucketName, channelName,
+		playList, startTime, endTime);
+	request3.setPlayList("another_play_list.m3u8");
+	request3.setStartTime(startTime);
+	request3.setEndTime(endTime);
+
+	postOutcome = Client->PostVodPlaylist(request3);
+	EXPECT_EQ(postOutcome.isSuccess(), false);
+	EXPECT_TRUE(postOutcome.error().Code() != "ValidateError");
+
     auto getOutcome = Client->GetVodPlaylist(GetVodPlaylistRequest(BucketName, channelName, startTime, endTime));
     EXPECT_EQ(getOutcome.isSuccess(), false);
 
@@ -166,6 +176,30 @@ TEST_F(PostAndGetVodPlayListTest, PostVodPlayListErrorParamTest)
 
     auto postOutcome7 = Client->PostVodPlaylist(request7);
     EXPECT_EQ(postOutcome7.isSuccess(), false);
+
+    GetVodPlaylistRequest getRequest1(BucketName, channelName);
+    getRequest1.setStartTime(0);
+    getRequest1.setEndTime(0);
+
+    auto getVodOutcome = Client->GetVodPlaylist(getRequest1);
+    EXPECT_EQ(getVodOutcome.isSuccess(), false);
+
+    GetVodPlaylistRequest getRequest2(BucketName, channelName);
+    getRequest2.setStartTime(1000000);
+    getRequest2.setEndTime(99999);
+
+    getVodOutcome = Client->GetVodPlaylist(getRequest2);
+    EXPECT_EQ(getVodOutcome.isSuccess(), false);
+
+    GetVodPlaylistRequest getRequest3(BucketName, channelName);
+	time_t tNow = time(nullptr);
+	time_t tNext = tNow + 60 * 60 * 24 + 1;
+    getRequest3.setStartTime(tNow);
+    getRequest3.setEndTime(tNext);
+
+    getVodOutcome = Client->GetVodPlaylist(getRequest3);
+    EXPECT_EQ(getVodOutcome.isSuccess(), false);
+	EXPECT_STREQ(getVodOutcome.error().Code().c_str(), "ValidateError");
 }
 
 TEST_F(PostAndGetVodPlayListTest, GetVodPlaylistResultTest)
@@ -193,6 +227,10 @@ TEST_F(PostAndGetVodPlayListTest, GetVodPlaylistResultTest)
                     #EXT-X-ENDLIST)";
     GetVodPlaylistResult result(xml);
     EXPECT_EQ(result.PlaylistContent().empty(), false);
+
+	std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>(xml);
+    GetVodPlaylistResult result2(content);
+    EXPECT_EQ(result2.PlaylistContent().empty(), false);
 }
 
 }
