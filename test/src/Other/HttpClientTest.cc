@@ -116,7 +116,7 @@ TEST_F(HttpClientTest, WaitForRetryTimeoutAsyncTest)
     long timeouts[] = { 1000, 2000, 3000, 5500, 10000 };
     for (auto t : timeouts) {
         timer.reset();
-        auto f = std::async(std::launch::async, [this, client, t]()->void { client->waitForRetry(t); });
+        auto f = std::async(std::launch::async, [client, t]()->void { client->waitForRetry(t); });
         f.get();
         long elapsed = static_cast<long>(timer.elapsed());
         EXPECT_NEAR(elapsed, t, 100);
@@ -148,7 +148,7 @@ TEST_F(HttpClientTest, WaitForRetryTimeoutInterruptTest)
     for (auto t : timeouts) {
         timer.reset();
         client->enable();
-        auto f = std::async(std::launch::async, [this, client, t]()->void { client->waitForRetry(t); });
+        auto f = std::async(std::launch::async, [client, t]()->void { client->waitForRetry(t); });
         f.wait_for(std::chrono::milliseconds(t / 2));
         client->disable();
         f.get();

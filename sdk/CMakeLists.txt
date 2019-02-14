@@ -121,6 +121,11 @@ if (BUILD_SHARED_LIBS)
 	target_compile_options(${PROJECT_NAME} 
 		PRIVATE "${SDK_COMPILER_FLAGS}" -DALIBABACLOUD_SHARED -DALIBABACLOUD_OSS_LIBRARY)
 	
+	if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	target_compile_options(${PROJECT_NAME} 
+		PRIVATE "-fvisibility=hidden")
+	endif()
+
 	target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 	target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})	
 endif()
