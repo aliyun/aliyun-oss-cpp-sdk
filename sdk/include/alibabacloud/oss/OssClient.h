@@ -165,6 +165,8 @@ namespace OSS
         GetObjectAclOutcome GetObjectAcl(const GetObjectAclRequest& request) const;
         CreateSymlinkOutcome CreateSymlink(const CreateSymlinkRequest& request) const;
         GetSymlinkOutcome GetSymlink(const GetSymlinkRequest& request) const;
+        GetObjectOutcome ProcessObject(const ProcessObjectRequest& request) const;
+
 
         /*MultipartUpload*/
         InitiateMultipartUploadOutcome InitiateMultipartUpload(const InitiateMultipartUploadRequest& request) const;

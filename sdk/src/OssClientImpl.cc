@@ -824,6 +824,17 @@ VoidOutcome OssClientImpl::SetObjectAcl(const SetObjectAclRequest &request) cons
     }
 }
 
+GetObjectOutcome OssClientImpl::ProcessObject(const ProcessObjectRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
+            outcome.result().payload(), outcome.result().headerCollection()));
+    }
+    else {
+        return GetObjectOutcome(outcome.error());
+    }
+}
 
 StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {

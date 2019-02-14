@@ -182,6 +182,64 @@ TEST_F(ObjectProcessTest, GenerateUriWithProcessTest)
     }
 }
 
+TEST_F(ObjectProcessTest, ProcessObjectRequestTest)
+{
+    std::string key = TestUtils::GetObjectKey("ImageProcessBysetProcessAndSavetoTest");
+    std::string key1 = key;
+    std::string key2 = key;
+    key.append("-noraml.jpg");
+    key1.append("-saveas.jpg");
+    key2.append("-saveas2.jpg");
+    auto pOutcome = Client->PutObject(BucketName, key, ImageFilePath);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+
+    std::stringstream ss;
+    ss  << Process 
+        <<"|sys/saveas"
+        << ",o_" << Base64EncodeUrlSafe(key1)
+        << ",b_" << Base64EncodeUrlSafe(BucketName);
+
+    ProcessObjectRequest request(BucketName, key, ss.str());
+    auto gOutcome = Client->ProcessObject(request);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+
+    std::istreambuf_iterator<char> isb(*gOutcome.result().Content()), end;
+    std::string json_str = std::string(isb, end);
+    std::cout << json_str << std::endl;
+    EXPECT_TRUE(json_str.find(key1) != std::string::npos);
+
+    std::string imageInfo = GetOssImageObjectInfo(BucketName, key1);
+    EXPECT_TRUE(CompareImageInfo(imageInfo, ImageInfo));
+
+    //Use default bucketName
+    ss.str("");
+    ss << Process
+        << "|sys/saveas"
+        << ",o_" << Base64EncodeUrlSafe(key2);
+    request.setProcess(ss.str());
+    gOutcome = Client->ProcessObject(request);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+
+    std::istreambuf_iterator<char> isb1(*gOutcome.result().Content()), end1;
+    json_str = std::string(isb1, end1);
+    std::cout << json_str << std::endl;
+    EXPECT_TRUE(json_str.find(key2) != std::string::npos);
+    imageInfo = GetOssImageObjectInfo(BucketName, key2);
+    EXPECT_TRUE(CompareImageInfo(imageInfo, ImageInfo));
+}
+
+TEST_F(ObjectProcessTest, ProcessObjectRequestNegativeTest)
+{
+    std::string key = TestUtils::GetObjectKey("ProcessObjectRequestNegativeTest");
+    key.append("-noraml.jpg");
+    auto pOutcome = Client->PutObject(BucketName, key, ImageFilePath);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+
+    ProcessObjectRequest request(BucketName, key);
+    auto gOutcome = Client->ProcessObject(request);
+    EXPECT_EQ(gOutcome.isSuccess(), false);
+    EXPECT_EQ(gOutcome.error().Code(), "InvalidRequest");
+}
 
 }
 }

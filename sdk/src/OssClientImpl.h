@@ -87,6 +87,8 @@ namespace OSS
         VoidOutcome RestoreObject(const RestoreObjectRequest &request) const;
         CreateSymlinkOutcome CreateSymlink(const CreateSymlinkRequest &request) const;
         VoidOutcome SetObjectAcl(const SetObjectAclRequest &request) const;
+        GetObjectOutcome ProcessObject(const ProcessObjectRequest &request) const;
+
 
         /*MultipartUpload*/
         InitiateMultipartUploadOutcome InitiateMultipartUpload(const InitiateMultipartUploadRequest &request) const;

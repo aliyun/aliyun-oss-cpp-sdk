@@ -484,6 +484,12 @@ GetSymlinkOutcome OssClient::GetSymlink(const GetSymlinkRequest &request) const
     return client_->GetSymlink(request);
 }
 
+GetObjectOutcome OssClient::ProcessObject(const ProcessObjectRequest &request) const
+{
+    return client_->ProcessObject(request);
+
+}
+
 VoidOutcome OssClient::RestoreObject(const std::string &bucket, const std::string &key) const
 {
     return client_->RestoreObject(RestoreObjectRequest(bucket, key));

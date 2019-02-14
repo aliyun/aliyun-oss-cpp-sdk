@@ -24,10 +24,6 @@
 #include <sstream>
 #include <ctime>
 
-/*!
- * \class AlibabaCloud::Client Client.h 
- *
- */
 
 using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;

@@ -85,6 +85,7 @@
 #include <alibabacloud/oss/model/CreateSymlinkRequest.h>
 #include <alibabacloud/oss/model/CreateSymlinkResult.h>
 #include <alibabacloud/oss/model/SetObjectAclRequest.h>
+#include <alibabacloud/oss/model/ProcessObjectRequest.h>
 #include <alibabacloud/oss/model/InitiateMultipartUploadRequest.h>
 #include <alibabacloud/oss/model/InitiateMultipartUploadResult.h>
 #include <alibabacloud/oss/model/UploadPartRequest.h>
