@@ -50,7 +50,7 @@ namespace OSS
     {
     public:
         ResumableDownloader(const DownloadObjectRequest& request, const OssClientImpl *client, uint64_t objectSize)
-            : ResumableBaseWorker(objectSize, request.PartSize()), request_(request),client_(client) 
+            : ResumableBaseWorker(objectSize, request.PartSize()), request_(request),client_(client), contentLength_(objectSize)
         {}
 
         GetObjectOutcome Download();
@@ -68,6 +68,7 @@ namespace OSS
         const DownloadObjectRequest request_;
         DownloadRecord record_;
         const OssClientImpl *client_;
+        uint64_t contentLength_;
     };
 }
 }

@@ -140,11 +140,14 @@ CopyObjectOutcome ResumableCopier::Copy()
         return CopyObjectOutcome(compOutcome.error());
     }
 
-
     if (!recordPath_.empty()) {
         RemoveFile(recordPath_);
     }
     CopyObjectResult result;
+    auto hOutcome = client_->HeadObject(HeadObjectRequest(request_.Bucket(), request_.Key()));
+    if (hOutcome.isSuccess()) {
+        result.setLastModified(hOutcome.result().LastModified());
+    }
     result.setEtag(compOutcome.result().ETag());
     return CopyObjectOutcome(result);
 }

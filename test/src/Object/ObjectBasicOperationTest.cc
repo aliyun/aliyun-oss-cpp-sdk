@@ -1479,7 +1479,15 @@ TEST_F(ObjectBasicOperationTest, ObjectMetaDataSetTest)
     EXPECT_EQ(meta.CRC64(), 1000ULL);
 }
 
+TEST_F(ObjectBasicOperationTest, GetObjectResultTest)
+{
+    std::string bucketName = TestUtils::GetBucketName("get-object-result-test");
+    std::string key = TestUtils::GetObjectKey("GetObjectResultTestKey");
+    ObjectMetaData meta;
 
+    GetObjectResult result(bucketName, key, meta);
+    EXPECT_EQ(result.RequestId(), "");
+}
 
 }
 }

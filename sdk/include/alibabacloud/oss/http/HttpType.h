@@ -59,6 +59,7 @@ namespace OSS
             static const char* CONTENT_ENCODING;
             static const char* CONTENT_LENGTH;
             static const char* CONTENT_MD5;
+            static const char* CONTENT_RANGE;
             static const char* CONTENT_TYPE;
             static const char* DATE;
             static const char* EXPECT;
