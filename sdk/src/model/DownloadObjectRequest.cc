@@ -36,12 +36,12 @@ DownloadObjectRequest::DownloadObjectRequest(const std::string &bucket, const st
 
 DownloadObjectRequest::DownloadObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &filePath, const std::string &checkpointDir) : 
-    DownloadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, 1) 
+    DownloadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, DefaultResumableThreadNum)
 {}
 
 DownloadObjectRequest::DownloadObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &filePath) :
-    DownloadObjectRequest(bucket, key, filePath, "", DefaultPartSize, 1)
+    DownloadObjectRequest(bucket, key, filePath, "", DefaultPartSize, DefaultResumableThreadNum)
 {}
 
 void DownloadObjectRequest::setRange(int64_t start, int64_t end)

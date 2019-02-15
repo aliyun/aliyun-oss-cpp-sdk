@@ -186,15 +186,24 @@ static taskResult upload_resumable(const OssClient &client, const std::string &k
     result.transferSize = get_file_size(fileToUpload);
 
     std::stringstream ss;
-    auto outcome = client.ResumableUploadObject(UploadObjectRequest(Config::BucketName, key, fileToUpload));
+    UploadObjectRequest request(Config::BucketName, key, fileToUpload);
+    request.setPartSize(Config::PartSize);
+    request.setThreadNum(Config::Parallel);
+    auto outcome = client.ResumableUploadObject(request);
+    result.success = outcome.isSuccess();
     if (outcome.isSuccess()) {
-        ss << "Resumable upload object : " << key << " succeeded ! " << std::endl;
+        if (outcome.result().CRC64() != uploadFileCRC64) {
+            result.success = false;
+            ss << "Resumable upload object : " << key << " Failed with CRC64 check fail. ! " << std::endl;
+        }
+        else {
+            ss << "Resumable upload object : " << key << " succeeded ! " << std::endl;
+        }
     }
     else {
         ss << "Resumable upload object : " << key << " Failed with error, code:" << outcome.error().Code() <<
             ", message:" << outcome.error().Message() << std::endl;
     }
-    result.success = outcome.isSuccess();
     result.stopTimePoint = std::chrono::system_clock::now();
 
     log_msg(std::cout, ss.str());
@@ -373,7 +382,10 @@ static taskResult download_resumable(const OssClient &client, const std::string 
     result.startTimePoint = std::chrono::system_clock::now();
 
     std::stringstream ss;
-    auto outcome = client.ResumableDownloadObject(DownloadObjectRequest(Config::BucketName, key, fileToSave));
+    DownloadObjectRequest request(Config::BucketName, key, fileToSave);
+    request.setPartSize(Config::PartSize);
+    request.setThreadNum(Config::Parallel);
+    auto outcome = client.ResumableDownloadObject(request);
     if (outcome.isSuccess()) {
         ss << "Resumable download object : " << key << " succeeded ! " << std::endl;
         result.transferSize = outcome.result().Metadata().ContentLength();

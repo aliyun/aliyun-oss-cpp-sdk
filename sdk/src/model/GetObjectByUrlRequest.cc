@@ -36,15 +36,9 @@ GetObjectByUrlRequest::GetObjectByUrlRequest(const std::string &url, const Objec
 
 HeaderCollection GetObjectByUrlRequest::Headers() const
 {
-    HeaderCollection headers;
-    headers[Http::DATE] = "";
-    for (auto const&header : metaData_.HttpMetaData()) {
-        headers[header.first] = header.second;
-    }
-    for (auto const&header : metaData_.UserMetaData()) {
-        std::string key("x-oss-meta-");
-        key.append(header.first);
-        headers[key] = header.second;
+    auto headers = metaData_.toHeaderCollection();
+    if (!metaData_.hasHeader(Http::DATE)) {
+        headers[Http::DATE] = "";
     }
     return headers;
 }

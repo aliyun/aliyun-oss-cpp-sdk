@@ -36,6 +36,7 @@ namespace OSS
 	const int32_t PartSizeLowerLimit = 100 * 1024;
 	const int32_t MaxPathLength = 124;
 	const int32_t MinPathLength = 4;
+    const int32_t DefaultResumableThreadNum = 3;
 	const uint32_t MaxLiveChannelNameLength = 1023;
 	const uint32_t MaxLiveChannelDescriptionLength = 128;
 	const uint32_t MinLiveChannelFragCount = 1;

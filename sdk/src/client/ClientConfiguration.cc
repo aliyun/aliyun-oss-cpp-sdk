@@ -23,10 +23,21 @@
 using namespace AlibabaCloud::OSS;
 
 //default for configuration begin
+#if defined(PLATFORM_WINDOWS)
+static const char* PLATFORM_NAME = "Windows";
+#elif defined(PLATFORM_LINUX)
+static const char* PLATFORM_NAME = "Linux";
+#elif defined(PLATFORM_APPLE)
+static const char* PLATFORM_NAME = "MacOS";
+#elif defined(PLATFORM_ANDROID)
+static const char* PLATFORM_NAME = "Android";
+#else
+static const char* PLATFORM_NAME = "Unknown";
+#endif
 static std::string DefaultUserAgent()
 {
   std::stringstream ss;
-  ss << "aliyun-sdk-cpp/" << ALIBABACLOUD_OSS_VERSION_STR << " " ;
+  ss << "aliyun-sdk-cpp/" << ALIBABACLOUD_OSS_VERSION_STR << " (" << PLATFORM_NAME << ")";
   return ss.str();
 }
 

@@ -22,12 +22,12 @@
 using namespace AlibabaCloud::OSS;
 
 ObjectCallbackBuilder::ObjectCallbackBuilder(const std::string &url, const std::string &body):
-    ObjectCallbackBuilder(url, body, "", AlibabaCloud::OSS::CallbackBodyType::Url)
+    ObjectCallbackBuilder(url, body, "", Type::URL)
 {
 }
 
 ObjectCallbackBuilder::ObjectCallbackBuilder(const std::string &url, const std::string &body,
-    const std::string &host, AlibabaCloud::OSS::CallbackBodyType type):
+    const std::string &host, Type type):
     callbackUrl_(url),
     callbackHost_(host),
     callbackBody_(body),
@@ -47,14 +47,15 @@ std::string ObjectCallbackBuilder::build()
     ss << "\"callbackUrl\":\"" << callbackUrl_ << "\"";
     if (!callbackHost_.empty())
     {
-        ss << "\"callbackHost\":\"" << callbackHost_ << "\"";
+        ss << ",\"callbackHost\":\"" << callbackHost_ << "\"";
     }
-    ss << "\"callbackBody\":\"" << callbackBody_ << "\"";
+    ss << ",\"callbackBody\":\"" << callbackBody_ << "\"";
 
-    if (callbackBodyType_ == AlibabaCloud::OSS::CallbackBodyType::Json)
+    if (callbackBodyType_ == Type::JSON)
     {
-        ss << "\"callbackBodyType\":\"" << "application/json" << "\"";
+        ss << ",\"callbackBodyType\":\"" << "application/json" << "\"";
     }
+
     ss << "}";
 
     return Base64Encode(ss.str());
@@ -63,7 +64,7 @@ std::string ObjectCallbackBuilder::build()
 
 bool ObjectCallbackVariableBuilder::addCallbackVariable(const std::string &key, const std::string &value)
 {
-    if (!key.compare(0, 2 , "x:", 2))
+    if (!!key.compare(0, 2 , "x:", 2))
     {
         return false;
     }

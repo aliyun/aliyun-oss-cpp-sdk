@@ -85,16 +85,7 @@ std::shared_ptr<std::iostream> AppendObjectRequest::Body() const
 
 HeaderCollection AppendObjectRequest::specialHeaders() const
 {
-    HeaderCollection headers;
-    for (auto const&header : metaData_.HttpMetaData()) {
-        headers[header.first] = header.second;
-    }
-
-    for (auto const&header : metaData_.UserMetaData()) {
-        std::string key("x-oss-meta-");
-        key.append(header.first);
-        headers[key] = header.second;
-    }
+    auto headers = metaData_.toHeaderCollection();
 
     if (headers.find(Http::CONTENT_TYPE) == headers.end()) {
         headers[Http::CONTENT_TYPE] = LookupMimeType(Key());

@@ -41,6 +41,7 @@ const char* Http::CONTENT_DISPOSITION = "Content-Disposition";
 const char* Http::CONTENT_ENCODING = "Content-Encoding";
 const char* Http::CONTENT_LENGTH = "Content-Length";
 const char* Http::CONTENT_MD5 = "Content-MD5";
+const char* Http::CONTENT_RANGE = "Content-Range";
 const char* Http::CONTENT_TYPE = "Content-Type";
 const char* Http::DATE = "Date";
 const char* Http::EXPECT = "Expect";

@@ -682,6 +682,7 @@ TEST_F(ObjectBasicOperationTest, PutObjectBasicTest)
     PutObjectRequest request(BucketName, key, content);
     auto pOutcome = Client->PutObject(request);
     EXPECT_EQ(pOutcome.isSuccess(), true);
+    EXPECT_TRUE(pOutcome.result().Content() == nullptr);
 
     auto outome = Client->GetObject(BucketName, key);
     EXPECT_EQ(outome.isSuccess(), true);
@@ -1479,7 +1480,15 @@ TEST_F(ObjectBasicOperationTest, ObjectMetaDataSetTest)
     EXPECT_EQ(meta.CRC64(), 1000ULL);
 }
 
+TEST_F(ObjectBasicOperationTest, GetObjectResultTest)
+{
+    std::string bucketName = TestUtils::GetBucketName("get-object-result-test");
+    std::string key = TestUtils::GetObjectKey("GetObjectResultTestKey");
+    ObjectMetaData meta;
 
+    GetObjectResult result(bucketName, key, meta);
+    EXPECT_EQ(result.RequestId(), "");
+}
 
 }
 }

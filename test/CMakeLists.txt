@@ -59,3 +59,8 @@ endif()
 
 target_compile_options(${PROJECT_NAME} 
 	PRIVATE "${SDK_COMPILER_FLAGS}")
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+target_compile_options(${PROJECT_NAME} 
+	PRIVATE "-Wno-invalid-source-encoding")
+endif()

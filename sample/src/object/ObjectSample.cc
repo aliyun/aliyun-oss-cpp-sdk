@@ -648,3 +648,35 @@ void ObjectSample::CopyObject()
     }
 }
 
+
+void ObjectSample::PutObjectCallback()
+{
+    std::string callbackUrl = Config::CallbackServer;
+    std::string callbackBody = "bucket=${bucket}&object=${object}&etag=${etag}&size=${size}&mimeType=${mimeType}&my_var1=${x:var1}";
+
+    ObjectCallbackBuilder builder(callbackUrl, callbackBody, "", ObjectCallbackBuilder::Type::URL);
+    std::string value = builder.build();
+
+    ObjectCallbackVariableBuilder varBuilder;
+    varBuilder.addCallbackVariable("x:var1", "value1");
+    varBuilder.addCallbackVariable("x:var2", "value2");
+    std::string varValue = varBuilder.build();
+
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    *content << __FUNCTION__;
+    PutObjectRequest request(bucket_, "PutObjectCallback", content);
+    request.MetaData().addHeader("x-oss-callback", value);
+    request.MetaData().addHeader("x-oss-callback-var", varValue);
+    auto outcome = client->PutObject(request);
+    if (outcome.isSuccess()) {
+        std::cout << __FUNCTION__ << " success, ETag:" << outcome.result().ETag();
+        if (outcome.result().Content() != nullptr) {
+            std::istreambuf_iterator<char> isb(*outcome.result().Content().get()), end;
+            std::cout << ", callback data:" << std::string(isb, end);
+        }
+        std::cout << std::endl;
+    }
+    else {
+        PrintError(__FUNCTION__, outcome.error());
+    }
+}

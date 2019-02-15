@@ -26,18 +26,18 @@ static const std::string strEmpty = "";
 
 MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &srcBucket, const std::string &srcKey) :
-    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, "", DefaultPartSize, 1)
+    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, "", DefaultPartSize, DefaultResumableThreadNum)
 {}
 
 MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &srcBucket, const std::string &srcKey, const std::string &checkpointDir) :
-    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, DefaultPartSize, 1) 
+    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, DefaultPartSize, DefaultResumableThreadNum)
 {}
 
 MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &srcBucket, const std::string &srcKey,
     const std::string &checkpointDir, const ObjectMetaData& meta): 
-    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, DefaultPartSize, 1, meta)
+    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, DefaultPartSize, DefaultResumableThreadNum, meta)
 {}
 
 MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, 

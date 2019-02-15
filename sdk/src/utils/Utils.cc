@@ -150,7 +150,7 @@ std::string AlibabaCloud::OSS::Base64EncodeUrlSafe(const char *src, int len)
     return out;
 }
 
-std::string AlibabaCloud::OSS::ComputeContentMD5(std::string data) 
+std::string AlibabaCloud::OSS::ComputeContentMD5(const std::string& data) 
 {
     return ComputeContentMD5(data.c_str(), data.size());
 }
@@ -219,7 +219,7 @@ static std::string HexToString(const unsigned char *data, size_t size)
     return ss.str();
 }
 
-std::string AlibabaCloud::OSS::ComputeContentETag(const std::string data)
+std::string AlibabaCloud::OSS::ComputeContentETag(const std::string& data)
 {
     return ComputeContentETag(data.c_str(), data.size());
 }

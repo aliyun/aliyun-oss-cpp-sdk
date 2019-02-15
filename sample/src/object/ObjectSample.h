@@ -32,7 +32,9 @@ public:
 
     void CopyObject();
     void RestoreArchiveObject(const std::string bucket, const std::string key, int maxWaitTimeInSeconds);
-	
+
+    void PutObjectCallback();
+
 private:
     void PrintError(const std::string &funcName, const AlibabaCloud::OSS::OssError &error);
     AlibabaCloud::OSS::OssClient *client;

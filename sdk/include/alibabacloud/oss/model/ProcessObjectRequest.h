@@ -15,27 +15,27 @@
  */
 
 #pragma once
-#include <alibabacloud/oss/OssResult.h>
+#include <alibabacloud/oss/Export.h>
+#include <alibabacloud/oss/OssRequest.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT PutObjectResult :public OssResult
+    class ALIBABACLOUD_OSS_EXPORT ProcessObjectRequest: public OssObjectRequest
     {
     public:
-        PutObjectResult();
-        PutObjectResult(const HeaderCollection& header);
-        PutObjectResult(const HeaderCollection& header, const std::shared_ptr<std::iostream>& content);
-        PutObjectResult(const std::string eTag, const uint64_t crc64) :eTag_(eTag), crc64_(crc64) {}
-        const std::string& ETag() const;
-        uint64_t CRC64();
-        const std::shared_ptr<std::iostream>& Content() const;
-     private:
-        std::string eTag_;
-        uint64_t crc64_;
-        std::shared_ptr<std::iostream> content_;
+        ProcessObjectRequest(const std::string& bucket, const std::string& key);
+        ProcessObjectRequest(const std::string& bucket, const std::string& key,
+            const std::string& process);
+        void setProcess(const std::string& process);
+
+    protected:
+        virtual ParameterCollection specialParameters() const;
+        virtual std::string payload() const;
+    private:
+        std::string process_;
     };
-}
+} 
 }

@@ -37,6 +37,7 @@ namespace OSS
         void setContentEncoding(const std::string& value);
         void setContentMd5(const std::string& value);
         void setExpires(const std::string& value);
+        void setCallback(const std::string& callback, const std::string& callbackVar = "");
         ObjectMetaData& MetaData();
         virtual std::shared_ptr<std::iostream> Body() const;
     protected:

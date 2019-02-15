@@ -104,6 +104,15 @@ TEST_F(ListLiveChannelTest, ListLiveChannelListTest)
     EXPECT_EQ(listOutcome.error().Code(), "ValidateError");
     EXPECT_EQ(listOutcome.error().Message(), "The Max Key param is invalid, it's default valus is 100, and smaller than 1000");
 
+	//
+	ListLiveChannelRequest request4(BucketName);
+	request4.setMarker("/");
+	request4.setPrefix("test_test");
+	request4.setMaxKeys(999);
+	listOutcome = Client->ListLiveChannel(request4);
+	EXPECT_EQ(listOutcome.isSuccess(), true);
+	vec = listOutcome.result().LiveChannelList();
+	EXPECT_EQ(vec.size(), 0U);
 }
 
 TEST_F(ListLiveChannelTest, ListLiveChannelResultTest)

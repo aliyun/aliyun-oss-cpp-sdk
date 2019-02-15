@@ -40,3 +40,13 @@ GetObjectResult::GetObjectResult(
     std::string etag = metaData_.HttpMetaData()[Http::ETAG];
     metaData_.HttpMetaData()[Http::ETAG] = TrimQuotes(etag.c_str());
 }
+
+GetObjectResult::GetObjectResult(
+    const std::string& bucket, const std::string& key,
+    const ObjectMetaData& metaData) :
+    bucket_(bucket),
+    key_(key)
+{
+    metaData_ = metaData;
+    requestId_ = metaData_.HttpMetaData()["x-oss-request-id"];
+}

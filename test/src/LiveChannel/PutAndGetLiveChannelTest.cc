@@ -113,12 +113,28 @@ TEST_F(PutAndGetLiveChannelTest, PutAndGetLiveChannelInfoTest)
 
     std::string channelName3 = "test_channel_name测试";
     PutLiveChannelRequest request2(BucketName, channelName2, "HLS");
-    auto putOutcome3 = Client->PutLiveChannel(request);
+    auto putOutcome3 = Client->PutLiveChannel(request2);
     EXPECT_EQ(putOutcome3.isSuccess(), true);
     EXPECT_EQ(putOutcome3.result().PublishUrl().empty(), false);
     EXPECT_EQ(putOutcome3.result().PlayUrl().empty(), false);
-    // case 3 snapshot TODO
 
+    // case 3 snapshot partial
+	PutLiveChannelRequest request3(BucketName, channelName2+"-test2", "HLS");
+	request3.setChannelType("HLS");
+	request3.setDestBucket("not_exist_bucket");
+	putOutcome3 = Client->PutLiveChannel(request3);
+	EXPECT_EQ(putOutcome3.isSuccess(), false);
+	EXPECT_STREQ(putOutcome3.error().Code().c_str(), "ValidateError");
+
+	// case 4 snapshot full
+	PutLiveChannelRequest request4(BucketName, channelName2 + "-test3", "HLS");
+	request4.setChannelType("HLS");
+	request4.setDestBucket("not_exist_bucket");
+	request4.setInterval(6);
+	request4.setNotifyTopic("not_exist_topic");
+	request4.setRoleName("not_exist_role_name");
+	putOutcome3 = Client->PutLiveChannel(request4);
+	EXPECT_EQ(putOutcome3.isSuccess(), false);
 
     // clear env
     auto deleteOutcome1 = Client->DeleteLiveChannel(DeleteLiveChannelRequest(BucketName, channelName));
@@ -225,6 +241,18 @@ TEST_F(PutAndGetLiveChannelTest, PutLiveChannelErrorParamTest)
     putOutcome = Client->PutLiveChannel(request6);
     EXPECT_EQ(putOutcome.isSuccess(), true);
 
+	PutLiveChannelRequest request7(BucketName, channelName, "HLS");
+	request7.setStatus(LiveChannelStatus::LiveStatus);
+	putOutcome = Client->PutLiveChannel(request7);
+	EXPECT_EQ(putOutcome.isSuccess(), false);
+
+	PutLiveChannelRequest request8(BucketName, channelName, "HLS");
+	std::string too_long;
+	too_long.assign(129, 'a');
+	request8.setDescripition(too_long);
+	putOutcome = Client->PutLiveChannel(request8);
+	EXPECT_EQ(putOutcome.isSuccess(), false);
+
     getOutcome = Client->GetLiveChannelInfo(GetLiveChannelInfoRequest(
         BucketName, channelName));
     EXPECT_EQ(getOutcome.isSuccess(), true);
@@ -271,9 +299,9 @@ TEST_F(PutAndGetLiveChannelTest, PutLiveChannelErrorParamTest)
 
     std::string longStr(1028, 'a');
     longStr.append(".m3u8");
-    PutLiveChannelRequest request7(BucketName, channelName, "HLS");
-    request7.setPlayListName(longStr);
-    putOutcome = Client->PutLiveChannel(request7);
+    PutLiveChannelRequest request9(BucketName, channelName, "HLS");
+    request9.setPlayListName(longStr);
+    putOutcome = Client->PutLiveChannel(request9);
     EXPECT_EQ(putOutcome.isSuccess(), false);
 }
 

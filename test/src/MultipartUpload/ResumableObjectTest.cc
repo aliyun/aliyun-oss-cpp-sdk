@@ -21,7 +21,7 @@
 #include "../Utils.h"
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/Utils.h"
-#include "src//external/json/json.h"
+#include "src/external/json/json.h"
 #include <fstream>
 #include <ctime>
 
@@ -147,6 +147,7 @@ public:
 
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
 
@@ -173,6 +174,7 @@ public:
 
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
 
@@ -190,6 +192,7 @@ public:
 
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
         EXPECT_EQ(outcome.error().Code(), "ClientError:100002");
@@ -225,6 +228,7 @@ public:
 
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(partSize * 102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
 
@@ -246,6 +250,7 @@ public:
         std::string key = TestUtils::GetObjectKey("UnnormalUplloadObjectWithoutRealFile");
         std::string tmpFile = TestUtils::GetTargetFileName("UnnormalUplloadObjectWithoutRealFile").append(".tmp");
         UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
         EXPECT_EQ(outcome.error().Code(), "ValidateError");
@@ -260,6 +265,7 @@ public:
 
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
         request.setCheckpointDir(checkPoint);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
@@ -278,6 +284,7 @@ public:
 
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
         request.setCheckpointDir(checkpointDir);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
@@ -333,6 +340,7 @@ public:
         // resumable upload object failed
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         request.setFlags(request.Flags() | UploadPartFailedFlag);
         request.setCheckpointDir(checkpointKey);
         auto outcome = Client->ResumableUploadObject(request);
@@ -389,6 +397,7 @@ public:
         // resumable upload object failed
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         request.setFlags(request.Flags() | UploadPartFailedFlag);
         request.setCheckpointDir(checkpointKey);
         auto outcome = Client->ResumableUploadObject(request);
@@ -449,6 +458,7 @@ public:
 
         // resumable upload object failed
         UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setThreadNum(1);
         request.setPartSize(102400);
         request.setFlags(request.Flags() | UploadPartFailedFlag);
         request.setCheckpointDir(checkpointKey);
@@ -543,6 +553,7 @@ public:
         // resumable upload object failed
         UploadObjectRequest request(BucketName, key, tmpFile);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         request.setFlags(request.Flags() | UploadPartFailedFlag);
         request.setCheckpointDir(checkpointKey);
         auto outcome = Client->ResumableUploadObject(request);
@@ -718,6 +729,7 @@ public:
         // upload object
         UploadObjectRequest request(BucketName, key, tmpFile, "", meta);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableUploadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
         EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
@@ -787,6 +799,7 @@ public:
         Client->DisableRequest();
         DownloadObjectRequest request(BucketName, key, targetKey);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
         EXPECT_EQ(outcome.error().Code(), "ClientError:100002");
@@ -811,6 +824,7 @@ public:
         // download object
         DownloadObjectRequest request(BucketName, key, targetFile);
         request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
 
@@ -836,6 +850,7 @@ public:
 
         // download object
         DownloadObjectRequest request(BucketName, key, targetFile);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
 
@@ -891,6 +906,7 @@ public:
         int partSize = 1 + rand() % 99;
         DownloadObjectRequest request(BucketName, key, targetFile);
         request.setPartSize(partSize * 1024);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
 
@@ -942,6 +958,7 @@ public:
         // download
         DownloadObjectRequest request(BucketName, key, targetFile);
         request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
         request.setCheckpointDir(checkpointDir);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
@@ -1023,7 +1040,6 @@ public:
 
         // upload object
         auto uploadOutcome = Client->PutObject(BucketName, key, tmpFile);
-
         EXPECT_EQ(uploadOutcome.isSuccess(), true);
         EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
 
@@ -1310,6 +1326,7 @@ public:
         DownloadObjectRequest request(BucketName, sourceKey, targetKey);
         request.setTransferProgress(progressCallback);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
         EXPECT_EQ(RemoveFile(targetKey), true);
@@ -1334,6 +1351,7 @@ public:
         request.setTransferProgress(progressCallback);
         request.setFlags(request.Flags() | DownloadPartFailedFlag);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
 
@@ -1356,9 +1374,11 @@ public:
 
         DownloadObjectRequest request(BucketName, sourceKey, targetKey);
         request.setPartSize(102400);
-        request.setRange(20, (204800 - 1));
+        request.setRange(20, 30);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(outcome.result().Metadata().ContentLength(), 30 - 20 + 1);
         EXPECT_EQ(RemoveFile(targetKey), true);
     }
 
@@ -1366,7 +1386,8 @@ public:
     {
         std::string sourceKey = TestUtils::GetObjectKey("NormalDownloadSourceObjectWithErrorRangeLength");
         std::string targetKey = TestUtils::GetObjectKey("NormalDownloadTargetObjectWithErrorRangeLength");
-        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        int length = 102400 * (2 + rand() % 10);
+        auto putObjectContent = TestUtils::GetRandomStream(length);
         auto putObjectOutcome = Client->PutObject(BucketName, sourceKey, putObjectContent);
         EXPECT_EQ(putObjectOutcome.isSuccess(), true);
         EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
@@ -1377,6 +1398,7 @@ public:
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
         EXPECT_EQ(RemoveFile(targetKey), true);
+        EXPECT_EQ(outcome.result().Metadata().ContentLength(), length - 20);
     }
 
     TEST_F(ResumableObjectTest, UnnormalResumableDownloadWithErrorRangeLength)
@@ -1424,7 +1446,8 @@ public:
     {
         std::string sourceKey = TestUtils::GetObjectKey("MultiDownloadSourceObjectWithResponseHeadersSetTest");
         std::string targetKey = TestUtils::GetObjectKey("MultiDownloadTargetObjectWithResponseHeadersSetTest");
-        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        int length = 102400 * (2 + rand() % 10);
+        auto putObjectContent = TestUtils::GetRandomStream(length);
         auto putObjectOutcome = Client->PutObject(BucketName, sourceKey, putObjectContent);
         EXPECT_EQ(putObjectOutcome.isSuccess(), true);
         EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
@@ -1432,10 +1455,12 @@ public:
         // download
         DownloadObjectRequest request(BucketName, sourceKey, targetKey);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         request.addResponseHeaders(RequestResponseHeader::CacheControl, "max-age=3");
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
         EXPECT_EQ(outcome.result().Metadata().CacheControl(), "max-age=3");
+        EXPECT_EQ(outcome.result().Metadata().ContentLength(), length);
         EXPECT_EQ(RemoveFile(targetKey), true);
     }
 
@@ -1516,6 +1541,7 @@ public:
         request.setNonmatchingETagConstraints(eTagNoneMatchList);
         auto outcome = Client->ResumableDownloadObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(outcome.result().Metadata().ContentLength(), hOutcom.result().ContentLength());
         EXPECT_EQ(RemoveFile(targetKey), true);
     }
 
@@ -1536,6 +1562,7 @@ public:
         Client->DisableRequest();
         MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableCopyObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
         EXPECT_EQ(outcome.error().Code(), "ClientError:100002");
@@ -1602,7 +1629,8 @@ public:
 
         // Copy Object
         MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
-        request.setPartSize(100 * 1024 + 1);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableCopyObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
         EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
@@ -1696,7 +1724,8 @@ public:
         EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
 
         MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
-        request.setPartSize(102401);
+        request.setPartSize(102400);
+        request.setThreadNum(1);
         request.setCheckpointDir(TestUtils::GetExecutableDirectory());
         auto outcome = Client->ResumableCopyObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
@@ -2054,6 +2083,7 @@ public:
         request.setFlags(request.Flags() | CopyPartFailedFlag);
         request.setCheckpointDir(checkpointDir);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableCopyObject(request);
         EXPECT_EQ(outcome.isSuccess(), false);
 
@@ -2106,6 +2136,7 @@ public:
         // copy object
         MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey, "", meta);
         request.setPartSize(102400);
+        request.setThreadNum(1);
         auto outcome = Client->ResumableCopyObject(request);
         EXPECT_EQ(outcome.isSuccess(), true);
         EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
@@ -2155,6 +2186,7 @@ public:
         // copy
         MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
         request.setPartSize(102400);
+        request.setThreadNum(1);
 
         // error set Modified-Since time
         request.setSourceIfModifiedSince(TestUtils::GetGMTString(100));
@@ -2195,6 +2227,7 @@ public:
         // copy
         MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
         request.setPartSize(102400);
+        request.setThreadNum(1);
 
         // error set If-Match
         request.setSourceIfMatchEtag("invalidateETag");

@@ -39,18 +39,7 @@ void CreateSymlinkRequest::SetSymlinkTarget(const std::string& value)
 
 HeaderCollection CreateSymlinkRequest::specialHeaders() const
 {
-    HeaderCollection headers;
-    for (auto const&header : metaData_.HttpMetaData()) {
-        headers[header.first] = header.second;
-    }
-
-    for (auto const&header : metaData_.UserMetaData()) {
-        std::string key("x-oss-meta-");
-        key.append(header.first);
-        headers[key] = header.second;
-    }
-
-    return headers;
+    return metaData_.toHeaderCollection();
 }
 
 

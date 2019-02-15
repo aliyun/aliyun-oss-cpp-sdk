@@ -41,16 +41,8 @@ CompleteMultipartUploadRequest::CompleteMultipartUploadRequest(
     OssObjectRequest(bucket, key),
     partList_(partList),
     uploadId_(uploadId),
-    encodingTypeIsSet_(false),
-    hasSetAcl_(false)
+    encodingTypeIsSet_(false)
 {
-}
-
-
-void CompleteMultipartUploadRequest::setAcl(CannedAccessControlList acl)
-{
-    acl_ = acl;
-    hasSetAcl_ = true;
 }
 
 int CompleteMultipartUploadRequest::validate() const
@@ -83,6 +75,29 @@ void CompleteMultipartUploadRequest::setUploadId(const std::string &uploadId)
     uploadId_ = uploadId;
 }
 
+void CompleteMultipartUploadRequest::setAcl(CannedAccessControlList acl)
+{
+    metaData_.addHeader("x-oss-object-acl", ToAclName(acl));
+}
+
+void CompleteMultipartUploadRequest::setCallback(const std::string& callback, const std::string& callbackVar)
+{
+    metaData_.removeHeader("x-oss-callback");
+    metaData_.removeHeader("x-oss-callback-var");
+
+    if (!callback.empty()) {
+        metaData_.addHeader("x-oss-callback", callback);
+    }
+
+    if (!callbackVar.empty()) {
+        metaData_.addHeader("x-oss-callback-var", callbackVar);
+    }
+}
+
+ObjectMetaData& CompleteMultipartUploadRequest::MetaData()
+{
+    return metaData_;
+}
 ParameterCollection CompleteMultipartUploadRequest::specialParameters()const
 {
     ParameterCollection parameters;
@@ -96,12 +111,7 @@ ParameterCollection CompleteMultipartUploadRequest::specialParameters()const
 
 HeaderCollection CompleteMultipartUploadRequest::specialHeaders() const
 {
-    HeaderCollection headers;
-    if (hasSetAcl_)
-    {
-        headers["x-oss-object-acl"] = ToAclName(acl_);
-    }
-    return headers;
+    return metaData_.toHeaderCollection();
 }
 
 std::string CompleteMultipartUploadRequest::payload() const

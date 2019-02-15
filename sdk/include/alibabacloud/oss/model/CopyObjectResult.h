@@ -35,6 +35,7 @@ namespace OSS
         const std::string& LastModified() const { return lastModified_; }
 
         void setEtag(const std::string& etag) { etag_ = etag; }
+        void setLastModified(const std::string& lastModified) { lastModified_ = lastModified; }
      private:
         std::string etag_;
         std::string lastModified_;

@@ -53,22 +53,36 @@ UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::s
 
 UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &filePath, const std::string &checkpointDir, const ObjectMetaData& meta):
-    UploadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, 1, meta)
+    UploadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, DefaultResumableThreadNum, meta)
 {}
 
 UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &filePath, const std::string &checkpointDir) : 
-    UploadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, 1) 
+    UploadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, DefaultResumableThreadNum)
 {}
 
 UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key, 
     const std::string &filePath): 
-    UploadObjectRequest(bucket, key, filePath, "", DefaultPartSize, 1) 
+    UploadObjectRequest(bucket, key, filePath, "", DefaultPartSize, DefaultResumableThreadNum)
 {}
 
 void UploadObjectRequest::setAcl(CannedAccessControlList& acl)
 {
     metaData_.addHeader("x-oss-object-acl", ToAclName(acl));
+}
+
+void UploadObjectRequest::setCallback(const std::string& callback, const std::string& callbackVar)
+{
+    metaData_.removeHeader("x-oss-callback");
+    metaData_.removeHeader("x-oss-callback-var");
+
+    if (!callback.empty()) {
+        metaData_.addHeader("x-oss-callback", callback);
+    }
+
+    if (!callbackVar.empty()) {
+        metaData_.addHeader("x-oss-callback-var", callbackVar);
+    }
 }
 
 int UploadObjectRequest::validate() const 

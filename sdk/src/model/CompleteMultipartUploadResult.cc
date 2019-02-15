@@ -17,6 +17,7 @@
 #include <alibabacloud/oss/model/CompleteMultipartUploadResult.h>
 #include <tinyxml2/tinyxml2.h>
 #include "../utils/Utils.h"
+#include <alibabacloud/oss/http/HttpType.h>
 
 using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
@@ -24,7 +25,8 @@ using namespace tinyxml2;
 
 CompleteMultipartUploadResult::CompleteMultipartUploadResult() :
     OssResult(),
-    crc64_(0)
+    crc64_(0),
+    content_(nullptr)
 {
 }
 
@@ -38,12 +40,27 @@ CompleteMultipartUploadResult::CompleteMultipartUploadResult(const std::shared_p
     const HeaderCollection& headers) :
     CompleteMultipartUploadResult()
 {
-    std::istreambuf_iterator<char> isb(*result.get()), end;
-    std::string str(isb, end);
-    *this = str;
+    std::string contentType;
+    if (headers.find(Http::CONTENT_TYPE) != headers.end()) {
+        contentType = ToLower(headers.at(Http::CONTENT_TYPE).c_str());
+    }
+
+    if (contentType.compare("application/json") != 0) {
+        std::istreambuf_iterator<char> isb(*result.get()), end;
+        std::string str(isb, end);
+        *this = str;
+    }
+    else {
+        content_ = result;
+        parseDone_ = true;
+    }
 
     if (headers.find("x-oss-hash-crc64ecma") != headers.end()) {
         crc64_ =  std::strtoull(headers.at("x-oss-hash-crc64ecma").c_str(), nullptr, 10);
+    }
+
+    if (eTag_.empty() && headers.find(Http::ETAG) != headers.end()) {
+        eTag_ = TrimQuotes(headers.at(Http::ETAG).c_str());
     }
 }
 
@@ -136,4 +153,9 @@ const std::string& CompleteMultipartUploadResult::EncodingType() const
 uint64_t CompleteMultipartUploadResult::CRC64() const
 {
     return crc64_;
+}
+
+const std::shared_ptr<std::iostream>& CompleteMultipartUploadResult::Content() const
+{
+    return content_;
 }

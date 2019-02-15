@@ -31,6 +31,8 @@ namespace OSS
         GetObjectResult(const std::string& bucket, const std::string& key, 
             const std::shared_ptr<std::iostream>& content,
             const HeaderCollection& headers);
+        GetObjectResult(const std::string& bucket, const std::string& key,
+            const ObjectMetaData& metaData);
         const std::string& Bucket() const { return bucket_; }
         const std::string& Key()  const { return key_; }
         const ObjectMetaData& Metadata()  const { return metaData_; }

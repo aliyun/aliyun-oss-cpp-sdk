@@ -105,6 +105,12 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
             return true;
         }
     }
+
+    if (response->statusCode() == 203 && response->request().hasHeader("x-oss-callback")) {
+        return true;
+    }
+
+    //check Calback 
     return false;
 }
 
@@ -244,7 +250,8 @@ void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, co
 OssError OssClientImpl::buildError(const Error &error) const
 {
     OssError err;
-    if (error.Status() > 299 && error.Status() < 600 && !error.Message().empty()) {
+    if (((error.Status() == 203) || (error.Status() > 299 && error.Status() < 600)) && 
+        !error.Message().empty()) {
         XMLDocument doc;
         XMLError xml_err;
         if ((xml_err = doc.Parse(error.Message().c_str(), error.Message().size())) == XML_SUCCESS) {
@@ -665,10 +672,8 @@ PutObjectOutcome OssClientImpl::PutObject(const PutObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
     if (outcome.isSuccess()) {
-        const HeaderCollection& header = outcome.result().headerCollection();
-        PutObjectResult result(header);
-        result.requestId_ = outcome.result().RequestId();
-        return PutObjectOutcome(result);
+        return PutObjectOutcome(PutObjectResult(outcome.result().headerCollection(), 
+            outcome.result().payload()));
     }
     else {
         return PutObjectOutcome(outcome.error());
@@ -775,7 +780,7 @@ GetSymlinkOutcome OssClientImpl::GetSymlink(const GetSymlinkRequest &request) co
     if (outcome.isSuccess()) {
         const HeaderCollection& header = outcome.result().headerCollection();
         GetSymlinkResult result(header.at("x-oss-symlink-target")
-                                  ,header.at("ETag"));
+                                  ,header.at(Http::ETAG));
         result.requestId_ = outcome.result().RequestId();
         return GetSymlinkOutcome(std::move(result));
     }
@@ -802,7 +807,7 @@ CreateSymlinkOutcome OssClientImpl::CreateSymlink(const CreateSymlinkRequest &re
     auto outcome = MakeRequest(request, Http::Method::Put);
     if (outcome.isSuccess()) {
         const HeaderCollection& header = outcome.result().headerCollection();
-        CreateSymlinkResult result(header.at("ETag"));
+        CreateSymlinkResult result(header.at(Http::ETAG));
         result.requestId_ = outcome.result().RequestId();
         return CreateSymlinkOutcome(std::move(result));
     }
@@ -824,6 +829,17 @@ VoidOutcome OssClientImpl::SetObjectAcl(const SetObjectAclRequest &request) cons
     }
 }
 
+GetObjectOutcome OssClientImpl::ProcessObject(const ProcessObjectRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
+            outcome.result().payload(), outcome.result().headerCollection()));
+    }
+    else {
+        return GetObjectOutcome(outcome.error());
+    }
+}
 
 StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
@@ -832,15 +848,7 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
         return StringOutcome(OssError("ValidateError", "The Bucket or Key is invalid."));
     }
 
-    HeaderCollection headers;
-    for (auto const&header : request.metaData_.HttpMetaData()) {
-        headers[header.first] = header.second;
-    }
-    for (auto const&header : request.metaData_.UserMetaData()) {
-        std::string key("x-oss-meta-");
-        key.append(header.first);
-        headers[key] = header.second;
-    }
+    HeaderCollection headers = request.metaData_.toHeaderCollection();
 
     ParameterCollection parameters;
     const Credentials credentials = credentialsProvider_->getCredentials();
@@ -887,8 +895,8 @@ PutObjectOutcome OssClientImpl::PutObjectByUrl(const PutObjectByUrlRequest &requ
 {
     auto outcome = BASE::AttemptRequest(endpoint_, request, Http::Method::Put);
     if (outcome.isSuccess()) {
-        const HeaderCollection& header = outcome.result()->Headers();
-        return PutObjectOutcome(PutObjectResult(header));
+        return PutObjectOutcome(PutObjectResult(outcome.result()->Headers(), 
+            outcome.result()->Body()));
     }
     else {
         return PutObjectOutcome(buildError(outcome.error()));

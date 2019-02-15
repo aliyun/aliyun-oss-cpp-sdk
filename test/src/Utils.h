@@ -68,6 +68,8 @@ public:
 
     static void LogPrintCallback(LogLevel level, const std::string &stream);
 
+    static std::string Base64Decode(std::string const& encoded_string);
+
 };
 
 }

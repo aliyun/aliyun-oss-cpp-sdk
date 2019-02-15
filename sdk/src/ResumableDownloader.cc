@@ -167,7 +167,9 @@ GetObjectOutcome ResumableDownloader::Download()
         return a.partNumber < b.partNumber;
     });
 
-    //check crc
+    auto meta = outcomes[0].result().Metadata();
+    meta.setContentLength(contentLength_);
+    //check crc and update metadata
     if (!request_.RangeIsSet()) {
         uint64_t localCRC64 = downloadedParts[0].crc64;
         for (size_t i = 1; i < downloadedParts.size(); i++) {
@@ -176,8 +178,23 @@ GetObjectOutcome ResumableDownloader::Download()
         if (localCRC64 != outcomes[0].result().Metadata().CRC64()) {
             return GetObjectOutcome(OssError("CrcCheckError", "ResumableDownload object CRC checksum fail."));
         }
+        meta.HttpMetaData().erase(Http::CONTENT_RANGE);
+    }
+    else {
+        std::stringstream ss;
+        ss << "bytes " << request_.RangeStart() << "-";
+        if (request_.RangeEnd() != -1) { 
+            ss << request_.RangeEnd() << "/" << objectSize_; 
+        } 
+        else {
+            ss << (objectSize_ - 1) << "/" << objectSize_;
+        }
+        meta.HttpMetaData()["Content-Range"] = ss.str();
     }
 
+    if (meta.HttpMetaData().find("x-oss-hash-crc64ecma-by-client") != meta.HttpMetaData().end()) {
+        meta.HttpMetaData().erase("x-oss-hash-crc64ecma-by-client");
+    }
     if (!RenameFile(request_.TempFilePath(), request_.FilePath())) {
         std::stringstream ss;
         ss << "rename temp file "<< request_.TempFilePath() << " to " << request_.FilePath() << " failed";
@@ -186,7 +203,9 @@ GetObjectOutcome ResumableDownloader::Download()
     if (!recordPath_.empty()) {
         RemoveFile(recordPath_);
     }
-    return outcomes[0];
+
+    GetObjectResult result(request_.Bucket(), request_.Key(), meta);
+    return GetObjectOutcome(result);
 }
 
 int ResumableDownloader::prepare(OssError& err) 
@@ -355,6 +374,7 @@ int ResumableDownloader::getPartsToDownload(OssError &err, PartRecordList &parts
         if (end == -1) {
             end = objectSize_ - 1;
         }
+        contentLength_ = end - start + 1;
     }
 
     int32_t index = 1;
@@ -409,6 +429,6 @@ void ResumableDownloader::DownloadPartProcessCallback(size_t increment, int64_t 
 
     auto process = downloader->request_.TransferProgress();
     if (process.Handler) {
-        process.Handler(increment, downloader->consumedSize_, downloader->objectSize_, process.UserData);
+        process.Handler(increment, downloader->consumedSize_, downloader->contentLength_, process.UserData);
     }
 }
