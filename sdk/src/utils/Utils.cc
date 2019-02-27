@@ -18,6 +18,9 @@
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/md5.h>
+#ifdef OPENSSL_IS_BORINGSSL 
+#include <openssl/base64.h>
+#endif
 #include <algorithm>
 #include <cstring>
 #include <iostream> 
@@ -177,8 +180,9 @@ std::string AlibabaCloud::OSS::ComputeContentMD5(std::istream& stream)
     unsigned int md_len = 0;
 
     EVP_MD_CTX_init(ctx);
+#ifndef OPENSSL_IS_BORINGSSL 
     EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
-
+#endif
     EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
 
     auto currentPos = stream.tellg();
@@ -243,7 +247,9 @@ std::string AlibabaCloud::OSS::ComputeContentETag(std::istream& stream)
     unsigned int md_len = 0;
 
     EVP_MD_CTX_init(ctx);
+#ifndef OPENSSL_IS_BORINGSSL 
     EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
+#endif
 
     EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
 

@@ -20,6 +20,10 @@
 #include <wincrypt.h>
 #else
 #include <openssl/hmac.h>
+#ifdef OPENSSL_IS_BORINGSSL 
+#include <openssl/base64.h>
+#define EVP_MAX_BLOCK_LENGTH 32
+#endif
 #endif
 
 using namespace AlibabaCloud::OSS;
