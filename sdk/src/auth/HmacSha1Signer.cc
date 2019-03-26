@@ -20,6 +20,9 @@
 #include <wincrypt.h>
 #else
 #include <openssl/hmac.h>
+#ifdef OPENSSL_IS_BORINGSSL 
+#include <openssl/base64.h>
+#endif
 #endif
 
 using namespace AlibabaCloud::OSS;
@@ -84,8 +87,8 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
     delete dest;
     return ret;
 #else
-    unsigned char md[EVP_MAX_BLOCK_LENGTH];
-    unsigned int mdLen = EVP_MAX_BLOCK_LENGTH;
+    unsigned char md[32];
+    unsigned int mdLen = 32;
 
     if (HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.size()),
         reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
