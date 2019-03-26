@@ -106,11 +106,13 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
         }
     }
 
-    if (response->statusCode() == 203 && response->request().hasHeader("x-oss-callback")) {
+    //check Calback 
+    if (response->statusCode() == 203 &&
+        (response->request().hasHeader("x-oss-callback") ||
+        (response->request().url().query().find("callback=") != std::string::npos))) {
         return true;
     }
 
-    //check Calback 
     return false;
 }
 

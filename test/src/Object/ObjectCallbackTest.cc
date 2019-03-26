@@ -413,6 +413,21 @@ TEST_F(ObjectCallbackTest, PutPreSignedCallbackNegativeTest)
     EXPECT_EQ(pOutcome.isSuccess(), false);
     EXPECT_EQ(pOutcome.error().Code(), "InvalidArgument");
     EXPECT_EQ(pOutcome.error().Message(), "The callback configuration is not json format.");
+
+    //invalid callback server
+    std::string callbackUrl = "http://oss-cn-hangzhou.aliyuncs.com";
+    std::string callbackBody = "bucket=${bucket}&object=${object}&etag=${etag}&size=${size}&mimeType=${mimeType}&my_var1=${x:var1}";
+
+    ObjectCallbackBuilder builder(callbackUrl, callbackBody);
+    std::string value = builder.build();
+    request.addParameter("callback", value);
+
+    urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    pOutcome = Client->PutObjectByUrl(PutObjectByUrlRequest(urlOutcome.result(), content));
+    EXPECT_EQ(pOutcome.isSuccess(), false);
+    EXPECT_EQ(pOutcome.error().Code(), "CallbackFailed");
+    EXPECT_TRUE(pOutcome.error().RequestId().size() > 0);
 }
 
 TEST_F(ObjectCallbackTest, ObjectCallbackBuilderTest)
