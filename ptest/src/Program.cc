@@ -1,6 +1,7 @@
 #include <alibabacloud/oss/OssClient.h>
 #include <alibabacloud/oss/client/RateLimiter.h>
 #include <iostream>
+#include <memory>
 #include "Config.h"
 #include <fstream>
 #include <future>
@@ -8,6 +9,8 @@
 #include <chrono>
 #include <iomanip>
 #include <atomic>
+#include<algorithm>
+
 using namespace AlibabaCloud::OSS;
 using namespace AlibabaCloud::OSS::PTest;
 
@@ -15,20 +18,28 @@ static std::chrono::system_clock::time_point totalStartTimePoint;
 static std::chrono::system_clock::time_point totalStopTimePoint;
 static int64_t totalTransferSize;
 static int64_t totalTransferDurationMS;
+static int64_t minTransferDurationMS;
+static int64_t maxTransferDurationMS;
+static int totalSucessCnt;
+static int totalFailCnt;
 static std::mutex logMtx;
 static std::mutex updateMtx;
-static std::atomic<int> totalSucessCnt;
-static std::atomic<int> totalFailCnt;
 
 static uint64_t uploadFileCRC64;
 
 struct taskResult
 {
+    int taskId;
     bool success;
+    int64_t seqNum;
+    int64_t transferSize;
     std::chrono::system_clock::time_point startTimePoint;
     std::chrono::system_clock::time_point stopTimePoint;
-    int64_t transferSize;
 };
+
+using TaskResultVector = std::vector<taskResult>;
+
+static std::vector<TaskResultVector> totalResults;
 
 class  DefaultRateLimiter : public RateLimiter
 {
@@ -96,11 +107,74 @@ static int calculate_part_count(int64_t totalSize, int singleSize)
     return static_cast<int>(partCount);
 }
 
+static bool is_test_done(int loopcnt, std::chrono::system_clock::time_point startTp)
+{
+    if (Config::Persistent)
+        return false;
+
+    if ((Config::LoopTimes > 0) && (loopcnt <= Config::LoopTimes))
+        return false;
+
+    if (Config::LoopDurationS > 0) {
+        auto currTp = std::chrono::system_clock::now();
+        int  diff = (int)(std::chrono::duration_cast<std::chrono::seconds>(currTp - startTp)).count();
+
+        if (diff < Config::LoopDurationS)
+            return false;
+    }
+
+    return true;
+}
+
 static void log_msg(std::ostream & out, const std::string &msg)
 {
     std::unique_lock<std::mutex> lck(logMtx);
     out << msg;
     out.flush();
+}
+
+static void log_result_detail_msg(std::ostream& out)
+{
+    std::unique_lock<std::mutex> lck(logMtx);
+    std::stringstream ss;
+    out << "Dump Detail:" << std::endl;
+    out << "Result, TaskId, SeqNum, DurationMs, TransferSize, TransferRate MB/s" << std::endl;
+    for (const auto& results : totalResults) {
+        for (const auto& result : results) {
+            ss.str("");
+            ss << std::setiosflags(std::ios::fixed) << std::setprecision(2);
+            int64_t durationMs = (std::chrono::duration_cast<std::chrono::milliseconds>(result.stopTimePoint - result.startTimePoint)).count();
+            ss << (result.success ? "OK" : "NG") <<
+                "," << result.taskId <<
+                "," << result.seqNum <<
+                "," << durationMs;
+            if (result.success) {
+                ss << "," << result.transferSize;
+                ss << "," << ((double)result.transferSize / 1024.0f / 1024.0f) / ((double)durationMs / 1000.0f);
+            }
+            else {
+                ss << ", ,";
+            }
+            ss << std::endl;
+            out << ss.str();
+        }
+    }
+    out.flush();
+}
+
+static void get_90th_95th_latency_percentile(int64_t &per90, int64_t &per95)
+{
+    std::vector<int64_t> latentcy;
+    for (const auto& results : totalResults) {
+        for (const auto& result : results) {
+            int64_t durationMs = (std::chrono::duration_cast<std::chrono::milliseconds>(result.stopTimePoint - result.startTimePoint)).count();
+            latentcy.push_back(durationMs);
+        }
+    }
+    std::sort(latentcy.begin(), latentcy.end());
+
+    per90 = latentcy[latentcy.size() * 90 / 100];
+    per95 = latentcy[latentcy.size() * 95 / 100];
 }
 
 static std::string get_task_key(int taskId)
@@ -136,77 +210,49 @@ static std::string get_task_fileName(int taskId)
 static taskResult upload(const OssClient &client, const std::string &key, const std::string &fileToUpload)
 {
     taskResult result;
-    result.startTimePoint = std::chrono::system_clock::now();
-    result.transferSize = get_file_size(fileToUpload);
-
     std::stringstream ss;
+    result.transferSize = get_file_size(fileToUpload);
+    result.startTimePoint = std::chrono::system_clock::now();
+
     auto outcome = client.PutObject(Config::BucketName, key, fileToUpload);
-    if (outcome.isSuccess()) {
-        ss << "Put object : " << key << " succeeded ! " << std::endl;
-    }
-    else {
-        ss << "Put object : " << key << " Failed with error, code:" << outcome.error().Code() << 
-                                                          ", message:" << outcome.error().Message() << std::endl;
-    }
+
     result.success = outcome.isSuccess();
     result.stopTimePoint = std::chrono::system_clock::now();
-
-    log_msg(std::cout, ss.str());
     return result;
 }
 
 static taskResult upload_async(const OssClient &client, const std::string &key, const std::string &fileToUpload)
 {
     taskResult result;
-    result.startTimePoint = std::chrono::system_clock::now();
     result.transferSize = get_file_size(fileToUpload);
 
-    std::stringstream ss;
     std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(fileToUpload, std::ios::in|std::ios::binary);
     auto outcomeCallable = client.PutObjectCallable(PutObjectRequest(Config::BucketName, key, content));
     auto outcome = outcomeCallable.get();
-    if (outcome.isSuccess()) {
-        ss << "Put object Aysnc : " << key << " succeeded ! " << std::endl;
-    }
-    else {
-        ss << "Put object Aysnc : " << key << " Failed with error, code:" << outcome.error().Code() <<
-            ", message:" << outcome.error().Message() << std::endl;
-    }
+
+    result.startTimePoint = std::chrono::system_clock::now();
+
     result.success = outcome.isSuccess();
     result.stopTimePoint = std::chrono::system_clock::now();
-
-    log_msg(std::cout, ss.str());
     return result;
 }
 
 static taskResult upload_resumable(const OssClient &client, const std::string &key, const std::string &fileToUpload)
 {
     taskResult result;
-    result.startTimePoint = std::chrono::system_clock::now();
     result.transferSize = get_file_size(fileToUpload);
 
-    std::stringstream ss;
     UploadObjectRequest request(Config::BucketName, key, fileToUpload);
     request.setPartSize(Config::PartSize);
     request.setThreadNum(Config::Parallel);
-    auto outcome = client.ResumableUploadObject(request);
-    result.success = outcome.isSuccess();
-    if (outcome.isSuccess()) {
-        if (outcome.result().CRC64() != uploadFileCRC64) {
-            result.success = false;
-            ss << "Resumable upload object : " << key << " Failed with CRC64 check fail. ! " << std::endl;
-        }
-        else {
-            ss << "Resumable upload object : " << key << " succeeded ! " << std::endl;
-        }
-    }
-    else {
-        ss << "Resumable upload object : " << key << " Failed with error, code:" << outcome.error().Code() <<
-            ", message:" << outcome.error().Message() << std::endl;
-    }
-    result.stopTimePoint = std::chrono::system_clock::now();
 
-    log_msg(std::cout, ss.str());
+    result.startTimePoint = std::chrono::system_clock::now();
+
+    auto outcome = client.ResumableUploadObject(request);
+
+    result.stopTimePoint = std::chrono::system_clock::now();
+    result.success = outcome.isSuccess();
+
     return result;
 }
 
@@ -218,8 +264,8 @@ struct SubTaskInfo {
 static taskResult upload_multipart(const OssClient &client, const std::string &key, const std::string &fileToUpload)
 {
     taskResult result;
-    result.startTimePoint = std::chrono::system_clock::now();
     result.transferSize = get_file_size(fileToUpload);
+    result.startTimePoint = std::chrono::system_clock::now();
 
     // Set the part size 
     const int partSize = Config::PartSize;
@@ -315,17 +361,9 @@ static taskResult upload_multipart(const OssClient &client, const std::string &k
         message = initOutcome.error().Message();
     }
 
-    std::stringstream ss;
-    if (!failed) {
-        ss << "MultiUpload object : " << key << " succeeded ! " << std::endl;
-    }
-    else {
-        ss << "MultiUpload object : " << key << " Failed with error, code:" << code << ", message:" << message << std::endl;
-    }
-    result.success = !failed;
     result.stopTimePoint = std::chrono::system_clock::now();
+    result.success = !failed;
 
-    log_msg(std::cout, ss.str());
     return result;
 }
 
@@ -334,79 +372,69 @@ static taskResult download(const OssClient &client, const std::string &key, cons
     taskResult result;
     result.startTimePoint = std::chrono::system_clock::now();
 
-    std::stringstream ss;
     auto outcome = client.GetObject(Config::BucketName, key, fileToSave);
+
+    result.stopTimePoint = std::chrono::system_clock::now();
+    result.success = outcome.isSuccess();
     if (outcome.isSuccess()) {
-        ss << "Get object : " << key << " succeeded ! " << std::endl;
         result.transferSize = outcome.result().Metadata().ContentLength();
     }
-    else {
-        ss << "Get object : " << key << " Failed with error, code:" << outcome.error().Code() <<
-            ", message:" << outcome.error().Message() << std::endl;
-    }
-    result.success = outcome.isSuccess();
-    result.stopTimePoint = std::chrono::system_clock::now();
-
-    log_msg(std::cout, ss.str());
     return result;
 }
 
 static taskResult download_async(const OssClient &client, const std::string &key, const std::string &fileToSave)
 {
     taskResult result;
-    result.startTimePoint = std::chrono::system_clock::now();
 
-    std::stringstream ss;
     GetObjectRequest request(Config::BucketName, key);
     request.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(fileToSave, std::ios_base::out | std::ios_base::trunc | std::ios::binary); });
+    result.startTimePoint = std::chrono::system_clock::now();
+
     auto outcomeCallable = client.GetObjectCallable(request);
     auto outcome = outcomeCallable.get();
+
+    result.stopTimePoint = std::chrono::system_clock::now();
+    result.success = outcome.isSuccess();
     if (outcome.isSuccess()) {
-        ss << "Get object Async: " << key << " succeeded ! " << std::endl;
         result.transferSize = outcome.result().Metadata().ContentLength();
     }
-    else {
-        ss << "Get object Async: " << key << " Failed with error, code:" << outcome.error().Code() <<
-            ", message:" << outcome.error().Message() << std::endl;
-    }
-    result.success = outcome.isSuccess();
-    result.stopTimePoint = std::chrono::system_clock::now();
-
-    log_msg(std::cout, ss.str());
     return result;
 }
 
 static taskResult download_resumable(const OssClient &client, const std::string &key, const std::string &fileToSave)
 {
     taskResult result;
-    result.startTimePoint = std::chrono::system_clock::now();
-
-    std::stringstream ss;
     DownloadObjectRequest request(Config::BucketName, key, fileToSave);
     request.setPartSize(Config::PartSize);
     request.setThreadNum(Config::Parallel);
+    result.startTimePoint = std::chrono::system_clock::now();
+
     auto outcome = client.ResumableDownloadObject(request);
+
+    result.stopTimePoint = std::chrono::system_clock::now();
+    result.success = outcome.isSuccess();
     if (outcome.isSuccess()) {
-        ss << "Resumable download object : " << key << " succeeded ! " << std::endl;
         result.transferSize = outcome.result().Metadata().ContentLength();
     }
-    else {
-        ss << "Resumable download object : " << key << " Failed with error, code:" << outcome.error().Code() <<
-            ", message:" << outcome.error().Message() << std::endl;
-    }
-    result.success = outcome.isSuccess();
-    result.stopTimePoint = std::chrono::system_clock::now();
-
-    log_msg(std::cout, ss.str());
     return result;
 }
 
 static void runSingleTask(int taskId)
 {
     taskResult result;
+    TaskResultVector &resultVec = totalResults[taskId];
     std::string key = get_task_key(taskId);
     std::string fileName = get_task_fileName(taskId);
     std::stringstream ss;
+    auto startTime = std::chrono::system_clock::now();
+
+    int64_t taskMinTransferDurationMs = 0x7FFFFFFF;
+    int64_t taskMaxTransferDurationMs = -1;
+    int64_t taskAvgTrasnferDurationMs = -1;
+    int64_t taskTransferSize = 0;
+    int64_t taskTransferDurationMs = 0;
+    int taskSucessCnt = 0;
+    int taskFailCnt   = 0;
 
     ClientConfiguration conf;
     auto rateLimiter = std::make_shared<DefaultRateLimiter>();
@@ -423,16 +451,18 @@ static void runSingleTask(int taskId)
         Config::Persistent = true;
     }
 
+    ss.str();
+    ss << "\n++++ START " << Config::Command << 
+        " : taskID=" << taskId << 
+        ", LocalFile=" << fileName <<
+        ", RemoteKey=" << key <<
+        ", StartTime=" << to_datetime_string(startTime) << std::endl;
+    log_msg(std::cout, ss.str());
+
     int runIndex = 1;
-    while ((runIndex <= Config::LoopTimes) || Config::Persistent)
+    //while ((runIndex <= Config::LoopTimes) || Config::Persistent)
+    while (!is_test_done(runIndex, startTime))
     {
-        std::stringstream ss;
-        ss << "\n++++ START " << Config::Command << 
-            " : taskID=" << taskId << ", runIndex=" << runIndex <<
-            ", LocalFile=" << fileName <<
-            ", RemoteKey=" << key <<
-            ", StartTime=" << to_datetime_string(std::chrono::system_clock::now()) << std::endl;
-        log_msg(std::cout, ss.str());
         if (Config::Command == "upload") {
             result = upload(client, key, fileName);
         }
@@ -460,40 +490,56 @@ static void runSingleTask(int taskId)
             break;
         }
 
-        ss.str("");
-        ss << "\n---- STOP  " << Config::Command <<
-               " : taskID=" << taskId << ", runIndex="<< runIndex << 
-                ", LocalFile=" << fileName <<
-                ", RemoteKey=" << key <<
-                ", StopTime=" << to_datetime_string(result.stopTimePoint) << " ";
-        if (result.success)
-        {
+        if (result.success) {
             int64_t trasnferDuration = (std::chrono::duration_cast<std::chrono::milliseconds>(result.stopTimePoint - result.startTimePoint)).count();
+            taskTransferSize += result.transferSize;
+            taskTransferDurationMs += trasnferDuration;
+            taskSucessCnt += 1;
 
-            std::unique_lock<std::mutex> lck(updateMtx);
-            totalTransferSize += result.transferSize;
-            totalTransferDurationMS += trasnferDuration;
-            totalSucessCnt += 1;
-
-            double  transferSizeMB = (double)result.transferSize/1024.0f/1024.0f;
-            double  durationS = (double)trasnferDuration / 1000.0f;
-            double  transferRateMBPerS = transferSizeMB / durationS;
-
-            ss << "success" << std::endl;
-            ss << std::setiosflags(std::ios::fixed) << std::setprecision(2);
-            ss << "#### Task STATISTIC : taskID=" << taskId << ", runIndex=" << runIndex <<
-                ", TransferRate=" << transferRateMBPerS << " MB/S" <<
-                ", TransferSize=" << transferSizeMB << " MB" <<
-                ", TransferDuration=" << durationS << " Seconds. " << std::endl;
+            taskMinTransferDurationMs = std::min(trasnferDuration, taskMinTransferDurationMs);
+            taskMaxTransferDurationMs = std::max(trasnferDuration, taskMaxTransferDurationMs);
         }
         else {
-            totalFailCnt += 1;
-            ss << "fail" << std::endl;
+            taskFailCnt += 1;
         }
 
-        log_msg(std::cout, ss.str());
+        if (Config::DumpDetail || Config::PrintPercentile) {
+            result.taskId = taskId;
+            result.seqNum = runIndex;
+            resultVec.push_back(result);
+        }
         runIndex++;
     }
+
+    if (taskSucessCnt > 0) {
+        taskAvgTrasnferDurationMs = taskTransferDurationMs / taskSucessCnt;
+    }
+
+    double taskTransferRateMBPerS = ((double)taskTransferSize / 1024.0f / 1024.0f) / ((double)taskTransferDurationMs / 1000.0f);
+
+    ss.str("");
+    ss << "\n---- STOP  " << Config::Command <<
+        " : taskID=" << taskId <<
+        ", LocalFile=" << fileName <<
+        ", RemoteKey=" << key <<
+        ", StopTime=" << to_datetime_string(result.stopTimePoint) << " " <<
+        ", runTimes=" << runIndex <<
+        ", OK=" << taskSucessCnt << 
+        ", NG=" << taskFailCnt << std::setiosflags(std::ios::fixed) << std::setprecision(2) <<
+        ", AvgTransferRate="<< taskTransferRateMBPerS << " MB / S" <<
+        ", Latency(min,max,avg)=(" << taskMinTransferDurationMs << "," << taskMaxTransferDurationMs << "," << taskAvgTrasnferDurationMs << ") Ms"<< std::endl;
+    log_msg(std::cout, ss.str());
+
+    {
+    std::unique_lock<std::mutex> lck(updateMtx);
+    totalTransferSize += taskTransferSize;
+    totalTransferDurationMS += taskTransferDurationMs;
+    totalSucessCnt += taskSucessCnt;
+    totalFailCnt += taskFailCnt;
+    minTransferDurationMS = std::min(minTransferDurationMS, taskMinTransferDurationMs);
+    maxTransferDurationMS = std::max(maxTransferDurationMS, taskMaxTransferDurationMs);
+    }
+
 }
 
 void statistic_report_begin()
@@ -504,10 +550,13 @@ void statistic_report_begin()
     }
 
     totalTransferDurationMS = 1;
+    minTransferDurationMS = 0x7FFFFFFF;
+    maxTransferDurationMS = -1;
     totalTransferSize = 0;
     totalStartTimePoint = std::chrono::system_clock::now();
     totalSucessCnt = 0;
     totalFailCnt = 0;
+    totalResults.resize(Config::Multithread);
     std::stringstream ss;
     ss << std::endl <<"The Begin : StartTime =" << to_datetime_string(totalStartTimePoint) << std::endl;
     log_msg(std::cout, ss.str());
@@ -531,11 +580,25 @@ void statistic_report_end()
     double transferSizeMB    = (double)totalTransferSize / 1024.0f / 1024.0f;
     double transferDurationS = (double)totalTimeMS / 1000.0f;
     double transferRateMBPerS = transferSizeMB / transferDurationS;
+    int64_t avgTrasnferDurationMs = totalSucessCnt ? (totalTransferDurationMS / totalSucessCnt) : -1;
     ss << "#### StatisticReport: AvgTransferRate="<< transferRateMBPerS << " MB/S" <<
                                 ", TotalSize=" << transferSizeMB << " MB"
                                 ", TotalDuration=" << transferDurationS << " Seconds." << 
-                                ", OK=" << totalSucessCnt << ", NG=" << totalFailCnt  << std::endl;
+                                ", OK=" << totalSucessCnt << 
+                                ", NG=" << totalFailCnt  << 
+                                ", Latency(min,max,avg)=(" << minTransferDurationMS << "," << maxTransferDurationMS << "," << avgTrasnferDurationMs << ") Ms";
+    
+    if (Config::PrintPercentile) {
+        int64_t per90, per95;
+        get_90th_95th_latency_percentile(per90, per95);
+        ss << ", Latency Percentile(90th, 95th) Ms=(" << per90 << "," << per95 << ")";
+    }
+    ss << std::endl;
     log_msg(std::cout, ss.str());
+
+    if (Config::DumpDetail) {
+        log_result_detail_msg(std::cout);
+    }
 }
 
 void LogCallbackFunc(LogLevel level, const std::string &stream)

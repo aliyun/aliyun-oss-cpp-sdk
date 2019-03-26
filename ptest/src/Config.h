@@ -32,6 +32,7 @@ namespace PTest
         static int Parallel;
         static int Multithread;
         static int LoopTimes;
+        static int LoopDurationS;
         static bool Persistent;
         static bool DifferentSource;
         static bool CrcCheck;
@@ -39,6 +40,8 @@ namespace PTest
         static int SpeedKBPerSec;
 
         static bool Debug;
+        static bool DumpDetail;
+        static bool PrintPercentile;
     };
 }
 }

@@ -24,12 +24,15 @@ int Config::PartSize = 100 * 1024 * 1024;
 int Config::Parallel = 5;
 int Config::Multithread = 1;
 int Config::LoopTimes = 1;
+int Config::LoopDurationS = -1;
 bool Config::Persistent = false;
 bool Config::DifferentSource = false;
 bool Config::CrcCheck = true;
 int Config::SpeedKBPerSec = 0;   //
 
 bool Config::Debug = false;
+bool Config::DumpDetail = false;
+bool Config::PrintPercentile = false;
 
 static std::string LeftTrim(const char* source)
 {
@@ -74,8 +77,8 @@ void Config::PrintHelp()
     std::cout << "\n";
     std::cout << "Usage: cpp-sdk-ptest  [-h] [-v] [-c COMMAND] [-f LOCALFILE]      \n";
     std::cout << "                      [-k REMOTEKEY] [-p PARALLEL]      \n";
-    std::cout << "                      [-m MULTITHREAD] [-partsize PARTSIZE]      \n";
-    std::cout << "                      [-loop LOOPTIMES] [--persistent]      \n";
+    std::cout << "                      [-m MULTITHREAD] [--partSize PARTSIZE]      \n";
+    std::cout << "                      [-loopTimes TIMES]|[--loopDuration SEC]|[--persistent]      \n";
     std::cout << "                      [--differentsource]      \n";
     std::cout << "Optional arguments:      \n";
     std::cout << "  -h, --help          show this help mestd::coutage and exit.           \n";
@@ -84,13 +87,16 @@ void Config::PrintHelp()
     std::cout << "  -b BUCKETNAME       bucket name.                \n";
     std::cout << "  -f LOCALFILE        local filename to transfer.                \n";
     std::cout << "  -k REMOTEKEY        remote object key.                         \n";
-    std::cout << "  -partsize PARTSIZE  part size parameter for resume breakpoint transfer.                \n";
     std::cout << "  -p PARALLEL         parallel threads parameter for resumable breakpoint transfer.      \n";
     std::cout << "  -m MULTITHREAD      multithread number for transfer.           \n";
-    std::cout << "  -loop LOOPTIMES     loop times for transfer.                   \n";
+    std::cout << "  --partSize PARTSIZE part size parameter for resume breakpoint transfer.                \n";
+    std::cout << "  --loopTimes TIMES   how many times to do test.                   \n";
+    std::cout << "  --loopDuration SEC  how many seconds to do test.                   \n";
     std::cout << "  --persistent        Whether run the command persistantly.      \n";
     std::cout << "  --differentsource   Whether transfer from different source files.  \n";
-    std::cout << "  -limit SPEED        Whether to limit the upload or download speed, in kB/s.  \n";
+    std::cout << "  --limit SPEED       Whether to limit the upload or download speed, in kB/s.  \n";
+    std::cout << "  --detail            print detail inforamtion for each testcase. \n";
+    std::cout << "  --percentile        print the 90th and 95th percentile value. \n";
 
 
     std::cout << "\nExamples :  \n";
@@ -124,10 +130,11 @@ void Config::PrintCfgInfo()
     if (!Config::Command.compare("upload_resumable") || Config::Command.compare("download_resumable")) 
     {
     std::cout << "parallel        : " << Config::Parallel << std::endl;
-    std::cout << "partsize        : " << Config::PartSize << std::endl;
+    std::cout << "partSize        : " << Config::PartSize << std::endl;
     }
     std::cout << "multithread     : " << Config::Multithread << std::endl;
-    std::cout << "looptimes       : " << Config::LoopTimes << std::endl;
+    std::cout << "loopTimes       : " << Config::LoopTimes << std::endl;
+    std::cout << "loopDuration    : " << Config::LoopDurationS << std::endl;
     std::cout << "persistent      : " << Config::Persistent << std::endl;
     std::cout << "differentsource : " << Config::DifferentSource << std::endl;
     std::cout << "limit speed     : " << Config::SpeedKBPerSec << std::endl;
@@ -195,10 +202,6 @@ int Config::ParseArg(int argc, char **argv)
                 Config::BaseRemoteKey = argv[i + 1];
                 i++;
             }
-            else if (!strcmp("-partsize", argv[i])) {
-                Config::PartSize = std::atoi(argv[i + 1]);
-                i++;
-            }
             else if (!strcmp("-p", argv[i])) {
                 Config::Parallel = std::atoi(argv[i + 1]);
                 i++;
@@ -207,22 +210,39 @@ int Config::ParseArg(int argc, char **argv)
                 Config::Multithread = std::atoi(argv[i + 1]);
                 i++;
             }
-            else if (!strcmp("-loop", argv[i])) {
+            else if (!strcmp("-d", argv[i])) {
+                Config::Debug = true;
+            }
+            else if (!strcmp("--partSize", argv[i])) {
+                Config::PartSize = std::atoi(argv[i + 1]);
+                i++;
+            }
+            else if (!strcmp("--loopTimes", argv[i])) {
                 Config::LoopTimes = std::atoi(argv[i + 1]);
+                Config::LoopDurationS = -1;
+                i++;
+            }
+            else if (!strcmp("--loopDuration", argv[i])) {
+                Config::LoopDurationS = std::atoi(argv[i + 1]);
+                Config::LoopTimes = -1;
                 i++;
             }
             else if (!strcmp("--persistent", argv[i])) {
+                Config::Persistent = true;
                 i++;
             }
             else if (!strcmp("--differentsource", argv[i])) {
                 i++;
             }
-            else if (!strcmp("-d", argv[i])) {
-                Config::Debug = true;
-            }
-            else if (!strcmp("-limit", argv[i])) {
+            else if (!strcmp("--limit", argv[i])) {
                 Config::SpeedKBPerSec = std::atoi(argv[i + 1]);
                 i++;
+            }
+            else if (!strcmp("--detail", argv[i])) {
+                Config::DumpDetail = true;
+            }
+            else if (!strcmp("--percentile", argv[i])) {
+                Config::PrintPercentile = true;
             }
         }
         i++;
