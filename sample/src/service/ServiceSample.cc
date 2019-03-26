@@ -38,7 +38,7 @@ void ServiceSample::ListBucketsWithMarker()
     ListBucketsRequest request;
     request.setMaxKeys(100);
     bool IsTruncated = false;
-    int total = 0;
+    size_t total = 0;
     do {
         auto outcome = client->ListBuckets(request);
 
@@ -65,7 +65,7 @@ void ServiceSample::ListBucketsWithPrefix()
     request.setMaxKeys(1);
     request.setPrefix("cpp-sdk");
     bool IsTruncated = false;
-    int total = 0;
+    size_t total = 0;
     do {
         auto outcome = client->ListBuckets(request);
         if (outcome.isSuccess()) {

@@ -424,7 +424,7 @@ void TestUtils::LogPrintCallback(LogLevel level, const std::string &stream)
 
 std::string TestUtils::Base64Decode(std::string const& data)
 {
-    int in_len = data.size();
+    int in_len = static_cast<int>(data.size());
     int i = 0;
     int in_ = 0;
     unsigned char part4[4];

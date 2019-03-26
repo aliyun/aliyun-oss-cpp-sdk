@@ -501,7 +501,7 @@ TEST_F(UtilsFunctionTest, Base64EncodeUrlSafeTest)
 {
     const unsigned char buff[] = { 0x14, 0xFB, 0x9C, 0x03, 0xD9, 0x7E };
     size_t len = sizeof(buff) / sizeof(buff[0]);
-    auto value = Base64EncodeUrlSafe((const char *)buff, len);
+    auto value = Base64EncodeUrlSafe((const char *)buff, static_cast<int>(len));
     EXPECT_EQ(value, "FPucA9l-");
 
     std::vector<std::string> ori = { "abc" , "abcd" , "abcde" };

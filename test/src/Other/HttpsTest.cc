@@ -159,7 +159,7 @@ TEST_F(HttpsTest, ListBucketspagingTest)
     //list by step
     request.setMaxKeys(2);
     bool IsTruncated = false;
-    int total = 0;
+    size_t total = 0;
     do {
         outcome = Client->ListBuckets(request);
         EXPECT_EQ(outcome.isSuccess(), true);
@@ -168,7 +168,7 @@ TEST_F(HttpsTest, ListBucketspagingTest)
         request.setMarker(outcome.result().NextMarker());
         IsTruncated = outcome.result().IsTruncated();
     } while (IsTruncated);
-    EXPECT_EQ(total, 5);
+    EXPECT_EQ(total, 5UL);
 
     //delete all
     TestUtils::CleanBucketsByPrefix(*Client, bucketName);

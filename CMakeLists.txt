@@ -62,14 +62,18 @@ add_definitions(-DPLATFORM_${TARGET_OS})
 
 #Find dependency Library, curl, openssl
 if (${TARGET_OS} STREQUAL "WINDOWS")
+	set(WLIB_TARGET "Win32")
+	if (CMAKE_CL_64)
+	set(WLIB_TARGET "x64")
+	endif()
 	set(CRYPTO_LIBS 
-		${CMAKE_SOURCE_DIR}/third_party/lib/Win32/ssleay32.lib 
-		${CMAKE_SOURCE_DIR}/third_party/lib/Win32/libeay32.lib)
+		${CMAKE_SOURCE_DIR}/third_party/lib/${WLIB_TARGET}/ssleay32.lib 
+		${CMAKE_SOURCE_DIR}/third_party/lib/${WLIB_TARGET}/libeay32.lib)
 	set(CRYPTO_INCLUDE_DIRS 
 		${CMAKE_SOURCE_DIR}/third_party/include) 
 
 	set(CLIENT_LIBS 
-		${CMAKE_SOURCE_DIR}/third_party/lib/Win32/libcurl.lib) 
+		${CMAKE_SOURCE_DIR}/third_party/lib/${WLIB_TARGET}/libcurl.lib) 
 	set(CLIENT_INCLUDE_DIRS 
 		${CMAKE_SOURCE_DIR}/third_party/include) 
 else()

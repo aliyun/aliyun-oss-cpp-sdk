@@ -87,7 +87,7 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
     unsigned char md[EVP_MAX_BLOCK_LENGTH];
     unsigned int mdLen = EVP_MAX_BLOCK_LENGTH;
 
-    if (HMAC(EVP_sha1(), secret.c_str(), secret.size(),
+    if (HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.size()),
         reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
         md, &mdLen) == nullptr)
         return std::string();

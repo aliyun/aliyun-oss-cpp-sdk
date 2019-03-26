@@ -154,7 +154,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsWithPrefixTest)
     request.setPrefix("ListObjectsWithPrefixTest");
 
     bool IsTruncated = false;
-    int total = 0;
+    size_t total = 0;
     do {
         auto outcome = Client->ListObjects(request);
         EXPECT_EQ(outcome.isSuccess(), true);
@@ -163,7 +163,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsWithPrefixTest)
         total += outcome.result().ObjectSummarys().size();
     } while (IsTruncated);
 
-    EXPECT_EQ(30, total);
+    EXPECT_EQ(30UL, total);
 
     auto lOutcome = Client->ListObjects(BucketName, "ListObjectsWithPrefixTest");
     EXPECT_EQ(lOutcome.isSuccess(), true);

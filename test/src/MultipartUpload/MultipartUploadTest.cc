@@ -1608,7 +1608,7 @@ TEST_F(MultipartUploadTest, ListPartsTest)
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
 
-    for (size_t i = 0; i < TestLoop; i++) {
+    for (int i = 0; i < static_cast<int>(TestLoop); i++) {
         std::shared_ptr<std::iostream> content = TestUtils::GetRandomStream(100 * 1024 + i);
         UploadPartRequest request(BucketName, key, content);
         request.setPartNumber(i + 1);
@@ -1633,7 +1633,7 @@ TEST_F(MultipartUploadTest, ListPartsSetpTest)
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
 
-    for (size_t i = 0; i < TestLoop; i++) {
+    for (int i = 0; i < static_cast<int>(TestLoop); i++) {
         std::shared_ptr<std::iostream> content = TestUtils::GetRandomStream(100 * 1024 + i);
         UploadPartRequest request(BucketName, key, content);
         request.setPartNumber(i + 1);
@@ -1669,7 +1669,7 @@ TEST_F(MultipartUploadTest, ListPartsSetpUseEncodingTypeTest)
     auto initOutcome = Client->InitiateMultipartUpload(request);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
-    for (size_t i = 0; i < TestLoop; i++) {
+    for (int i = 0; i < static_cast<int>(TestLoop); i++) {
         std::shared_ptr<std::iostream> content = TestUtils::GetRandomStream(100 * 1024 + i);
         UploadPartRequest request(BucketName, key, content);
         request.setPartNumber(i + 1);

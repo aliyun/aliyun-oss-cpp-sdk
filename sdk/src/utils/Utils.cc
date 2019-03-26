@@ -88,7 +88,7 @@ std::string AlibabaCloud::OSS::UrlDecode(const std::string & src)
 
 std::string AlibabaCloud::OSS::Base64Encode(const std::string &src)
 {
-    return AlibabaCloud::OSS::Base64Encode(src.c_str(), src.size());
+    return AlibabaCloud::OSS::Base64Encode(src.c_str(), static_cast<int>(src.size()));
 }
 
 std::string AlibabaCloud::OSS::Base64Encode(const char *src, int len)
@@ -132,7 +132,7 @@ std::string AlibabaCloud::OSS::Base64Encode(const char *src, int len)
 
 std::string AlibabaCloud::OSS::Base64EncodeUrlSafe(const std::string &src)
 {
-    return AlibabaCloud::OSS::Base64EncodeUrlSafe(src.c_str(), src.size());
+    return AlibabaCloud::OSS::Base64EncodeUrlSafe(src.c_str(), static_cast<int>(src.size()));
 }
 
 std::string AlibabaCloud::OSS::Base64EncodeUrlSafe(const char *src, int len)
