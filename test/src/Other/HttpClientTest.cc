@@ -390,5 +390,28 @@ TEST_F(HttpClientTest, ResponseBodyToUserContentPasitiveTest)
     EXPECT_EQ(content->str().empty(), true);
 }
 
+TEST_F(HttpClientTest, SetNetworkInterfaceTest)
+{
+    ClientConfiguration conf;
+    conf.networkInterface = "eth100";
+    OssClient client(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+
+    std::string key = TestUtils::GetObjectKey("UseInvalidNetworkInterfaceTest");
+    auto content = std::make_shared<std::stringstream>();
+    auto outcome = client.PutObject(BucketName, key, content);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ClientError:200045");
+
+#ifdef _WIN32
+    conf.networkInterface = "";
+#else
+    conf.networkInterface = "eth0";
+#endif
+    OssClient client1(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    outcome = client1.PutObject(BucketName, key, content);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    EXPECT_TRUE(outcome.result().RequestId().size() > 0);
+}
+
 }
 }
