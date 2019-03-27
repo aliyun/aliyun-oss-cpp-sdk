@@ -27,7 +27,7 @@ namespace OSS
     public:
         virtual ~RetryStrategy() {}
         virtual bool shouldRetry(const Error& error, long attemptedRetries) const = 0;
-        virtual long calcDealyTimeMs(const Error& error, long attemptedRetries) const = 0;
+        virtual long calcDelayTimeMs(const Error& error, long attemptedRetries) const = 0;
     };
 } 
 }

@@ -51,7 +51,7 @@ public:
 
     bool shouldRetry(const Error & error, long attemptedRetries) const;
 
-    long calcDealyTimeMs(const Error & error, long attemptedRetries) const;
+    long calcDelayTimeMs(const Error & error, long attemptedRetries) const;
 
 private:
     long m_scaleFactor;
@@ -90,7 +90,7 @@ bool DefaultRetryStrategy::shouldRetry(const Error & error, long attemptedRetrie
     return false;
 }
 
-long DefaultRetryStrategy::calcDealyTimeMs(const Error & error, long attemptedRetries) const
+long DefaultRetryStrategy::calcDelayTimeMs(const Error & error, long attemptedRetries) const
 {
     UNUSED_PARAM(error);
     return (1 << attemptedRetries) * m_scaleFactor;

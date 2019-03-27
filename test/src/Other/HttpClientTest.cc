@@ -408,7 +408,8 @@ TEST_F(HttpClientTest, SetNetworkInterfaceTest)
     conf.networkInterface = "eth0";
 #endif
     OssClient client1(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
-    outcome = client1.PutObject(BucketName, key, content);
+    auto content1 = std::make_shared<std::stringstream>();
+    outcome = client1.PutObject(BucketName, key, content1);
     EXPECT_EQ(outcome.isSuccess(), true);
     EXPECT_TRUE(outcome.result().RequestId().size() > 0);
 }
