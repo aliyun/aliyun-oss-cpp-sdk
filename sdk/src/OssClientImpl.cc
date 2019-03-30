@@ -843,6 +843,36 @@ GetObjectOutcome OssClientImpl::ProcessObject(const ProcessObjectRequest &reques
     }
 }
 
+GetObjectOutcome OssClientImpl::SelectObject(const SelectObjectRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    int ret = request.dispose();
+    if (outcome.isSuccess()) {
+        return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
+            outcome.result().payload(), outcome.result().headerCollection()));
+    }
+    else {
+        if (ret != 0) {
+            return GetObjectOutcome(OssError("SelectObjectError", request.validateMessage(ret)));
+        }
+        return GetObjectOutcome(outcome.error());
+    }
+}
+
+CreateSelectObjectMetaOutcome OssClientImpl::CreateSelectObjectMeta(const CreateSelectObjectMetaRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        CreateSelectObjectMetaResult result(request.Bucket(), request.Key(),
+            outcome.result().RequestId(), outcome.result().payload());
+        return result.ParseDone() ? CreateSelectObjectMetaOutcome(result) :
+            CreateSelectObjectMetaOutcome(OssError("ParseIOStreamError", "Parse create select object meta IOStream fail."));
+    }
+    else {
+        return CreateSelectObjectMetaOutcome(outcome.error());
+    }
+}
+
 StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
     if (!IsValidBucketName(request.bucket_) ||

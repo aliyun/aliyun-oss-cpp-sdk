@@ -91,7 +91,17 @@ static const char * GetArgErrorMsg(const int code)
         "The live channel play list param is invalid, it should end with '.m3u8' & length in [6,128]",
         "The snapshot param is invalid, please check.",
         "The time param is invalid, endTime should bigger than startTime and difference smaller than 24*60*60",
-        "The Max Key param is invalid, it's default valus is 100, and smaller than 1000"
+        "The Max Key param is invalid, it's default valus is 100, and smaller than 1000",
+        /*SelectObject -57*/
+        "The range is invalid. It cannot set lien range and split range at the same time.",
+        "The line range is invalid. The start should not be less than 0 or less then the end. The end could be -1 to get the rest of the data.",
+        "The split range is invalid. The start should not be less than 0 or less then the end. The end could be -1 to get the rest of the data.",
+        "The select object expressiontype must is SQL.",
+        "The select object content checksum failed.",
+        "The request InputFormat/OutputFormat is invalid. It cannot set InputFormat or OutputFormat as nullptr.",
+        "The request InputFormat/OutputFormat is invalid. It cannot set InputFormat and OutputFormat in difficent type.",
+        /*CreateSelectObject -64*/
+        "The request InputFormat is invalid. It cannot set InputFormat as nullptr."
     };
 
     int index = code - ARG_ERROR_START;

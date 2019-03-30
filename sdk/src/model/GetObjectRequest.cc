@@ -104,6 +104,10 @@ void GetObjectRequest::addResponseHeaders(RequestResponseHeader header, const st
 
 int GetObjectRequest::validate() const
 {
+    int ret = OssObjectRequest::validate();
+    if (ret != 0)
+        return ret;
+
     if (rangeIsSet_ && (range_[0] < 0 || range_[1] < -1 || (range_[1] > -1 && range_[1] < range_[0]) ))
         return ARG_ERROR_OBJECT_RANGE_INVALID;
 

@@ -338,6 +338,13 @@ TEST_F(ObjectBasicOperationTest, GetObjectToBadContentTest)
     EXPECT_EQ(outome.isSuccess(), false);
 }
 
+TEST_F(ObjectBasicOperationTest, GetObjectToBadKeyTest)
+{
+    std::string key = "/InvalidObjectName";
+    auto outcome = Client->GetObject(BucketName, key);
+    EXPECT_EQ(outcome.isSuccess(), false);
+}
+
 TEST_F(ObjectBasicOperationTest, GetObjectUsingRangeTest)
 {
     std::string key = TestUtils::GetObjectKey("GetObjectUsingRangeTest");
