@@ -409,6 +409,7 @@ CurlHttpClient::CurlHttpClient(const ClientConfiguration &configuration) :
     verifySSL_(configuration.verifySSL),
     caPath_(configuration.caPath),
     caFile_(configuration.caFile),
+    networkInterface_(configuration.networkInterface),
     sendRateLimiter_(configuration.sendRateLimiter),
     recvRateLimiter_(configuration.recvRateLimiter)
 {
@@ -519,6 +520,10 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         curl_easy_setopt(curl, CURLOPT_PROXYPORT, (long) proxyPort_);
         curl_easy_setopt(curl, CURLOPT_PROXYUSERNAME, proxyUserName_.c_str());
         curl_easy_setopt(curl, CURLOPT_PROXYPASSWORD, proxyPassword_.c_str());
+    }
+
+    if (!networkInterface_.empty()) {
+        curl_easy_setopt(curl, CURLOPT_INTERFACE, networkInterface_.c_str());
     }
 
     //debug

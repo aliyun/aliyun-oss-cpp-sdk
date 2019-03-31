@@ -154,7 +154,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsWithPrefixTest)
     request.setPrefix("ListObjectsWithPrefixTest");
 
     bool IsTruncated = false;
-    int total = 0;
+    size_t total = 0;
     do {
         auto outcome = Client->ListObjects(request);
         EXPECT_EQ(outcome.isSuccess(), true);
@@ -163,7 +163,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsWithPrefixTest)
         total += outcome.result().ObjectSummarys().size();
     } while (IsTruncated);
 
-    EXPECT_EQ(30, total);
+    EXPECT_EQ(30UL, total);
 
     auto lOutcome = Client->ListObjects(BucketName, "ListObjectsWithPrefixTest");
     EXPECT_EQ(lOutcome.isSuccess(), true);
@@ -336,6 +336,13 @@ TEST_F(ObjectBasicOperationTest, GetObjectToBadContentTest)
     content->setstate(content->badbit);
     auto outome = Client->GetObject(BucketName, key, content);
     EXPECT_EQ(outome.isSuccess(), false);
+}
+
+TEST_F(ObjectBasicOperationTest, GetObjectToBadKeyTest)
+{
+    std::string key = "/InvalidObjectName";
+    auto outcome = Client->GetObject(BucketName, key);
+    EXPECT_EQ(outcome.isSuccess(), false);
 }
 
 TEST_F(ObjectBasicOperationTest, GetObjectUsingRangeTest)
@@ -1102,7 +1109,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
                             <LastModified>2012-02-24T08:43:07.000Z</LastModified>
                             <ETag>&quot;5B3C1A2E053D763E1B002CC607C5A0FE&quot;</ETag>
                             <Type>Normal</Type>
-                            <Size>344606</Size>
+                            <Size>5368709120</Size>
                             <StorageClass>Standard</StorageClass>
                             <Owner>
                                 <ID>00220120222</ID>
@@ -1149,6 +1156,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
     ListObjectsResult result(xml);
     EXPECT_EQ(result.ObjectSummarys().size(), 4UL);
     EXPECT_EQ(result.ObjectSummarys()[0].ETag(), "5B3C1A2E053D763E1B002CC607C5A0FE");
+    EXPECT_EQ(result.ObjectSummarys()[0].Size(), 5368709120LL);
 }
 
 TEST_F(ObjectBasicOperationTest, ListObjectsResultWithEncodingType)

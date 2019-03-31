@@ -276,7 +276,7 @@ void BucketSample::ListObjectWithMarker()
     ListObjectsRequest request(bucket_);
     request.setMaxKeys(1);
     bool IsTruncated = false;
-    int total = 0;
+    size_t total = 0;
     do {
         auto outcome = client->ListObjects(request);
 
@@ -303,7 +303,7 @@ void BucketSample::ListObjectWithEncodeType()
     ListObjectsRequest request(bucket_);
     request.setEncodingType("url");
     bool IsTruncated = false;
-    int total = 0;
+    size_t total = 0;
     request.setMaxKeys(1);
     ListObjectOutcome outcome;
     do {

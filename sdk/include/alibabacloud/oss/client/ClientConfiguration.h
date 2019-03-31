@@ -108,6 +108,10 @@ namespace OSS
         * Rate limit data download speed.
         */
         std::shared_ptr<RateLimiter> recvRateLimiter;
+        /**
+        * The interface for outgoing traffic. E.g. eth0 in linux
+        */
+        std::string networkInterface;
     };
 }
 }

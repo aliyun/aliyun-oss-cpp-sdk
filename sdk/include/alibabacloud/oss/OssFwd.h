@@ -118,6 +118,9 @@
 #include <alibabacloud/oss/model/DeleteLiveChannelRequest.h>
 #include <alibabacloud/oss/model/GenerateRTMPSignedUrlRequest.h>
 #include <alibabacloud/oss/model/ObjectCallbackBuilder.h>
+#include <alibabacloud/oss/model/SelectObjectRequest.h>
+#include <alibabacloud/oss/model/CreateSelectObjectMetaRequest.h>
+#include <alibabacloud/oss/model/CreateSelectObjectMetaResult.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -153,6 +156,8 @@ namespace OSS
     using CopyObjectOutcome = Outcome<OssError, CopyObjectResult>;
     using GetSymlinkOutcome = Outcome<OssError, GetSymlinkResult>;
     using CreateSymlinkOutcome = Outcome<OssError, CreateSymlinkResult>;
+
+    using CreateSelectObjectMetaOutcome = Outcome<OssError, CreateSelectObjectMetaResult>;
 
     /*multipart*/
     using InitiateMultipartUploadOutcome = Outcome<OssError, InitiateMultipartUploadResult>;

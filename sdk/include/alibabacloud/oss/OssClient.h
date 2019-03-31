@@ -167,6 +167,8 @@ namespace OSS
         GetSymlinkOutcome GetSymlink(const GetSymlinkRequest& request) const;
         GetObjectOutcome ProcessObject(const ProcessObjectRequest& request) const;
 
+        GetObjectOutcome SelectObject(const SelectObjectRequest& request) const;
+        CreateSelectObjectMetaOutcome CreateSelectObjectMeta(const CreateSelectObjectMetaRequest& request) const;
 
         /*MultipartUpload*/
         InitiateMultipartUploadOutcome InitiateMultipartUpload(const InitiateMultipartUploadRequest& request) const;

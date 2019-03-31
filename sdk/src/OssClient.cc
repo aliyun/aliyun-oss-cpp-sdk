@@ -510,6 +510,16 @@ VoidOutcome OssClient::SetObjectAcl(const SetObjectAclRequest &request) const
     return client_->SetObjectAcl(request);
 }
 
+GetObjectOutcome OssClient::SelectObject(const SelectObjectRequest &request) const
+{
+    return client_->SelectObject(request);
+}
+
+CreateSelectObjectMetaOutcome OssClient::CreateSelectObjectMeta(const CreateSelectObjectMetaRequest &request) const
+{
+    return client_->CreateSelectObjectMeta(request);
+}
+
 StringOutcome OssClient::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
     return client_->GeneratePresignedUrl(request);

@@ -106,11 +106,13 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
         }
     }
 
-    if (response->statusCode() == 203 && response->request().hasHeader("x-oss-callback")) {
+    //check Calback 
+    if (response->statusCode() == 203 &&
+        (response->request().hasHeader("x-oss-callback") ||
+        (response->request().url().query().find("callback=") != std::string::npos))) {
         return true;
     }
 
-    //check Calback 
     return false;
 }
 
@@ -838,6 +840,36 @@ GetObjectOutcome OssClientImpl::ProcessObject(const ProcessObjectRequest &reques
     }
     else {
         return GetObjectOutcome(outcome.error());
+    }
+}
+
+GetObjectOutcome OssClientImpl::SelectObject(const SelectObjectRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    int ret = request.dispose();
+    if (outcome.isSuccess()) {
+        return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
+            outcome.result().payload(), outcome.result().headerCollection()));
+    }
+    else {
+        if (ret != 0) {
+            return GetObjectOutcome(OssError("SelectObjectError", request.validateMessage(ret)));
+        }
+        return GetObjectOutcome(outcome.error());
+    }
+}
+
+CreateSelectObjectMetaOutcome OssClientImpl::CreateSelectObjectMeta(const CreateSelectObjectMetaRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        CreateSelectObjectMetaResult result(request.Bucket(), request.Key(),
+            outcome.result().RequestId(), outcome.result().payload());
+        return result.ParseDone() ? CreateSelectObjectMetaOutcome(result) :
+            CreateSelectObjectMetaOutcome(OssError("ParseIOStreamError", "Parse create select object meta IOStream fail."));
+    }
+    else {
+        return CreateSelectObjectMetaOutcome(outcome.error());
     }
 }
 

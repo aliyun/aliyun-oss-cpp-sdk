@@ -34,12 +34,15 @@ UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::s
 
     time_t lastMtime;
     if (!GetPathLastModifyTime(filePath_, lastMtime)) {
-        lastMtime = time(NULL);
+        //if fail, ignore the lastmodified time.
+        lastMtime = 0;
     }
     mtime_ = ToGmtTime(lastMtime);
 
     std::fstream content(filePath_, std::ios::in | std::ios::binary);
-    objectSize_ = GetIOStreamLength(content);
+    if (content) {
+        objectSize_ = GetIOStreamLength(content);
+    }
     content.close();
 }
 
@@ -97,7 +100,8 @@ int UploadObjectRequest::validate() const
 
     if (filePath_.empty()){
         return ARG_ERROR_UPLOAD_FILE_PATH_EMPTY;
-    }else{
+    }
+    else if (objectSize_ <= 0){
         std::fstream content(filePath_, std::ios::in | std::ios::binary);
         if (!content.is_open()) {
             return ARG_ERROR_OPEN_UPLOAD_FILE;

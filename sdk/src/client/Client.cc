@@ -75,7 +75,7 @@ Client::ClientOutcome Client::AttemptRequest(const std::string & endpoint, const
             if (retryStrategy == nullptr || !retryStrategy->shouldRetry(outcome.error(), retry)) {
                 return outcome;
             }
-            long sleepTmeMs = retryStrategy->calcDealyTimeMs(outcome.error(), retry);
+            long sleepTmeMs = retryStrategy->calcDelayTimeMs(outcome.error(), retry);
             httpClient_->waitForRetry(sleepTmeMs);
         }
     }

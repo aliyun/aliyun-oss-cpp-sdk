@@ -157,16 +157,10 @@ PutObjectOutcome ResumableUploader::Upload()
     for (size_t i = 1; i < uploadedParts.size(); i++) {
         localCRC64 = CRC64::CombineCRC(localCRC64, uploadedParts[i].CRC64(), uploadedParts[i].Size());
     }
-    
-    auto getMetaOutcome = client_->GetObjectMeta(GetObjectMetaRequest(request_.Bucket(), request_.Key()));
-    if (getMetaOutcome.isSuccess()) {
-        uint64_t ossCRC64 = getMetaOutcome.result().CRC64();
-        if (localCRC64 != ossCRC64) {
-            return PutObjectOutcome(OssError("CrcCheckError", "ResumableUpload Object CRC Checksum fail."));
-        }
-    }
-    else {
-        return PutObjectOutcome(getMetaOutcome.error());
+
+    uint64_t ossCRC64 = outcome.result().CRC64();
+    if (ossCRC64 != 0 && localCRC64 != ossCRC64) {
+        return PutObjectOutcome(OssError("CrcCheckError", "ResumableUpload Object CRC Checksum fail."));
     }
 
     if (!recordPath_.empty()) {

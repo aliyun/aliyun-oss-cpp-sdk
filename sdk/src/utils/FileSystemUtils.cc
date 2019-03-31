@@ -29,6 +29,7 @@
 #define  oss_access(a)  ::_access((a), 0)
 #define  oss_mkdir(a)   ::_mkdir(a)
 #define  oss_rmdir(a)   ::_rmdir(a)
+#define  oss_stat       _stat64
 #else
 #include <unistd.h>
 #include <fcntl.h>
@@ -36,6 +37,7 @@
 #define  oss_access(a)  ::access(a, 0)
 #define  oss_mkdir(a)   ::mkdir((a), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
 #define  oss_rmdir(a)   ::rmdir(a)
+#define  oss_stat       stat
 #endif
 using namespace AlibabaCloud::OSS;
 
@@ -85,7 +87,7 @@ bool AlibabaCloud::OSS::RenameFile(const std::string &from, const std::string &t
 
 bool AlibabaCloud::OSS::GetPathLastModifyTime(const std::string & path, time_t &t)
 {
-    struct stat buf;
+    struct oss_stat buf;
 	auto filename = path.c_str();
 #if defined(_WIN32) && _MSC_VER < 1900
 	std::string tmp;
@@ -94,7 +96,7 @@ bool AlibabaCloud::OSS::GetPathLastModifyTime(const std::string & path, time_t &
 		filename = tmp.c_str();
 	} 
 #endif
-	if (stat(filename, &buf) != 0)
+	if (oss_stat(filename, &buf) != 0)
         return false;
 
     t = buf.st_mtime;

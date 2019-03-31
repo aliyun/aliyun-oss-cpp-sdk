@@ -48,6 +48,7 @@ namespace OSS
         bool verifySSL_;
         std::string caPath_;
         std::string caFile_;
+        std::string networkInterface_;
     public:
         std::shared_ptr<RateLimiter> sendRateLimiter_;
         std::shared_ptr<RateLimiter> recvRateLimiter_;
