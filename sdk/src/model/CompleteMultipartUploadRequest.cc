@@ -121,7 +121,7 @@ std::string CompleteMultipartUploadRequest::payload() const
     for (auto const &part : partList_) {
         ss << "<Part>" << std::endl;
         ss << "  <PartNumber>";
-        ss << part.PartNumber();
+        ss << std::to_string(part.PartNumber());
         ss << "</PartNumber>" << std::endl;
         ss << "  <ETag>";
         ss << part.ETag();

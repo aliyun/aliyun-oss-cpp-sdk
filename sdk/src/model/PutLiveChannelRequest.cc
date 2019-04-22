@@ -168,8 +168,8 @@ std::string PutLiveChannelRequest::payload() const
     ss << "  <Status>" << ToLiveChannelStatusName(status_) << "</Status>" << std::endl;
     ss << "  <Target>" << std::endl;
     ss << "    <Type>" << channelType_ << "</Type>" << std::endl;
-    ss << "    <FragDuration>" << fragDuration_ << "</FragDuration>" << std::endl;
-    ss << "    <FragCount>" << fragCount_ << "</FragCount>" << std::endl;
+    ss << "    <FragDuration>" << std::to_string(fragDuration_) << "</FragDuration>" << std::endl;
+    ss << "    <FragCount>" << std::to_string(fragCount_) << "</FragCount>" << std::endl;
     ss << "    <PlaylistName>" << playListName_ << "</PlaylistName>" << std::endl;
     ss << "  </Target>" << std::endl;
     if(snapshot_)
@@ -178,7 +178,7 @@ std::string PutLiveChannelRequest::payload() const
         ss << "    <RoleName>" << roleName_ << "</RoleName>" << std::endl;
         ss << "    <DestBucket>" << destBucket_ << "</DestBucket>" << std::endl;
         ss << "    <NotifyTopic>" << notifyTopic_ << "</NotifyTopic>" << std::endl;
-        ss << "    <Interval>" << interval_ << "</Interval>" << std::endl;
+        ss << "    <Interval>" << std::to_string(interval_) << "</Interval>" << std::endl;
         ss << "  </Snapshot>" << std::endl;
     }
     ss << "</LiveChannelConfiguration>" << std::endl;

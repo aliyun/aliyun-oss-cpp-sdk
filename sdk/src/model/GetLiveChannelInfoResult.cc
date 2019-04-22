@@ -78,17 +78,13 @@ GetLiveChannelInfoResult& GetLiveChannelInfoResult::operator =(const std::string
                 node  = targetNode->FirstChildElement("FragDuration");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss << node->GetText();
-                    ss >> fragDuration_;
+                    fragDuration_ = std::strtoull(node->GetText(), nullptr, 10);
                 }
 
                 node  = targetNode->FirstChildElement("FragCount");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss << node->GetText();
-                    ss >> fragCount_;
+                    fragCount_ = std::strtoull(node->GetText(), nullptr, 10);
                 }
 
                 node  = targetNode->FirstChildElement("PlaylistName");

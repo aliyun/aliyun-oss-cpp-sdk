@@ -97,8 +97,7 @@ ListMultipartUploadsResult& ListMultipartUploadsResult::operator =(
             node = root->FirstChildElement("MaxUploads");
             if(node && node->GetText())
             {
-                stringstream ss(node->GetText());
-                ss >> maxUploads_;
+                maxUploads_ = std::strtoul(node->GetText(), nullptr, 10);
             }
 
             //CommonPrefixes

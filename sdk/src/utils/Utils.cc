@@ -390,6 +390,7 @@ std::string AlibabaCloud::OSS::ToGmtTime(std::time_t &t)
     strftime(tmbuff, 26, "%a, %d %b %Y %T", &tm);
     date << tmbuff << " GMT";
 #else
+    date.imbue(std::locale::classic());
     date << std::put_time(&tm, "%a, %d %b %Y %H:%M:%S GMT");
 #endif
     return date.str();    
@@ -409,6 +410,7 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
     strftime(tmbuff, 26, "%Y-%m-%dT%X.000Z", &tm);
     date << tmbuff;
 #else
+    date.imbue(std::locale::classic());
     date << std::put_time(&tm, "%Y-%m-%dT%X.000Z");
 #endif
     return date.str();
@@ -501,7 +503,7 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
  {
      if(playlistName.empty())
     {
-        return true;
+        return false;
     }else{
         if(!IsValidObjectKey(playlistName))
         {
