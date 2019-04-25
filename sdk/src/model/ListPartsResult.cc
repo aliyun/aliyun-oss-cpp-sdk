@@ -72,22 +72,19 @@ ListPartsResult& ListPartsResult::operator =(const std::string& result)
             node = root->FirstChildElement("PartNumberMarker");
             if(node && node->GetText())
             {
-                stringstream ss(node->GetText());
-                ss >> partNumberMarker_;
+                partNumberMarker_ = std::strtoul(node->GetText(), nullptr, 10);
             }
 
             node = root->FirstChildElement("NextPartNumberMarker");
             if(node && node->GetText())
             {
-                stringstream ss(node->GetText());
-                ss >> nextPartNumberMarker_;
+                nextPartNumberMarker_ = std::strtoul(node->GetText(), nullptr, 10);
             }
 
             node = root->FirstChildElement("MaxParts");
             if (node && node->GetText())
             {
-                stringstream ss(node->GetText());
-                ss >> maxParts_;
+                maxParts_ = std::strtoul(node->GetText(), nullptr, 10);
             }
 
             node = root->FirstChildElement("IsTruncated");
@@ -100,8 +97,7 @@ ListPartsResult& ListPartsResult::operator =(const std::string& result)
                 XMLElement * node = partNode->FirstChildElement("PartNumber");
                 if(node && node->GetText())
                 {
-                    stringstream ss(node->GetText());
-                    ss >> part.partNumber_;
+                    part.partNumber_ = std::atoi(node->GetText());
                 }
 
                 node = partNode->FirstChildElement("LastModified");
@@ -113,15 +109,13 @@ ListPartsResult& ListPartsResult::operator =(const std::string& result)
                 node = partNode->FirstChildElement("Size");
                 if(node && node->GetText())
                 {
-                    stringstream ss(node->GetText());
-                    ss >> part.size_;
+                    part.size_ = std::strtoll(node->GetText(), nullptr, 10);
                 }
 
                 node = partNode->FirstChildElement("HashCrc64ecma");
                 if(node && node->GetText())
                 {
-                    stringstream ss(node->GetText());
-                    ss >> part.cRC64_;
+                    part.cRC64_ = std::strtoull(node->GetText(), nullptr, 10);
                 }
                 partList_.push_back(part);
             }

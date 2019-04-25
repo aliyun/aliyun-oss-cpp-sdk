@@ -252,6 +252,38 @@ TEST_F(UtilsFunctionTest, ToGmtTimeTest)
     t = 1520411719;
     timeStr = ToGmtTime(t);
     EXPECT_STREQ(timeStr.c_str(), "Wed, 07 Mar 2018 08:35:19 GMT");
+
+    t = 1554703347;
+    timeStr = ToGmtTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 06:02:27 GMT");
+
+    t = 1554739347;
+    timeStr = ToGmtTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 16:02:27 GMT");
+}
+
+TEST_F(UtilsFunctionTest, ToGmtTimeWithSetlocaleTest)
+{
+    auto oldLoc = std::cout.getloc();
+    std::locale::global(std::locale(""));
+
+    std::time_t t = 0;
+    std::string timeStr = ToGmtTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "Thu, 01 Jan 1970 00:00:00 GMT");
+
+    t = 1520411719;
+    timeStr = ToGmtTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "Wed, 07 Mar 2018 08:35:19 GMT");
+
+    t = 1554703347;
+    timeStr = ToGmtTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 06:02:27 GMT");
+
+    t = 1554739347;
+    timeStr = ToGmtTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 16:02:27 GMT");
+
+    std::locale::global(oldLoc);
 }
 
 TEST_F(UtilsFunctionTest, ToUtcTimeTest)
@@ -263,6 +295,26 @@ TEST_F(UtilsFunctionTest, ToUtcTimeTest)
     t = 1520411719;
     timeStr = ToUtcTime(t);
     EXPECT_STREQ(timeStr.c_str(), "2018-03-07T08:35:19.000Z");
+}
+
+TEST_F(UtilsFunctionTest, ToUtcTimeWithSetlocaleTest)
+{
+    auto oldLoc = std::cout.getloc();
+    std::locale::global(std::locale(""));
+
+    std::time_t t = 0;
+    std::string timeStr = ToUtcTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "1970-01-01T00:00:00.000Z");
+
+    t = 1520411719;
+    timeStr = ToUtcTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "2018-03-07T08:35:19.000Z");
+
+    t = 1520433319;
+    timeStr = ToUtcTime(t);
+    EXPECT_STREQ(timeStr.c_str(), "2018-03-07T14:35:19.000Z");
+
+    std::locale::global(oldLoc);
 }
 
 TEST_F(UtilsFunctionTest, UtcToUnixTimeTest)
@@ -552,6 +604,38 @@ TEST_F(UtilsFunctionTest, UploadAndDownloadObject)
     Client = nullptr;
     EXPECT_EQ(RemoveFile(tmpFile), true);
     EXPECT_EQ(RemoveFile(targetFile), true);
+}
+
+TEST_F(UtilsFunctionTest, IsValidChannelNameTest)
+{
+    EXPECT_FALSE(IsValidChannelName(""));
+    EXPECT_FALSE(IsValidChannelName("abc/abc"));
+    std::string value;
+    for (int i = 0; i < 1300; i++)
+        value.append("a");
+    EXPECT_FALSE(IsValidChannelName(value));
+
+    EXPECT_TRUE(IsValidChannelName("channelName"));
+}
+
+TEST_F(UtilsFunctionTest, IsValidPlayListNameTest)
+{
+    std::string longName;
+    for (int i = 0; i < 130; i++)
+        longName.append("a");
+    std::string shortName;
+    shortName = "aaa";
+
+    EXPECT_FALSE(IsValidPlayListName(""));
+    EXPECT_FALSE(IsValidPlayListName(longName));
+    EXPECT_FALSE(IsValidPlayListName(shortName));
+
+    EXPECT_FALSE(IsValidPlayListName("aaaa/aaa"));
+    EXPECT_FALSE(IsValidPlayListName(".aaaaaaa"));
+    EXPECT_FALSE(IsValidPlayListName("aaaaaaaa."));
+    EXPECT_FALSE(IsValidPlayListName("aaaaaaaa.m4u8"));
+
+    EXPECT_TRUE(IsValidPlayListName("aaaaaaaa.m3u8"));
 }
 
 TEST_F(UtilsFunctionTest, ToLiveChannelStatusNameTest)

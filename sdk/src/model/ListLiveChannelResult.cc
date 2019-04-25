@@ -66,9 +66,7 @@ ListLiveChannelResult& ListLiveChannelResult::operator =(const std::string& resu
             node = root->FirstChildElement("MaxKeys");
             if(node && node->GetText())
             {
-                std::stringstream ss;
-                ss.str(node->GetText());
-                ss >> maxKeys_;
+                maxKeys_ = std::strtoul(node->GetText(), nullptr, 10);
             }
 
             node = root->FirstChildElement("IsTruncated");

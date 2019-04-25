@@ -81,30 +81,22 @@ GetLiveChannelStatResult& GetLiveChannelStatResult::operator =(const std::string
                 node = videoRoot->FirstChildElement("Width");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss.str(node->GetText());
-                    ss >> width_;
+                    width_ = std::strtoul(node->GetText(), nullptr, 10);
                 }
                 node = videoRoot->FirstChildElement("Height");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss.str(node->GetText());
-                    ss >> height_;
+                    height_ = std::strtoul(node->GetText(), nullptr, 10);
                 }
                 node = videoRoot->FirstChildElement("FrameRate");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss.str(node->GetText());
-                    ss >> frameRate_;
+                    frameRate_ = std::strtoull(node->GetText(), nullptr, 10);
                 }
                 node = videoRoot->FirstChildElement("Bandwidth");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss.str(node->GetText());
-                    ss >> videoBandWidth_;
+                    videoBandWidth_ = std::strtoull(node->GetText(), nullptr, 10);
                 }
                 node = videoRoot->FirstChildElement("Codec");
                 if(node && node->GetText())
@@ -118,16 +110,12 @@ GetLiveChannelStatResult& GetLiveChannelStatResult::operator =(const std::string
                 node = audioRoot->FirstChildElement("Bandwidth");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss.str(node->GetText());
-                    ss >> audioBandWidth_;
+                    audioBandWidth_ = std::strtoull(node->GetText(), nullptr, 10);
                 }
                 node = audioRoot->FirstChildElement("SampleRate");
                 if(node && node->GetText())
                 {
-                    std::stringstream ss;
-                    ss.str(node->GetText());
-                    ss >> sampleRate_;
+                    sampleRate_ = std::strtoull(node->GetText(), nullptr, 10);
                 }
                 node = audioRoot->FirstChildElement("Codec");
                 if(node && node->GetText())
