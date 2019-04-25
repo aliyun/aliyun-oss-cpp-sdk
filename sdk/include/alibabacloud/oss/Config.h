@@ -17,7 +17,7 @@
 #pragma once
 
 // version = (major << 16) + (minor << 8) + patch
-#define ALIBABACLOUD_OSS_VERSION ((1 << 16) + (3 << 8) + 0)
+#define ALIBABACLOUD_OSS_VERSION ((1 << 16) + (3 << 8) + 1)
 
-#define ALIBABACLOUD_OSS_VERSION_STR "1.3.0"
+#define ALIBABACLOUD_OSS_VERSION_STR "1.3.1"
 
