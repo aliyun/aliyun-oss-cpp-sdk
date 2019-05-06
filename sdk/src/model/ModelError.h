@@ -115,6 +115,11 @@ namespace OSS
 
     /*CreateSelectObjectMeta*/
     const int ARG_ERROR_CREATE_SELECT_OBJECT_META_NULL_POINT = ARG_ERROR_BASE + 64;
+
+    /*Tagging*/
+    const int ARG_ERROR_TAGGING_TAGS_LIMIT = ARG_ERROR_BASE + 65;
+    const int ARG_ERROR_TAGGING_TAG_KEY_LIMIT = ARG_ERROR_BASE + 66;
+    const int ARG_ERROR_TAGGING_TAG_VALUE_LIMIT = ARG_ERROR_BASE + 67;
 }
 }
 

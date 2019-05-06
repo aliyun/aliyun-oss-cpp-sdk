@@ -37,6 +37,11 @@ void CreateSymlinkRequest::SetSymlinkTarget(const std::string& value)
     metaData_.addHeader("x-oss-symlink-target", value);
 }
 
+void CreateSymlinkRequest::setTagging(const std::string& value)
+{
+    metaData_.addHeader("x-oss-tagging", value);
+}
+
 HeaderCollection CreateSymlinkRequest::specialHeaders() const
 {
     return metaData_.toHeaderCollection();

@@ -77,6 +77,11 @@ void AppendObjectRequest::setAcl(const CannedAccessControlList& acl)
 	metaData_.addHeader("x-oss-object-acl", ToAclName(acl));
 }
 
+void AppendObjectRequest::setTagging(const std::string& value)
+{
+    metaData_.addHeader("x-oss-tagging", value);
+}
+
 std::shared_ptr<std::iostream> AppendObjectRequest::Body() const
 {
     return content_;

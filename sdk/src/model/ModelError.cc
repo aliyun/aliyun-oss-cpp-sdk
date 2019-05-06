@@ -101,7 +101,11 @@ static const char * GetArgErrorMsg(const int code)
         "The request InputFormat/OutputFormat is invalid. It cannot set InputFormat or OutputFormat as nullptr.",
         "The request InputFormat/OutputFormat is invalid. It cannot set InputFormat and OutputFormat in difficent type.",
         /*CreateSelectObject -64*/
-        "The request InputFormat is invalid. It cannot set InputFormat as nullptr."
+        "The request InputFormat is invalid. It cannot set InputFormat as nullptr.",
+        /*Tagging -65*/
+        "Object tags cannot be greater than 10.",
+        "Object Tag key is invalid, it's length should be [1, 128].",
+        "Object Tag value is invalid, it's length should be less than 256."
     };
 
     int index = code - ARG_ERROR_START;

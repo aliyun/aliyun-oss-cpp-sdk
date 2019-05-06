@@ -55,6 +55,7 @@ namespace OSS
         void setAcl(CannedAccessControlList& acl);
         void setCallback(const std::string& callback, const std::string& callbackVar = "");
         void setEncodingType(const std::string& type) {encodingType_ = type; }       
+        void setTagging(const std::string& value);
 
     protected:
         virtual int validate() const;

@@ -41,6 +41,7 @@ namespace OSS
         void setExpires(uint64_t expires);
         void setExpires(const std::string& value);
         void setAcl(const CannedAccessControlList& acl);
+        void setTagging(const std::string& value);
         virtual std::shared_ptr<std::iostream> Body() const;
     protected:
         virtual HeaderCollection specialHeaders() const ;

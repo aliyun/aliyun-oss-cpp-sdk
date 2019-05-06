@@ -19,6 +19,7 @@
 #include <vector>
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/Types.h>
+#include <alibabacloud/oss/model/Tagging.h>
 
 namespace AlibabaCloud
 {
@@ -69,6 +70,7 @@ namespace OSS
         LifeCycleExpiration& Expiration() { return expiration_; }
         LifeCycleTransitionList& TransitionList() { return transitionList_; }
         LifeCycleExpiration& AbortMultipartUpload() { return abortMultipartUpload_; }
+        const TagSet& Tags() const { return tagSet_; }
         void setID(const std::string& id) { id_ = id; }
         void setPrefix(const std::string& prefix) { prefix_ = prefix; }
         void setStatus(RuleStatus status) { status_ = status; }
@@ -76,6 +78,8 @@ namespace OSS
         void addTransition(const LifeCycleTransition&transition) { transitionList_.push_back(transition); }
         void setTransitionList(const LifeCycleTransitionList& transitionList) { transitionList_ = transitionList; }
         void setAbortMultipartUpload(const LifeCycleExpiration& expiration) { abortMultipartUpload_ = expiration; }
+        void addTag(const Tag& tag) { tagSet_.push_back(tag); }
+        void setTags(const TagSet& tags) { tagSet_ = tags; }
         bool hasExpiration() const;
         bool hasTransitionList() const;
         bool hasAbortMultipartUpload() const;
@@ -87,6 +91,7 @@ namespace OSS
         LifeCycleExpiration expiration_;
         LifeCycleTransitionList transitionList_;
         LifeCycleExpiration abortMultipartUpload_;
+        TagSet tagSet_;
     };
     using LifecycleRuleList = std::vector<LifecycleRule>;
 } 

@@ -112,6 +112,24 @@ GetBucketLifecycleResult& GetBucketLifecycleResult::operator =(const std::string
                         rule.AbortMultipartUpload().setCreatedBeforeDate(subNode->GetText());
                     }
                 }
+
+                node = rule_node->FirstChildElement("Tag");
+                for (; node; node = node->NextSiblingElement("Tag")) {
+                    Tag tag;
+                    XMLElement *subNode;
+                    //Key
+                    subNode = node->FirstChildElement("Key");
+                    if (subNode && subNode->GetText()) {
+                        tag.setKey(subNode->GetText());
+                    }
+                    //Value
+                    subNode = node->FirstChildElement("Value");
+                    if (subNode && subNode->GetText()) {
+                        tag.setValue(subNode->GetText());
+                    }
+                    rule.addTag(tag);
+                }
+
                 lifecycleRuleList_.emplace_back(std::move(rule));
             }
 		    parseDone_ = true;

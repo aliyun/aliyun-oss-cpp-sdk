@@ -121,6 +121,12 @@
 #include <alibabacloud/oss/model/SelectObjectRequest.h>
 #include <alibabacloud/oss/model/CreateSelectObjectMetaRequest.h>
 #include <alibabacloud/oss/model/CreateSelectObjectMetaResult.h>
+#include <alibabacloud/oss/model/SetObjectTaggingRequest.h>
+#include <alibabacloud/oss/model/SetObjectTaggingResult.h>
+#include <alibabacloud/oss/model/GetObjectTaggingRequest.h>
+#include <alibabacloud/oss/model/GetObjectTaggingResult.h>
+#include <alibabacloud/oss/model/DeleteObjectTaggingRequest.h>
+#include <alibabacloud/oss/model/DeleteObjectTaggingResult.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -156,8 +162,10 @@ namespace OSS
     using CopyObjectOutcome = Outcome<OssError, CopyObjectResult>;
     using GetSymlinkOutcome = Outcome<OssError, GetSymlinkResult>;
     using CreateSymlinkOutcome = Outcome<OssError, CreateSymlinkResult>;
-
     using CreateSelectObjectMetaOutcome = Outcome<OssError, CreateSelectObjectMetaResult>;
+    using SetObjectTaggingOutcome = Outcome<OssError, SetObjectTaggingResult>;
+    using GetObjectTaggingOutcome = Outcome<OssError, GetObjectTaggingResult>;
+    using DeleteObjectTaggingOutcome = Outcome<OssError, DeleteObjectTaggingResult>;
 
     /*multipart*/
     using InitiateMultipartUploadOutcome = Outcome<OssError, InitiateMultipartUploadResult>;

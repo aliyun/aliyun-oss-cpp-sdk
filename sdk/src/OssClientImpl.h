@@ -92,6 +92,10 @@ namespace OSS
         GetObjectOutcome SelectObject(const SelectObjectRequest &request) const;
         CreateSelectObjectMetaOutcome CreateSelectObjectMeta(const CreateSelectObjectMetaRequest &request) const;
 
+        SetObjectTaggingOutcome SetObjectTagging(const SetObjectTaggingRequest& request) const;
+        DeleteObjectTaggingOutcome DeleteObjectTagging(const DeleteObjectTaggingRequest& request) const;
+        GetObjectTaggingOutcome GetObjectTagging(const GetObjectTaggingRequest& request) const;
+
         /*MultipartUpload*/
         InitiateMultipartUploadOutcome InitiateMultipartUpload(const InitiateMultipartUploadRequest &request) const;
         PutObjectOutcome UploadPart(const UploadPartRequest& request) const;

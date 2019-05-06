@@ -71,6 +71,16 @@ void CopyObjectRequest::setAcl(const CannedAccessControlList& acl)
     metaData_.addHeader("x-oss-object-acl", ToAclName(acl));
 }
 
+void CopyObjectRequest::setTagging(const std::string& value)
+{
+    metaData_.addHeader("x-oss-tagging", value);
+}
+
+void CopyObjectRequest::setTaggingDirective(const CopyActionList& action)
+{
+    metaData_.addHeader("x-oss-tagging-directive", ToCopyActionName(action));
+}
+
 HeaderCollection CopyObjectRequest::specialHeaders() const
 {
     auto headers = metaData_.toHeaderCollection();

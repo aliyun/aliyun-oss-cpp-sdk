@@ -116,5 +116,22 @@ bool LifecycleRule::operator==(const LifecycleRule& right) const
         Rightfirst++;
     }
 
+    if (tagSet_.size() != right.tagSet_.size()) {
+        return false;
+    }
+
+    auto firstTag = tagSet_.begin();
+    auto RightfirstTag = right.tagSet_.begin();
+
+    for (; firstTag != tagSet_.end(); ) {
+
+        if (firstTag->Key()  != RightfirstTag->Key() ||
+            firstTag->Value()!= RightfirstTag->Value()) {
+            return false;
+        }
+        firstTag++;
+        RightfirstTag++;
+    }
+
     return true;
 }

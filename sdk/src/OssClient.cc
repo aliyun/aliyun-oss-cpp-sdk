@@ -520,6 +520,21 @@ CreateSelectObjectMetaOutcome OssClient::CreateSelectObjectMeta(const CreateSele
     return client_->CreateSelectObjectMeta(request);
 }
 
+SetObjectTaggingOutcome OssClient::SetObjectTagging(const SetObjectTaggingRequest& request) const
+{
+    return client_->SetObjectTagging(request);
+}
+
+DeleteObjectTaggingOutcome OssClient::DeleteObjectTagging(const DeleteObjectTaggingRequest& request) const
+{
+    return client_->DeleteObjectTagging(request);
+}
+
+GetObjectTaggingOutcome OssClient::GetObjectTagging(const GetObjectTaggingRequest& request) const
+{
+    return client_->GetObjectTagging(request);
+}
+
 StringOutcome OssClient::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
     return client_->GeneratePresignedUrl(request);

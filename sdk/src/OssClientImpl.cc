@@ -873,6 +873,46 @@ CreateSelectObjectMetaOutcome OssClientImpl::CreateSelectObjectMeta(const Create
     }
 }
 
+SetObjectTaggingOutcome OssClientImpl::SetObjectTagging(const SetObjectTaggingRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Put);
+    if (outcome.isSuccess()) {
+        SetObjectTaggingResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return SetObjectTaggingOutcome(std::move(result));
+    }
+    else {
+        return SetObjectTaggingOutcome(outcome.error());
+    }
+}
+
+DeleteObjectTaggingOutcome OssClientImpl::DeleteObjectTagging(const DeleteObjectTaggingRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Delete);
+    if (outcome.isSuccess()) {
+        DeleteObjectTaggingResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return DeleteObjectTaggingOutcome(std::move(result));
+    }
+    else {
+        return DeleteObjectTaggingOutcome(outcome.error());
+    }
+}
+
+GetObjectTaggingOutcome OssClientImpl::GetObjectTagging(const GetObjectTaggingRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetObjectTaggingResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetObjectTaggingOutcome(std::move(result)) :
+            GetObjectTaggingOutcome(OssError("ParseXMLError", "Parsing ObjectTagging result fail."));
+    }
+    else {
+        return GetObjectTaggingOutcome(outcome.error());
+    }
+}
+
 StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
     if (!IsValidBucketName(request.bucket_) ||
