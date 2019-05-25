@@ -32,6 +32,10 @@ std::string SetBucketLifecycleRequest::payload() const
         ss << "  <Rule>" << std::endl;
         ss << "    <ID>" << rule.ID() << "</ID>" << std::endl;
         ss << "    <Prefix>" << rule.Prefix() << "</Prefix>" << std::endl;
+        for (const auto& tag : rule.Tags())
+        {
+            ss << "    <Tag><Key>" << tag.Key() << "</Key><Value>" << tag.Value() << "</Value></Tag>" << std::endl;
+        }
         ss << "    <Status>" << ToRuleStatusName(rule.Status()) << "</Status>" << std::endl;
         if (rule.hasExpiration())
         {

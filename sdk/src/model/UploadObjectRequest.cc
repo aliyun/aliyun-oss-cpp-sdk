@@ -88,6 +88,11 @@ void UploadObjectRequest::setCallback(const std::string& callback, const std::st
     }
 }
 
+void UploadObjectRequest::setTagging(const std::string& value)
+{
+    metaData_.addHeader("x-oss-tagging", value);
+}
+
 int UploadObjectRequest::validate() const 
 {
     if(partSize_ < PartSizeLowerLimit){

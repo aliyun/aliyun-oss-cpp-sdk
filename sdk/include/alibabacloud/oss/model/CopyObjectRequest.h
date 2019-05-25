@@ -38,6 +38,8 @@ namespace OSS
         void setSourceIfModifiedSince(const std::string& value);
         void setMetadataDirective(const CopyActionList& action);
         void setAcl(const CannedAccessControlList& acl);
+        void setTagging(const std::string& value);
+        void setTaggingDirective(const CopyActionList& action);
     protected:
         virtual HeaderCollection specialHeaders() const ;
     private:

@@ -536,6 +536,19 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
     }
  }
 
+ bool AlibabaCloud::OSS::IsValidTagKey(const std::string &key)
+ {
+     if (key.empty() || key.size() > TagKeyLengthLimit)
+         return false;
+
+     return true;
+ }
+
+ bool AlibabaCloud::OSS::IsValidTagValue(const std::string &value)
+ {
+     return value.size() <= TagValueLengthLimit;
+ }
+
 const std::string& AlibabaCloud::OSS::LookupMimeType(const std::string &name)
 {
     const static std::map<std::string, std::string> mimeType = {

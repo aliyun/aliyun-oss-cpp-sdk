@@ -78,6 +78,11 @@ void PutObjectRequest::setCallback(const std::string& callback, const std::strin
     }
 }
 
+void PutObjectRequest::setTagging(const std::string& value)
+{
+    metaData_.addHeader("x-oss-tagging", value);
+}
+
 ObjectMetaData &PutObjectRequest::MetaData()
 {
     return metaData_;

@@ -90,16 +90,12 @@ OssClient::OssClient(const std::string &endpoint, const Credentials &credentials
 }
 
 OssClient::OssClient(const std::string &endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration & configuration) :
-    client_(new OssClientImpl(endpoint, credentialsProvider, configuration))
+    client_(std::make_shared<OssClientImpl>(endpoint, credentialsProvider, configuration))
 {
 }
 
 OssClient::~OssClient()
 {
-    if (client_) {
-        delete client_;
-    }
-    client_ = nullptr;
 }
 
 ListBucketsOutcome OssClient::ListBuckets() const
@@ -518,6 +514,21 @@ GetObjectOutcome OssClient::SelectObject(const SelectObjectRequest &request) con
 CreateSelectObjectMetaOutcome OssClient::CreateSelectObjectMeta(const CreateSelectObjectMetaRequest &request) const
 {
     return client_->CreateSelectObjectMeta(request);
+}
+
+SetObjectTaggingOutcome OssClient::SetObjectTagging(const SetObjectTaggingRequest& request) const
+{
+    return client_->SetObjectTagging(request);
+}
+
+DeleteObjectTaggingOutcome OssClient::DeleteObjectTagging(const DeleteObjectTaggingRequest& request) const
+{
+    return client_->DeleteObjectTagging(request);
+}
+
+GetObjectTaggingOutcome OssClient::GetObjectTagging(const GetObjectTaggingRequest& request) const
+{
+    return client_->GetObjectTagging(request);
 }
 
 StringOutcome OssClient::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const

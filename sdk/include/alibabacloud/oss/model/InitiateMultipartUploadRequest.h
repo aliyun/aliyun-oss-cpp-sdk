@@ -36,6 +36,7 @@ namespace OSS
         void setExpires(const std::string& value);
         ObjectMetaData& MetaData();
         void setEncodingType(const std::string& encodingType);
+        void setTagging(const std::string& value);
     protected:
         virtual HeaderCollection specialHeaders() const;
         virtual ParameterCollection specialParameters() const;

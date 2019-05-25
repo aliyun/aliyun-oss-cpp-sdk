@@ -60,6 +60,11 @@ void InitiateMultipartUploadRequest::setExpires(const std::string &value)
     metaData_.addHeader(Http::EXPIRES, value);
 }
 
+void InitiateMultipartUploadRequest::setTagging(const std::string& value)
+{
+    metaData_.addHeader("x-oss-tagging", value);
+}
+
 ObjectMetaData &InitiateMultipartUploadRequest::MetaData()
 {
     return metaData_;
