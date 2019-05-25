@@ -239,7 +239,7 @@ namespace OSS
         void DisableRequest();
         void EnableRequest();
     private:
-        OssClientImpl *client_;
+        std::shared_ptr<OssClientImpl> client_;
     };
 }
 }

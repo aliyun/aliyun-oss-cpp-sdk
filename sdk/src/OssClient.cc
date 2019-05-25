@@ -90,16 +90,12 @@ OssClient::OssClient(const std::string &endpoint, const Credentials &credentials
 }
 
 OssClient::OssClient(const std::string &endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration & configuration) :
-    client_(new OssClientImpl(endpoint, credentialsProvider, configuration))
+    client_(std::make_shared<OssClientImpl>(endpoint, credentialsProvider, configuration))
 {
 }
 
 OssClient::~OssClient()
 {
-    if (client_) {
-        delete client_;
-    }
-    client_ = nullptr;
 }
 
 ListBucketsOutcome OssClient::ListBuckets() const
