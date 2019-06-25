@@ -1545,6 +1545,30 @@ public:
         EXPECT_EQ(RemoveFile(targetKey), true);
     }
 
+    TEST_F(ResumableObjectTest, NormalResumableDwoanloadWithoutCRCCheckTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("NormalResumableDwoanloadWithoutCRCCheckTest");
+        std::string targetKey = TestUtils::GetObjectKey("NormalResumableDwoanloadWithoutCRCCheckTest");
+        int length = 102400 * (2 + rand() % 10);
+        auto putObjectContent = TestUtils::GetRandomStream(length);
+        auto putObjectOutcome = Client->PutObject(BucketName, sourceKey, putObjectContent);
+        EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        // download
+        ClientConfiguration conf;
+        conf.enableCrc64 = false;
+        OssClient client(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+        DownloadObjectRequest request(BucketName, sourceKey, targetKey);
+        request.setPartSize(102400);
+        request.setThreadNum(1);
+        request.addResponseHeaders(RequestResponseHeader::CacheControl, "max-age=3");
+        auto outcome = client.ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(outcome.result().Metadata().CacheControl(), "max-age=3");
+        EXPECT_EQ(outcome.result().Metadata().ContentLength(), length);
+        EXPECT_EQ(RemoveFile(targetKey), true);
+    }
 
 
     TEST_F(ResumableObjectTest, UnnormalResumableCopyObjectWithDisableRequest)
