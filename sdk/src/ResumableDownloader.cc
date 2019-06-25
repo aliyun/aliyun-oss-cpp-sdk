@@ -167,16 +167,29 @@ GetObjectOutcome ResumableDownloader::Download()
         return a.partNumber < b.partNumber;
     });
 
-    auto meta = outcomes[0].result().Metadata();
+    ObjectMetaData meta;
+    if (outcomes.empty()) {
+        auto hOutcome = client_->HeadObject(HeadObjectRequest(request_.Bucket(), request_.Key()));
+        if (!hOutcome.isSuccess()) {
+            return GetObjectOutcome(hOutcome.error());
+        }
+        meta = hOutcome.result();
+    }
+    else {
+        meta = outcomes[0].result().Metadata();
+    }
     meta.setContentLength(contentLength_);
+
     //check crc and update metadata
     if (!request_.RangeIsSet()) {
-        uint64_t localCRC64 = downloadedParts[0].crc64;
-        for (size_t i = 1; i < downloadedParts.size(); i++) {
-            localCRC64 = CRC64::CombineCRC(localCRC64, downloadedParts[i].crc64, downloadedParts[i].size);
-        }
-        if (localCRC64 != outcomes[0].result().Metadata().CRC64()) {
-            return GetObjectOutcome(OssError("CrcCheckError", "ResumableDownload object CRC checksum fail."));
+        if (client_->configuration().enableCrc64) {
+            uint64_t localCRC64 = downloadedParts[0].crc64;
+            for (size_t i = 1; i < downloadedParts.size(); i++) {
+                localCRC64 = CRC64::CombineCRC(localCRC64, downloadedParts[i].crc64, downloadedParts[i].size);
+            }
+            if (localCRC64 != outcomes[0].result().Metadata().CRC64()) {
+                return GetObjectOutcome(OssError("CrcCheckError", "ResumableDownload object CRC checksum fail."));
+            }
         }
         meta.HttpMetaData().erase(Http::CONTENT_RANGE);
     }
