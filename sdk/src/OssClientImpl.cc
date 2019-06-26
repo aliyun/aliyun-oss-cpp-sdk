@@ -438,6 +438,19 @@ VoidOutcome OssClientImpl::SetBucketStorageCapacity(const SetBucketStorageCapaci
     }
 }
 
+VoidOutcome OssClientImpl::SetBucketPolicy(const SetBucketPolicyRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Put);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
 VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
@@ -491,6 +504,19 @@ VoidOutcome OssClientImpl::DeleteBucketLifecycle(const DeleteBucketLifecycleRequ
 }
 
 VoidOutcome OssClientImpl::DeleteBucketCors(const DeleteBucketCorsRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Delete);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
     if (outcome.isSuccess()) {
@@ -654,6 +680,20 @@ GetBucketStorageCapacityOutcome OssClientImpl::GetBucketStorageCapacity(const Ge
     }
     else {
         return GetBucketStorageCapacityOutcome(outcome.error());
+    }
+}
+
+GetBucketPolicyOutcome OssClientImpl::GetBucketPolicy(const GetBucketPolicyRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetBucketPolicyResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetBucketPolicyOutcome(std::move(result)) :
+            GetBucketPolicyOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+    }
+    else {
+        return GetBucketPolicyOutcome(outcome.error());
     }
 }
 
