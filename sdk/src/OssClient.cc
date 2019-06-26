@@ -217,6 +217,16 @@ VoidOutcome OssClient::SetBucketStorageCapacity(const SetBucketStorageCapacityRe
     return client_->SetBucketStorageCapacity(request);
 }
 
+VoidOutcome OssClient::SetBucketPolicy(const SetBucketPolicyRequest& request) const
+{
+    return client_->SetBucketPolicy(request);
+}
+
+VoidOutcome OssClient::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
+{
+    return client_->DeleteBucketPolicy(request);
+}
+
 VoidOutcome OssClient::DeleteBucket(const std::string &bucket) const
 {
     return client_->DeleteBucket(DeleteBucketRequest(bucket));
@@ -365,6 +375,11 @@ GetBucketStorageCapacityOutcome OssClient::GetBucketStorageCapacity(const std::s
 GetBucketStorageCapacityOutcome OssClient::GetBucketStorageCapacity(const GetBucketStorageCapacityRequest& request) const
 {
     return client_->GetBucketStorageCapacity(request);
+}
+
+GetBucketPolicyOutcome OssClient::GetBucketPolicy(const GetBucketPolicyRequest& request) const
+{
+    return client_->GetBucketPolicy(request);
 }
 
 GetObjectOutcome OssClient::GetObject(const std::string &bucket, const std::string &key) const

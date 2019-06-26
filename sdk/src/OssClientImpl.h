@@ -52,12 +52,14 @@ namespace OSS
         VoidOutcome SetBucketLifecycle(const SetBucketLifecycleRequest& request) const;
         VoidOutcome SetBucketCors(const SetBucketCorsRequest& request) const;
         VoidOutcome SetBucketStorageCapacity(const SetBucketStorageCapacityRequest& request) const;
+        VoidOutcome SetBucketPolicy(const SetBucketPolicyRequest& request) const;
 
         VoidOutcome DeleteBucket(const DeleteBucketRequest &request) const;
         VoidOutcome DeleteBucketLogging(const DeleteBucketLoggingRequest& request) const;
         VoidOutcome DeleteBucketWebsite(const DeleteBucketWebsiteRequest& request) const;
         VoidOutcome DeleteBucketLifecycle(const DeleteBucketLifecycleRequest& request) const;
         VoidOutcome DeleteBucketCors(const DeleteBucketCorsRequest& request) const;
+        VoidOutcome DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const;
 
         ListObjectOutcome ListObjects(const ListObjectsRequest &request) const;
 
@@ -71,6 +73,7 @@ namespace OSS
         GetBucketStatOutcome GetBucketStat(const GetBucketStatRequest &request) const;
         GetBucketCorsOutcome GetBucketCors(const GetBucketCorsRequest &request) const;
         GetBucketStorageCapacityOutcome GetBucketStorageCapacity(const GetBucketStorageCapacityRequest& request) const;
+        GetBucketPolicyOutcome GetBucketPolicy(const GetBucketPolicyRequest& request) const;
 
         /*Object*/
         GetObjectOutcome GetObject(const GetObjectRequest &request) const;
