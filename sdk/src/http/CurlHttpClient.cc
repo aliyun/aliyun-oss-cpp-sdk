@@ -515,7 +515,7 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
 
     if (!proxyHost_.empty()) {
         std::stringstream ss;
-        ss << proxyScheme_ << "://" << proxyHost_;
+        ss << Http::SchemeToString(proxyScheme_) << "://" << proxyHost_;
         curl_easy_setopt(curl, CURLOPT_PROXY, ss.str().c_str());
         curl_easy_setopt(curl, CURLOPT_PROXYPORT, (long) proxyPort_);
         curl_easy_setopt(curl, CURLOPT_PROXYUSERNAME, proxyUserName_.c_str());
