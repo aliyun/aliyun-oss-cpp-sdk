@@ -88,6 +88,10 @@ HeaderCollection CopyObjectRequest::specialHeaders() const
     if (headers.find(Http::CONTENT_TYPE) == headers.end()) {
         headers[Http::CONTENT_TYPE] = LookupMimeType(Key());
     }
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
 
     return headers;
 }

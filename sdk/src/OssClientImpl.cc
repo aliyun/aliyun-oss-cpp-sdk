@@ -450,6 +450,18 @@ VoidOutcome OssClientImpl::SetBucketPolicy(const SetBucketPolicyRequest& request
         return VoidOutcome(outcome.error());
     }
 }
+VoidOutcome AlibabaCloud::OSS::OssClientImpl::SetBucketRequestPayment(const SetBucketRequestPaymentRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Put);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
 
 VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) const
 {
@@ -694,6 +706,19 @@ GetBucketPolicyOutcome OssClientImpl::GetBucketPolicy(const GetBucketPolicyReque
     }
     else {
         return GetBucketPolicyOutcome(outcome.error());
+    }
+}
+GetBucketPaymentOutcome AlibabaCloud::OSS::OssClientImpl::GetBucketRequestPayment(const GetBucketRequestPaymentRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetBucketPaymentResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetBucketPaymentOutcome(std::move(result)) :
+            GetBucketPaymentOutcome(OssError("ParseXMLError", "Parsing GetBucketPayment result fail."));
+    }
+    else {
+        return GetBucketPaymentOutcome(outcome.error());
     }
 }
 

@@ -32,6 +32,10 @@ std::string Config::AccessKeySecret = "";
 std::string Config::Endpoint = "";
 std::string Config::CallbackServer = "";
 std::string Config::CfgFilePath = "oss.ini";
+std::string Config::PayerAccessKeyId = "";
+std::string Config::PayerAccessKeySecret = "";
+std::string Config::PayerUID = "";
+
 
 static std::string LeftTrim(const char* source)
 {
@@ -110,6 +114,15 @@ static void LoadCfgFromFile()
         else if (!strncmp(buffer, "CallbackServer", 14)) {
             Config::CallbackServer = TrimQuotes(Trim(ptr + 1).c_str());
         }
+        else if (!strncmp(buffer, "PayerAccessKeyId", 16)) {
+            Config::PayerAccessKeyId = TrimQuotes(Trim(ptr + 1).c_str());
+        }
+        else if (!strncmp(buffer, "PayerAccessKeySecret", 20)) {
+            Config::PayerAccessKeySecret = TrimQuotes(Trim(ptr + 1).c_str());
+        }
+        else if (!strncmp(buffer, "PayerUID", 8)) {
+            Config::PayerUID = TrimQuotes(Trim(ptr + 1).c_str());
+        }
     }
     in.close();
 }
@@ -138,6 +151,21 @@ static void LoadCfgFromEnv()
     value = std::getenv("TEST_OSS_CALLBACKSERVER");
     if (value) {
         Config::CallbackServer = TrimQuotes(Trim(value).c_str());
+    }
+
+    value = std::getenv("TEST_OSS_PAYER_ACCESS_KEY_ID");
+    if (value) {
+        Config::PayerAccessKeyId = TrimQuotes(Trim(value).c_str());
+    }
+
+    value = std::getenv("TEST_OSS_PAYER_ACCESS_KEY_SECRET");
+    if (value) {
+        Config::PayerAccessKeySecret = TrimQuotes(Trim(value).c_str());
+    }
+
+    value = std::getenv("TEST_OSS_PAYER_UID");
+    if (value) {
+        Config::PayerUID = TrimQuotes(Trim(value).c_str());
     }
 }
 

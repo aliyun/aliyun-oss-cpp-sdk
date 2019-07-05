@@ -17,34 +17,32 @@
 #pragma once
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/OssRequest.h>
+#include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT GetObjectMetaRequest : public OssObjectRequest
+    class ALIBABACLOUD_OSS_EXPORT SetBucketRequestPaymentRequest : public OssBucketRequest
     {
     public:
-        GetObjectMetaRequest(const std::string& bucket, const std::string& key):
-            OssObjectRequest(bucket, key)
+        SetBucketRequestPaymentRequest(const std::string& bucket) :
+            OssBucketRequest(bucket),
+            payer_(RequestPayer::NotSet)
         {
         }
+        SetBucketRequestPaymentRequest(const std::string& bucket,
+            RequestPayer payer) :
+            OssBucketRequest(bucket),
+            payer_(payer)
+        {
+        }
+        void setRequestPayer(RequestPayer payer) { payer_ = payer; }
     protected:
-        virtual ParameterCollection specialParameters() const 
-        {
-            ParameterCollection parameter;
-            parameter["objectMeta"] = "";
-            return parameter;
-        }
-        virtual HeaderCollection specialHeaders() const
-        {
-            HeaderCollection headers;
-            if (requestPayer_ == RequestPayer::Requester)
-            {
-                headers["x-oss-request-payer"] = ("requester");
-            }
-            return headers;
-        }
+        virtual std::string payload() const;
+        virtual ParameterCollection specialParameters() const;
+    private:
+        RequestPayer payer_;
     };
 } 
 }

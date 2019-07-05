@@ -44,7 +44,13 @@ void CreateSymlinkRequest::setTagging(const std::string& value)
 
 HeaderCollection CreateSymlinkRequest::specialHeaders() const
 {
-    return metaData_.toHeaderCollection();
+	HeaderCollection headers = metaData_.toHeaderCollection();
+
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
+    return headers;
 }
 
 

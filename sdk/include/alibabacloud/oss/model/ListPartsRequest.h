@@ -37,6 +37,7 @@ namespace OSS
         void setEncodingType(const std::string& encodingType);
     protected:
         virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
     private:
         std::string uploadId_;
         uint32_t maxParts_;
