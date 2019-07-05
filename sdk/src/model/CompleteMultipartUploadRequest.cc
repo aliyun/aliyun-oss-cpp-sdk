@@ -111,7 +111,12 @@ ParameterCollection CompleteMultipartUploadRequest::specialParameters()const
 
 HeaderCollection CompleteMultipartUploadRequest::specialHeaders() const
 {
-    return metaData_.toHeaderCollection();
+    HeaderCollection headers = metaData_.toHeaderCollection();
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
+    return headers;
 }
 
 std::string CompleteMultipartUploadRequest::payload() const

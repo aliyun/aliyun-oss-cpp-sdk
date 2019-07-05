@@ -27,5 +27,8 @@ public:
     static std::string Endpoint;
     static std::string CallbackServer;
     static std::string CfgFilePath;
+    static std::string PayerAccessKeyId;
+    static std::string PayerAccessKeySecret;
+    static std::string PayerUID;
 };
 

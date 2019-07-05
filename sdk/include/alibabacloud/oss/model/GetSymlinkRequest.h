@@ -31,6 +31,7 @@ namespace OSS
         GetSymlinkRequest(const std::string& bucket, const std::string& key);
     protected:
         virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
     };
 }
 }

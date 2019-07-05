@@ -35,3 +35,13 @@ ParameterCollection AbortMultipartUploadRequest::specialParameters() const
     parameters["uploadId"] = uploadId_;
     return parameters;
 }
+
+HeaderCollection AlibabaCloud::OSS::AbortMultipartUploadRequest::specialHeaders() const
+{
+    HeaderCollection headers;
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
+    return headers;
+}

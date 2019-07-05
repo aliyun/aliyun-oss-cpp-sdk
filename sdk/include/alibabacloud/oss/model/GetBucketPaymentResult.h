@@ -1,12 +1,12 @@
 /*
  * Copyright 2009-2017 Alibaba Cloud All rights reserved.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-#include <alibabacloud/oss/model/GetSymlinkRequest.h>
+#pragma once
+#include <memory>
+#include <iostream>
+#include <alibabacloud/oss/OssResult.h>
+#include <alibabacloud/oss/Types.h>
 
-using namespace AlibabaCloud::OSS;
-
-GetSymlinkRequest::GetSymlinkRequest(const std::string &bucket, const std::string &key):
-    OssObjectRequest(bucket, key)
+namespace AlibabaCloud
 {
-}
-
-ParameterCollection GetSymlinkRequest::specialParameters() const
+namespace OSS
 {
-    ParameterCollection paramters;
-    paramters["symlink"] = "";
-    return paramters;
-}
-
-HeaderCollection AlibabaCloud::OSS::GetSymlinkRequest::specialHeaders() const
-{
-    HeaderCollection header;
-    if (requestPayer_ == RequestPayer::Requester)
+    class ALIBABACLOUD_OSS_EXPORT GetBucketPaymentResult : public OssResult
     {
-        header["x-oss-request-payer"] = "requester";
-    }
-    return header;
+    public:
+        GetBucketPaymentResult();
+        GetBucketPaymentResult(const std::string& data);
+        GetBucketPaymentResult(const std::shared_ptr<std::iostream>& data);
+        GetBucketPaymentResult& operator=(const std::string& data);
+        RequestPayer Payer()const { return payer_; }
+    private:
+        RequestPayer payer_;
+    };
+} 
 }
-

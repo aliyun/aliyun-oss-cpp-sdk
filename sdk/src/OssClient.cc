@@ -221,6 +221,10 @@ VoidOutcome OssClient::SetBucketPolicy(const SetBucketPolicyRequest& request) co
 {
     return client_->SetBucketPolicy(request);
 }
+VoidOutcome AlibabaCloud::OSS::OssClient::SetBucketRequestPayment(const SetBucketRequestPaymentRequest& request) const
+{
+    return client_->SetBucketRequestPayment(request);
+}
 
 VoidOutcome OssClient::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
 {
@@ -380,6 +384,10 @@ GetBucketStorageCapacityOutcome OssClient::GetBucketStorageCapacity(const GetBuc
 GetBucketPolicyOutcome OssClient::GetBucketPolicy(const GetBucketPolicyRequest& request) const
 {
     return client_->GetBucketPolicy(request);
+}
+GetBucketPaymentOutcome AlibabaCloud::OSS::OssClient::GetBucketRequestPayment(const GetBucketRequestPaymentRequest& request) const
+{
+    return client_->GetBucketRequestPayment(request);
 }
 
 GetObjectOutcome OssClient::GetObject(const std::string &bucket, const std::string &key) const

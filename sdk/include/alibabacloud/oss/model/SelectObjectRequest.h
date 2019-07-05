@@ -49,6 +49,7 @@ namespace OSS
 		virtual std::string payload() const;
 		virtual int validate() const;
         virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
         int dispose() const;
 	private:
 		ExpressionType expressionType_;

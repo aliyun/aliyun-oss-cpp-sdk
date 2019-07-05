@@ -30,3 +30,13 @@ ParameterCollection RestoreObjectRequest::specialParameters() const
     return paramters;
 }
 
+HeaderCollection AlibabaCloud::OSS::RestoreObjectRequest::specialHeaders() const
+{
+    HeaderCollection headers;
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }    
+    return headers;
+}
+

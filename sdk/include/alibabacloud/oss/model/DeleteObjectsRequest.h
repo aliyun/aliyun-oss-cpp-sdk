@@ -36,13 +36,16 @@ namespace OSS
         void addKey(const std::string& key);
         void setKeyList(const DeletedKeyList& keyList);
         void clearKeyList();
+        void setRequestPayer(RequestPayer value);
     protected:
         virtual std::string payload() const;
         virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
     private:
         bool quiet_;
         std::string encodingType_;
         DeletedKeyList keyList_;
+        RequestPayer requestPayer_;
     };
 } 
 }

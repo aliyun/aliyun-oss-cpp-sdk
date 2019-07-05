@@ -32,7 +32,8 @@ namespace OSS
             markerIsSet_(false),
             maxKeysIsSet_(false),
             prefixIsSet_(false),
-            encodingTypeIsSet_(false)
+            encodingTypeIsSet_(false),
+            requestPayer_(RequestPayer::NotSet)
         {
         }
         void setDelimiter(const std::string& delimiter) { delimiter_ = delimiter; delimiterIsSet_ = true; }
@@ -40,6 +41,7 @@ namespace OSS
         void setMaxKeys(int maxKeys) {maxKeys_ = maxKeys; maxKeysIsSet_ = true;} 
         void setPrefix(const std::string& prefix) { prefix_ = prefix; prefixIsSet_ = true; }
         void setEncodingType(const std::string& type) { encodingType_ = type; encodingTypeIsSet_ = true; }
+        void setRequestPayer(RequestPayer value) { requestPayer_ = value; }
 
     protected:
         virtual ParameterCollection specialParameters() const 
@@ -52,6 +54,15 @@ namespace OSS
             if (encodingTypeIsSet_) params["encoding-type"] = encodingType_;
             return params;
         }
+        virtual HeaderCollection specialHeaders() const
+        {
+            HeaderCollection headers;
+            if (requestPayer_ == RequestPayer::Requester)
+            {
+                 headers["x-oss-request-payer"] = "requester";
+            }
+            return headers;
+        }
     private:
         std::string delimiter_;
         bool delimiterIsSet_;
@@ -63,6 +74,7 @@ namespace OSS
         bool prefixIsSet_;
         std::string encodingType_;
         bool encodingTypeIsSet_;
+        RequestPayer requestPayer_;
     };
 } 
 }
