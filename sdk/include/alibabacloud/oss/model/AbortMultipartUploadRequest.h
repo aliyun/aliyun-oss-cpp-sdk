@@ -30,6 +30,7 @@ namespace OSS
             const std::string& uploadId);
     protected:
         virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
     private:
         std::string uploadId_;
     };

@@ -184,6 +184,10 @@ HeaderCollection UploadPartCopyRequest::specialHeaders() const
     if (sourceIfUnModifiedSinceIsSet_) {
         header["x-oss-copy-source-if-unmodified-since"] = sourceIfUnModifiedSince_;
     }
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        header["x-oss-request-payer"] = "requester";
+    }
 
     return header;
 }

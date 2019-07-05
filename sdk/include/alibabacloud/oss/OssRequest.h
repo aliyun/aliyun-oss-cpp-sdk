@@ -66,15 +66,19 @@ namespace OSS
     {
     public:
         OssObjectRequest(const std::string& bucket, const std::string& key) :
-            OssRequest(bucket, key)
+            OssRequest(bucket, key),
+            requestPayer_(RequestPayer::NotSet)
         {}
         void setBucket(const std::string& bucket);
         const std::string& Bucket() const;
 
         void setKey(const std::string& key);
         const std::string& Key() const;
+
+        void setRequestPayer(RequestPayer value);
     protected:
         virtual int validate() const;
+        RequestPayer requestPayer_;
     };
 
     class ALIBABACLOUD_OSS_EXPORT OssResumableBaseRequest : public OssRequest

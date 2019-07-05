@@ -85,3 +85,13 @@ ParameterCollection ListPartsRequest::specialParameters() const
 
     return parameters;
 }
+
+HeaderCollection ListPartsRequest::specialHeaders() const
+{
+    HeaderCollection headers;
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
+    return headers;
+}

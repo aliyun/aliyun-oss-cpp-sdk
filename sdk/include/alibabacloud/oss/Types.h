@@ -90,6 +90,15 @@ namespace OSS
         UnknownStatus=99
     };
 
+
+ enum class RequestPayer
+ {
+     NotSet = 0,
+     BucketOwner,
+     Requester
+ };
+
+
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 
     struct  ALIBABACLOUD_OSS_EXPORT caseSensitiveLess

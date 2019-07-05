@@ -14,31 +14,27 @@
  * limitations under the License.
  */
 
-
-#include <alibabacloud/oss/model/GetObjectAclRequest.h>
-#include <alibabacloud/oss/http/HttpType.h>
+#include <alibabacloud/oss/model/SetBucketPaymentRequest.h>
+#include <sstream>
 #include "../utils/Utils.h"
+
+
 using namespace AlibabaCloud::OSS;
 
-GetObjectAclRequest::GetObjectAclRequest(const std::string &bucket, const std::string &key)
-    :OssObjectRequest(bucket,key)
+std::string SetBucketRequestPaymentRequest::payload() const
 {
-}
-    
-ParameterCollection GetObjectAclRequest::specialParameters() const
-{
-    ParameterCollection paramters;
-    paramters["acl"]="";
-    return paramters;
+    std::stringstream ss;
+    ss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+    ss << "<RequestPaymentConfiguration>" << std::endl;
+    ss << "<Payer>" << ToRequestPayerName(payer_) << "</Payer>" << std::endl;
+    ss << "</RequestPaymentConfiguration>" << std::endl;
+    return ss.str();
 }
 
-HeaderCollection AlibabaCloud::OSS::GetObjectAclRequest::specialHeaders() const
+ParameterCollection SetBucketRequestPaymentRequest::specialParameters() const
 {
-    HeaderCollection headers;
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
-    }
-    return headers;
+    ParameterCollection parameters;
+    parameters["requestPayment"] = "";
+    return parameters;
 }
 

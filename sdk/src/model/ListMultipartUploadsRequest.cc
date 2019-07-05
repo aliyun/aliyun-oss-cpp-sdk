@@ -31,7 +31,8 @@ ListMultipartUploadsRequest::ListMultipartUploadsRequest(const std::string &buck
     prefixIsSet_(false),
     uploadIdMarkerIsSet_(false),
     encodingTypeIsSet_(false),
-    maxUploadsIsSet_(false)
+    maxUploadsIsSet_(false),
+    requestPayer_(RequestPayer::NotSet)
 {
 }
 
@@ -71,6 +72,11 @@ void ListMultipartUploadsRequest::setEncodingType(const std::string &encodingTyp
     encodingTypeIsSet_ = true;
 }
 
+void AlibabaCloud::OSS::ListMultipartUploadsRequest::setRequestPayer(RequestPayer value)
+{
+    requestPayer_ = value;
+}
+
 ParameterCollection ListMultipartUploadsRequest::specialParameters() const
 {
     ParameterCollection parameters;
@@ -98,4 +104,14 @@ ParameterCollection ListMultipartUploadsRequest::specialParameters() const
         parameters["encoding-type"] = encodingType_;
     }
     return parameters;
+}
+
+HeaderCollection AlibabaCloud::OSS::ListMultipartUploadsRequest::specialHeaders() const
+{
+    HeaderCollection headers;
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
+    return headers;
 }

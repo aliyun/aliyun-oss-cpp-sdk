@@ -46,6 +46,10 @@ HeaderCollection SetObjectAclRequest::specialHeaders() const
     if (hasSetAcl_) {
         headers["x-oss-object-acl"] = ToAclName(acl_);
     }
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
     return headers;
 }
 

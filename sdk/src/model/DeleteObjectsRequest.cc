@@ -24,7 +24,8 @@ using namespace AlibabaCloud::OSS;
 DeleteObjectsRequest::DeleteObjectsRequest(const std::string &bucket) :
     OssBucketRequest(bucket),
     quiet_(false),
-    encodingType_()
+    encodingType_(),
+    requestPayer_(RequestPayer::NotSet)
 {
     setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
 }
@@ -69,6 +70,11 @@ void DeleteObjectsRequest::clearKeyList()
     keyList_.clear();
 }
 
+void AlibabaCloud::OSS::DeleteObjectsRequest::setRequestPayer(RequestPayer value)
+{
+    requestPayer_ = value; 
+}
+
 std::string DeleteObjectsRequest::payload() const
 {
     bool useUrlEncode = !ToLower(encodingType_.c_str()).compare(0, 3, "url", 3);
@@ -94,4 +100,14 @@ ParameterCollection DeleteObjectsRequest::specialParameters() const
         parameters["encoding-type"] = encodingType_;
     }
     return parameters;
+}
+
+HeaderCollection AlibabaCloud::OSS::DeleteObjectsRequest::specialHeaders() const
+{
+    HeaderCollection headers;
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
+    return headers;
 }

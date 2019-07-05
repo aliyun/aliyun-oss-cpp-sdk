@@ -152,6 +152,12 @@ const std::string& OssObjectRequest::Key() const
     return OssRequest::key();
 }
 
+
+void OssObjectRequest::setRequestPayer(RequestPayer key)
+{
+    requestPayer_ = key;
+}
+
 int OssResumableBaseRequest::validate() const
 {
     if (!IsValidBucketName(Bucket())) {

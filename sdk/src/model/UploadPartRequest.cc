@@ -72,6 +72,11 @@ HeaderCollection UploadPartRequest::specialHeaders() const
     if (contentLengthIsSet_) {
         headers[Http::CONTENT_LENGTH] = std::to_string(contentLength_);
     }
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
+
     return headers;
 }
 

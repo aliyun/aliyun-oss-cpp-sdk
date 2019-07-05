@@ -22,29 +22,12 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT GetObjectMetaRequest : public OssObjectRequest
+    class ALIBABACLOUD_OSS_EXPORT GetBucketRequestPaymentRequest: public OssBucketRequest
     {
     public:
-        GetObjectMetaRequest(const std::string& bucket, const std::string& key):
-            OssObjectRequest(bucket, key)
-        {
-        }
+        GetBucketRequestPaymentRequest(const std::string& bucket);
     protected:
-        virtual ParameterCollection specialParameters() const 
-        {
-            ParameterCollection parameter;
-            parameter["objectMeta"] = "";
-            return parameter;
-        }
-        virtual HeaderCollection specialHeaders() const
-        {
-            HeaderCollection headers;
-            if (requestPayer_ == RequestPayer::Requester)
-            {
-                headers["x-oss-request-payer"] = ("requester");
-            }
-            return headers;
-        }
+        virtual ParameterCollection specialParameters() const;
     };
 } 
 }

@@ -34,8 +34,10 @@ namespace OSS
         void setPrefix(const std::string& prefix);
         void setUploadIdMarker(const std::string& uploadIdMarker);
         void setEncodingType(const std::string& encodingType);
+        void setRequestPayer(RequestPayer value);
     protected:
         virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
     private:
         std::string delimiter_;
         bool delimiterIsSet_;
@@ -49,6 +51,7 @@ namespace OSS
         bool encodingTypeIsSet_;
         int maxUploads_;
         bool maxUploadsIsSet_;
+        RequestPayer requestPayer_;
     };
 } 
 }

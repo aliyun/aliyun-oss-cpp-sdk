@@ -159,6 +159,10 @@ HeaderCollection GetObjectRequest::specialHeaders() const
         }
         headers["If-None-Match"] = ss.str();
     }
+    if (requestPayer_ == RequestPayer::Requester)
+    {
+        headers["x-oss-request-payer"] = "requester";
+    }
     return headers;
 }
 
