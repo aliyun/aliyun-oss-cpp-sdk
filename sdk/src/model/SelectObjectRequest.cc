@@ -340,13 +340,3 @@ ParameterCollection SelectObjectRequest::specialParameters() const
     }
     return parameters;
 }
-
-HeaderCollection SelectObjectRequest::specialHeaders() const
-{
-    HeaderCollection headers;
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
-    }    
-    return headers;
-}

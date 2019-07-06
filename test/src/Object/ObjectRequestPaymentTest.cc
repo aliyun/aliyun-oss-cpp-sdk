@@ -45,43 +45,31 @@ protected:
     // Sets up the stuff shared by all tests in this test case.
     static void SetUpTestCase()
     {
-        ClientConfiguration conf;
-        conf.enableCrc64 = false;
         Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        PayerClient = std::make_shared<OssClient>(Config::Endpoint, Config::PayerAccessKeyId, Config::PayerAccessKeySecret, ClientConfiguration());
 
-        BucketName1 = TestUtils::GetBucketName("cpp-sdk-objectcopy1");
-        CreateBucketOutcome outCome = Client->CreateBucket(CreateBucketRequest(BucketName1));
+        BucketName = TestUtils::GetBucketName("cpp-sdk-objectcopy1");
+        CreateBucketOutcome outCome = Client->CreateBucket(CreateBucketRequest(BucketName));
         EXPECT_EQ(outCome.isSuccess(), true);
 
-        SetBucketPolicyRequest request(BucketName1);
+        SetBucketPolicyRequest request(BucketName);
         std::string policy = std::string("{\"Version\":\"1\",\"Statement\":[{\"Action\":[\"oss:*\"],\"Effect\": \"Allow\",")
-        .append("\"Principal\":[\"").append(Config::PayerUID).append("\"],")
-        .append("\"Resource\": [\"acs:oss:*:*:").append(BucketName1).append("\",\"acs:oss:*:*:").append(BucketName1).append("/*\"]}]}");
+            .append("\"Principal\":[\"").append(Config::PayerUID).append("\"],")
+            .append("\"Resource\": [\"acs:oss:*:*:").append(BucketName).append("\",\"acs:oss:*:*:").append(BucketName).append("/*\"]}]}");
         request.setPolicy(policy);
         auto policyOutcome1 = Client->SetBucketPolicy(request);
         EXPECT_EQ(policyOutcome1.isSuccess(), true);
 
-        SetBucketRequestPaymentRequest setRequest(BucketName1);
+        SetBucketRequestPaymentRequest setRequest(BucketName);
         setRequest.setRequestPayer(RequestPayer::Requester);
         VoidOutcome setOutcome = Client->SetBucketRequestPayment(setRequest);
         EXPECT_EQ(setOutcome.isSuccess(), true);
-
-        GetBucketRequestPaymentRequest getRequest(BucketName1);
-        GetBucketPaymentOutcome getOutcome = Client->GetBucketRequestPayment(getRequest);
-        EXPECT_EQ(getOutcome.isSuccess(), true);
-        EXPECT_EQ(getOutcome.result().Payer(), RequestPayer::Requester);
-
-        TestFile = TestUtils::GetTargetFileName("cpp-sdk-multipartupload");
-        TestUtils::WriteRandomDatatoFile(TestFile, 500*1024);
-
-        PayerClient = std::make_shared<OssClient>(Config::Endpoint, Config::PayerAccessKeyId, Config::PayerAccessKeySecret, ClientConfiguration());
-
     }
 
     // Tears down the stuff shared by all tests in this test case.
     static void TearDownTestCase()
     {
-        TestUtils::CleanBucket(*Client, BucketName1);
+        TestUtils::CleanBucket(*Client, BucketName);
         Client = nullptr;
         PayerClient = nullptr;
     }
@@ -95,77 +83,344 @@ protected:
     void TearDown() override
     {
     }
-    static int CalculatePartCount(int64_t totalSize, int singleSize);
-    static int64_t GetFileLength(const std::string file);
+    static int CalculatePartCount(int64_t totalSize, int singleSize)
+    {
+        // Calculate the part count
+        auto partCount = (int)(totalSize / singleSize);
+        if (totalSize % singleSize != 0)
+        {
+            partCount++;
+        }
+        return partCount;
+    }
+    
+    static int64_t GetFileLength(const std::string file)
+    {
+        std::fstream f(file, std::ios::in | std::ios::binary);
+        f.seekg(0, f.end);
+        int64_t size = f.tellg();
+        f.close();
+        return size;
+    }
+    
+    static std::string GetOssImageObjectInfo(const std::string &bucket, const std::string &key)
+    {
+        auto outcome = Client->GetObject(GetObjectRequest(bucket, key, "image/info"));
+
+        if (outcome.isSuccess()) {
+            std::istreambuf_iterator<char> isb(*outcome.result().Content().get()), end;
+            return std::string(isb, end);
+        }
+        return "";
+    }
 public:
     static std::shared_ptr<OssClient> Client;
     static std::shared_ptr<OssClient> PayerClient;
-    static std::string BucketName1;
-    static std::string TestFile;
+    static std::string BucketName;
 };
 
 std::shared_ptr<OssClient> ObjectRequestPaymentTest::Client = nullptr;
 std::shared_ptr<OssClient> ObjectRequestPaymentTest::PayerClient = nullptr;
-std::string ObjectRequestPaymentTest::BucketName1 = "";
-std::string ObjectRequestPaymentTest::TestFile = "";
+std::string ObjectRequestPaymentTest::BucketName = "";
 
-
-int64_t ObjectRequestPaymentTest::GetFileLength(const std::string file)
+TEST_F(ObjectRequestPaymentTest, PutObjectTest)
 {
-    std::fstream f(file, std::ios::in | std::ios::binary);
-    f.seekg(0, f.end);
-    int64_t size = f.tellg();
-    f.close();
-    return size;
-}
-
-int ObjectRequestPaymentTest::CalculatePartCount(int64_t totalSize, int singleSize)
-{
-    // Calculate the part count
-    auto partCount = (int)(totalSize / singleSize);
-    if (totalSize % singleSize != 0)
-    {
-        partCount++;
-    }
-    return partCount;
-}
-
-TEST_F(ObjectRequestPaymentTest, PutObjectAndCopyObject)
-{
-    std::string objName1 = TestUtils::GetObjectKey("test-cpp-sdk-objectcopy1");
-    std::string text1 = "hellowworld";
-    PutObjectRequest putRequest(BucketName1, objName1, std::make_shared<std::stringstream>(text1));
-    PutObjectOutcome putOutcome = PayerClient->PutObject(putRequest);
+    std::string key = TestUtils::GetObjectKey("put-object");
+    
+    PutObjectRequest putRequest(BucketName, key, std::make_shared<std::stringstream>("hello world"));
+    auto putOutcome = PayerClient->PutObject(putRequest);
     EXPECT_EQ(putOutcome.isSuccess(), false);
     EXPECT_EQ(putOutcome.error().Code(), "AccessDenied");
+
+    putRequest.setRequestPayer(RequestPayer::BucketOwner);
+    putOutcome = PayerClient->PutObject(putRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), false);
+    EXPECT_EQ(putOutcome.error().Code(), "AccessDenied");
+
     putRequest.setRequestPayer(RequestPayer::Requester);
     putOutcome = PayerClient->PutObject(putRequest);
     EXPECT_EQ(putOutcome.isSuccess(), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, GetObjectTest)
+{
+    std::string key = TestUtils::GetObjectKey("put-object");
+
+    PutObjectRequest putRequest(BucketName, key, std::make_shared<std::stringstream>("hello world"));
+    auto putOutcome = Client->PutObject(putRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    GetObjectRequest getRequest(BucketName, key);
+    auto getOutcome = PayerClient->GetObject(getRequest);
+    EXPECT_EQ(getOutcome.isSuccess(), false);
+    EXPECT_EQ(getOutcome.error().Code(), "AccessDenied");
+
+    getRequest.setRequestPayer(RequestPayer::BucketOwner);
+    getOutcome = PayerClient->GetObject(getRequest);
+    EXPECT_EQ(getOutcome.isSuccess(), false);
+    EXPECT_EQ(getOutcome.error().Code(), "AccessDenied");
+
+    getRequest.setRequestPayer(RequestPayer::Requester);
+    getOutcome = PayerClient->GetObject(getRequest);
+    EXPECT_EQ(getOutcome.isSuccess(), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, DeleteObjectTest)
+{
+    std::string key = TestUtils::GetObjectKey("delete-object");
+
+    PutObjectRequest putRequest(BucketName, key, std::make_shared<std::stringstream>("hello world"));
+    auto putOutcome = Client->PutObject(putRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    DeleteObjectRequest delRequest(BucketName, key);
+    auto delOutcome = PayerClient->DeleteObject(delRequest);
+    EXPECT_EQ(delOutcome.isSuccess(), false);
+    EXPECT_EQ(delOutcome.error().Code(), "AccessDenied");
+
+    delRequest.setRequestPayer(RequestPayer::Requester);
+    delOutcome = PayerClient->DeleteObject(delRequest);
+    EXPECT_EQ(delOutcome.isSuccess(), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, GetObjectMetaTest)
+{
+    auto meta = ObjectMetaData();
+    // sets the content type.
+    meta.setContentType("text/plain");
+    // sets the cache control
+    meta.setCacheControl("max-age=3");
+    // sets the custom metadata.
+    meta.UserMetaData()["meta"] = "meta-value";
+
+    // uploads the file
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    *content << "Thank you for using Aliyun Object Storage Service!";
+    PutObjectRequest putrequest(BucketName, "GetObjectMeta", content);
+    auto putOutcome = Client->PutObject(putrequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    GetObjectMetaRequest request(BucketName, "GetObjectMeta");
+    auto outcome = PayerClient->GetObjectMeta(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->GetObjectMeta(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, HeadObjectTest)
+{
+    auto meta = ObjectMetaData();
+    // sets the content type.
+    meta.setContentType("text/plain");
+    // sets the cache control
+    meta.setCacheControl("max-age=3");
+    // sets the custom metadata.
+    meta.UserMetaData()["meta"] = "meta-value";
+
+    // uploads the file
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    *content << "Thank you for using Aliyun Object Storage Service!";
+    PutObjectRequest putrequest(BucketName, "HeadObject", content);
+    auto putOutcome = Client->PutObject(putrequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    HeadObjectRequest request(BucketName, "HeadObject");
+    auto outcome = PayerClient->HeadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->HeadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, SetAndGetObjectAclTest)
+{
+    std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectacl");
+
+    PutObjectRequest putRequest(BucketName, objName, std::make_shared<std::stringstream>("hello world"));
+    auto putOutcome = Client->PutObject(putRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    GetObjectAclRequest getAclrequest(BucketName, objName);
+    auto aclOutcome = PayerClient->GetObjectAcl(getAclrequest);
+    EXPECT_EQ(aclOutcome.isSuccess(), false);
+    EXPECT_EQ(aclOutcome.error().Code(), "AccessDenied");
+
+    getAclrequest.setRequestPayer(RequestPayer::Requester);
+    aclOutcome = PayerClient->GetObjectAcl(getAclrequest);
+    EXPECT_EQ(aclOutcome.isSuccess(), true);
+    EXPECT_EQ(aclOutcome.result().Acl(), CannedAccessControlList::Default);
+
+    SetObjectAclRequest setAclRequest(BucketName, objName, CannedAccessControlList::PublicRead);
+    auto setOutCome = PayerClient->SetObjectAcl(setAclRequest);
+    EXPECT_EQ(setOutCome.isSuccess(), false);
+    EXPECT_EQ(setOutCome.error().Code(), "AccessDenied");
+
+    setAclRequest.setRequestPayer(RequestPayer::Requester);
+    setOutCome = PayerClient->SetObjectAcl(setAclRequest);
+    EXPECT_EQ(setOutCome.isSuccess(), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, CopyObjectTest)
+{
+    std::string objName1 = TestUtils::GetObjectKey("test-cpp-sdk-objectcopy1");
+    PutObjectRequest putRequest(BucketName, objName1, std::make_shared<std::stringstream>("hello world"));
+    PutObjectOutcome putOutcome = Client->PutObject(putRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
 
     std::string objName2 = TestUtils::GetObjectKey("test-cpp-sdk-objectcopy2");
-    CopyObjectRequest copyRequest(BucketName1, objName2);
-    copyRequest.setCopySource(BucketName1, objName1);
+    CopyObjectRequest copyRequest(BucketName, objName2);
+    copyRequest.setCopySource(BucketName, objName1);
     CopyObjectOutcome copyOutCome = PayerClient->CopyObject(copyRequest);
     EXPECT_EQ(copyOutCome.isSuccess(), false);
     EXPECT_EQ(copyOutCome.error().Code(), "AccessDenied");
+
     copyRequest.setRequestPayer(RequestPayer::Requester);
-    //begin copy object
     copyOutCome = PayerClient->CopyObject(copyRequest);
     EXPECT_EQ(copyOutCome.isSuccess(), true);
 }
 
-TEST_F(ObjectRequestPaymentTest, ListObjects)
+TEST_F(ObjectRequestPaymentTest, AppendObjectTest)
 {
-    ListObjectsRequest request(BucketName1);
+    std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectappend");
+
+    // append object
+    std::string text = "helloworld";
+    AppendObjectRequest appendRequest(BucketName, objName, std::make_shared<std::stringstream>(text));
+    auto appendOutcome = PayerClient->AppendObject(appendRequest);
+    EXPECT_EQ(appendOutcome.isSuccess(), false);
+    EXPECT_EQ(appendOutcome.error().Code(), "AccessDenied");
+
+    appendRequest.setRequestPayer(RequestPayer::Requester);
+    appendOutcome = PayerClient->AppendObject(appendRequest);
+    EXPECT_EQ(appendOutcome.isSuccess(), true);
+    EXPECT_EQ(appendOutcome.result().Length(), text.size());
+
+    // append object again
+    AppendObjectRequest  requestOther(BucketName, objName, std::make_shared<std::stringstream>(text));
+    requestOther.setPosition(text.size());
+    appendOutcome = PayerClient->AppendObject(requestOther);
+    EXPECT_EQ(appendOutcome.isSuccess(), false);
+    EXPECT_EQ(appendOutcome.error().Code(), "AccessDenied");
+
+    requestOther.setRequestPayer(RequestPayer::Requester);
+    appendOutcome = PayerClient->AppendObject(requestOther);
+    EXPECT_EQ(appendOutcome.isSuccess(), true);
+    EXPECT_EQ(appendOutcome.result().Length(), text.size()*2);
+
+    // read object
+    GetObjectOutcome getOutcome = Client->GetObject(GetObjectRequest(BucketName, objName));
+    EXPECT_EQ(getOutcome.isSuccess(), true);
+    std::string strData;
+    (*getOutcome.result().Content().get()) >> strData;
+    EXPECT_EQ(strData, text + text);
+}
+
+TEST_F(ObjectRequestPaymentTest, DeleteObjectsTest)
+{
+    const size_t TestKeysCnt = 10;
+    auto keyPrefix = TestUtils::GetObjectKey("DeleteObjectsBasicTest");
+
+    for (size_t i = 0; i < TestKeysCnt; i++) {
+        auto key = keyPrefix;
+        auto content = TestUtils::GetRandomStream(100);
+        key.append(std::to_string(i)).append(".txt");
+        PutObjectRequest putrequest(BucketName, key, content);
+        auto outcome = Client->PutObject(putrequest);
+        EXPECT_EQ(outcome.isSuccess(), true);
+    }
+
+    DeleteObjectsRequest delRequest(BucketName);
+    for (size_t i = 0; i < TestKeysCnt; i++) {
+        auto key = keyPrefix;
+        key.append(std::to_string(i)).append(".txt");
+        delRequest.addKey(key);
+    }
+    auto delOutcome = PayerClient->DeleteObjects(delRequest);
+    EXPECT_EQ(delOutcome.isSuccess(), false);
+    EXPECT_EQ(delOutcome.error().Code(), "AccessDenied");
+
+    delRequest.setRequestPayer(RequestPayer::Requester);
+    delOutcome = PayerClient->DeleteObjects(delRequest);
+    EXPECT_EQ(delOutcome.isSuccess(), true);
+    EXPECT_EQ(delOutcome.result().keyList().size(), TestKeysCnt);
+    EXPECT_EQ(delOutcome.result().Quiet(), false);
+}
+
+TEST_F(ObjectRequestPaymentTest, ListObjectsTest)
+{
+    ListObjectsRequest request(BucketName);
     ListObjectOutcome outCome = PayerClient->ListObjects(request);
     EXPECT_EQ(outCome.isSuccess(), false);
     EXPECT_EQ(outCome.error().Code(), "AccessDenied");
+
     request.setRequestPayer(RequestPayer::Requester);
     outCome = PayerClient->ListObjects(request);
     EXPECT_EQ(outCome.isSuccess(), true);
 }
 
-TEST_F(ObjectRequestPaymentTest, MultipartUpload)
+TEST_F(ObjectRequestPaymentTest, SetAndGetObjectSymlinkTest)
+{
+
+    std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectsymlink");
+    // put object
+    PutObjectRequest putrequest(BucketName, objName, std::make_shared<std::stringstream>("hello world"));
+    putrequest.setRequestPayer(RequestPayer::Requester);
+    auto putOutcome = Client->PutObject(putrequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    // create symlink success
+    std::string linkName = objName + "-link";
+    CreateSymlinkRequest setRequest(BucketName, linkName);
+    setRequest.SetSymlinkTarget(objName);
+    auto  linkOutcom = PayerClient->CreateSymlink(setRequest);
+    EXPECT_EQ(linkOutcom.isSuccess(), false);
+    EXPECT_EQ(linkOutcom.error().Code(), "AccessDenied");
+
+    setRequest.setRequestPayer(RequestPayer::Requester);
+    linkOutcom = PayerClient->CreateSymlink(setRequest);
+    EXPECT_EQ(linkOutcom.isSuccess(), true);
+
+    GetSymlinkRequest getRequest(BucketName, linkName);
+    auto getLinkOutcome = PayerClient->GetSymlink(getRequest);
+    EXPECT_EQ(getLinkOutcome.isSuccess(), false);
+    EXPECT_EQ(getLinkOutcome.error().Code(), "AccessDenied");
+
+    getRequest.setRequestPayer(RequestPayer::Requester);
+    getLinkOutcome = PayerClient->GetSymlink(getRequest);
+    EXPECT_EQ(getLinkOutcome.isSuccess(), true);
+    EXPECT_EQ(getLinkOutcome.result().SymlinkTarget(), objName);
+}
+
+TEST_F(ObjectRequestPaymentTest, RestoreObjectTest)
+{
+    std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectrestore");
+
+    // first: put object
+    ObjectMetaData meta;
+    meta.addHeader("x-oss-storage-class", "Archive");
+    PutObjectRequest putrequest(BucketName, objName, std::make_shared<std::stringstream>("hello world"), meta);
+    auto putOutcome = Client->PutObject(putrequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(2);
+
+    //second:restore object
+    RestoreObjectRequest request(BucketName, objName);
+    auto restoreOutCome = PayerClient->RestoreObject(request);
+    EXPECT_EQ(restoreOutCome.isSuccess(), false);
+    EXPECT_EQ(restoreOutCome.error().Code(), "AccessDenied");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    restoreOutCome = PayerClient->RestoreObject(request);
+    EXPECT_EQ(restoreOutCome.isSuccess(), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, MultipartUploadTest)
 {
     auto key = TestUtils::GetObjectKey("InitiateMultipartUploadWithFullSettingTest");
     ObjectMetaData metaData;
@@ -175,7 +430,7 @@ TEST_F(ObjectRequestPaymentTest, MultipartUpload)
     metaData.setContentDisposition("test.zip");
     metaData.UserMetaData()["test"] = "test";
     metaData.UserMetaData()["data"] = "data";
-    InitiateMultipartUploadRequest request(BucketName1, key, metaData);
+    InitiateMultipartUploadRequest request(BucketName, key, metaData);
     auto initOutcome = PayerClient->InitiateMultipartUpload(request);
     EXPECT_EQ(initOutcome.isSuccess(), false);
     EXPECT_EQ(initOutcome.error().Code(), "AccessDenied");
@@ -185,7 +440,7 @@ TEST_F(ObjectRequestPaymentTest, MultipartUpload)
     EXPECT_EQ(initOutcome.result().Key(), key);
 
     auto content = TestUtils::GetRandomStream(100);
-    UploadPartRequest upRequest(BucketName1, key, 1, initOutcome.result().UploadId(), content);
+    UploadPartRequest upRequest(BucketName, key, 1, initOutcome.result().UploadId(), content);
     auto uploadPartOutcome = PayerClient->UploadPart(upRequest);
     EXPECT_EQ(uploadPartOutcome.isSuccess(), false);
     EXPECT_EQ(uploadPartOutcome.error().Code(), "AccessDenied");
@@ -193,7 +448,7 @@ TEST_F(ObjectRequestPaymentTest, MultipartUpload)
     uploadPartOutcome = PayerClient->UploadPart(upRequest);
     EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
 
-    ListPartsRequest listRequest(BucketName1, key, initOutcome.result().UploadId());
+    ListPartsRequest listRequest(BucketName, key, initOutcome.result().UploadId());
     auto lOutcome = PayerClient->ListParts(listRequest);
     EXPECT_EQ(lOutcome.isSuccess(), false);
     EXPECT_EQ(lOutcome.error().Code(), "AccessDenied");
@@ -201,7 +456,7 @@ TEST_F(ObjectRequestPaymentTest, MultipartUpload)
     lOutcome = PayerClient->ListParts(listRequest);
     EXPECT_EQ(lOutcome.isSuccess(), true);
 
-    CompleteMultipartUploadRequest cRequest(BucketName1, key,
+    CompleteMultipartUploadRequest cRequest(BucketName, key,
         lOutcome.result().PartList(), initOutcome.result().UploadId());
     auto outcome = PayerClient->CompleteMultipartUpload(cRequest);
     EXPECT_EQ(outcome.isSuccess(), false);
@@ -210,12 +465,8 @@ TEST_F(ObjectRequestPaymentTest, MultipartUpload)
     outcome = PayerClient->CompleteMultipartUpload(cRequest);
     EXPECT_EQ(outcome.isSuccess(), true);
 
-    HeadObjectRequest headRequest(BucketName1, key);
-    auto hOutcome = PayerClient->HeadObject(headRequest);
-    EXPECT_EQ(hOutcome.isSuccess(), false);
-    EXPECT_EQ(hOutcome.error().Code(), "ServerError:403");
-    headRequest.setRequestPayer(RequestPayer::Requester);
-    hOutcome = PayerClient->HeadObject(headRequest);
+    HeadObjectRequest headRequest(BucketName, key);
+    auto hOutcome = Client->HeadObject(headRequest);
     EXPECT_EQ(hOutcome.isSuccess(), true);
     EXPECT_EQ(hOutcome.result().ContentLength(), 100);
     EXPECT_EQ(hOutcome.result().CacheControl(), "No-Cache");
@@ -226,20 +477,20 @@ TEST_F(ObjectRequestPaymentTest, MultipartUpload)
     EXPECT_EQ(hOutcome.result().UserMetaData().at("data"), "data");
 }
 
-TEST_F(ObjectRequestPaymentTest, MultipartUploadPartCopy)
+TEST_F(ObjectRequestPaymentTest, MultipartUploadPartCopyTest)
 {
+    auto sourceFile = TestUtils::GetTargetFileName("cpp-sdk-multipartupload");
+    TestUtils::WriteRandomDatatoFile(sourceFile, 500 * 1024);
 
     auto testKey = TestUtils::GetObjectKey("MultipartUploadPartCopyComplexStepTest-TestKey");
-    std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(TestFile, std::ios::in | std::ios::binary);
-    PutObjectRequest putrequest(BucketName1, testKey, content);
-    putrequest.setRequestPayer(RequestPayer::Requester);
-    auto putoutcome = PayerClient->PutObject(putrequest);
+    std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(sourceFile, std::ios::in | std::ios::binary);
+    PutObjectRequest putrequest(BucketName, testKey, content);
+    auto putoutcome = Client->PutObject(putrequest);
 
-    auto sourceFile = TestFile;
     //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadPartCopyComplexStepTest");
 
-    InitiateMultipartUploadRequest request(BucketName1, targetObjectKey);
+    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
     request.setRequestPayer(RequestPayer::Requester);
     auto initOutcome = PayerClient->InitiateMultipartUpload(request);
     EXPECT_EQ(initOutcome.isSuccess(), true);
@@ -258,20 +509,21 @@ TEST_F(ObjectRequestPaymentTest, MultipartUploadPartCopy)
         // calculate the part size
         auto size = partSize < (fileLength - skipBytes) ? partSize : fileLength - skipBytes;
 
-        UploadPartCopyRequest copyRequest(BucketName1, targetObjectKey, BucketName1, testKey);
+        UploadPartCopyRequest copyRequest(BucketName, targetObjectKey, BucketName, testKey);
         copyRequest.setPartNumber(i + 1);
         copyRequest.setUploadId(initOutcome.result().UploadId());
         copyRequest.setCopySourceRange(position, position + size - 1);
         auto uploadPartOutcome = PayerClient->UploadPartCopy(copyRequest);
         EXPECT_EQ(uploadPartOutcome.isSuccess(), false);
         EXPECT_EQ(uploadPartOutcome.error().Code(), "AccessDenied");
+
         copyRequest.setRequestPayer(RequestPayer::Requester);
         uploadPartOutcome = PayerClient->UploadPartCopy(copyRequest);
         EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
         EXPECT_FALSE(uploadPartOutcome.result().RequestId().empty());
     }
 
-    ListMultipartUploadsRequest listRequest1(BucketName1);
+    ListMultipartUploadsRequest listRequest1(BucketName);
     auto lmuOutcome = PayerClient->ListMultipartUploads(ListMultipartUploadsRequest(listRequest1));
     EXPECT_EQ(lmuOutcome.isSuccess(), false);
     EXPECT_EQ(lmuOutcome.error().Code(), "AccessDenied");
@@ -290,7 +542,7 @@ TEST_F(ObjectRequestPaymentTest, MultipartUploadPartCopy)
     }
     EXPECT_EQ(uploadId.empty(), false);
 
-    ListPartsRequest listRequest(BucketName1, targetObjectKey);
+    ListPartsRequest listRequest(BucketName, targetObjectKey);
     listRequest.setUploadId(uploadId);
     auto listOutcome = PayerClient->ListParts(listRequest);
     EXPECT_EQ(listOutcome.isSuccess(), false);
@@ -299,246 +551,40 @@ TEST_F(ObjectRequestPaymentTest, MultipartUploadPartCopy)
     listOutcome = PayerClient->ListParts(listRequest);
     EXPECT_EQ(listOutcome.isSuccess(), true);
 
-    CompleteMultipartUploadRequest completeRequest(BucketName1, targetObjectKey, listOutcome.result().PartList());
+    CompleteMultipartUploadRequest completeRequest(BucketName, targetObjectKey, listOutcome.result().PartList());
     completeRequest.setUploadId(uploadId);
     completeRequest.setUploadId(uploadId);
     completeRequest.setRequestPayer(RequestPayer::Requester);
     auto cOutcome = PayerClient->CompleteMultipartUpload(completeRequest);
     EXPECT_EQ(cOutcome.isSuccess(), true);
 
-    GetObjectRequest getRequest(BucketName1, targetObjectKey);
-    auto gOutcome = PayerClient->GetObject(getRequest);
-    EXPECT_EQ(gOutcome.isSuccess(), false);
-    EXPECT_EQ(gOutcome.error().Code(), "AccessDenied");
-    getRequest.setRequestPayer(RequestPayer::Requester);
-    gOutcome = PayerClient->GetObject(getRequest);
+    GetObjectRequest getRequest(BucketName, targetObjectKey);
+    auto gOutcome = Client->GetObject(getRequest);
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_EQ(gOutcome.result().Metadata().ContentLength(), fileLength);
+
+    RemoveFile(sourceFile);
 }
 
-TEST_F(ObjectRequestPaymentTest, MultipartUploadAbort)
+TEST_F(ObjectRequestPaymentTest, MultipartUploadAbortTest)
 {
-    auto sourceFile = TestFile;
-    //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadAbortInMiddleTest");
 
-    InitiateMultipartUploadRequest request(BucketName1, targetObjectKey);
-    request.setRequestPayer(RequestPayer::Requester);
-    auto initOutcome = PayerClient->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
+    auto initOutcome = Client->InitiateMultipartUpload(request);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
-    // Set the part size 
-    const int partSize = 100;;
-    const int64_t fileLength = GetFileLength(sourceFile);
-
-    auto partCount = CalculatePartCount(fileLength, partSize);
-
-    //upload the file
-    std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(sourceFile, std::ios::in | std::ios::binary);
-    EXPECT_EQ(content->good(), true);
-    if (content->good())
-    {
-        for (auto i = 0; i < partCount; i++)
-        {
-            // Skip to the start position
-            int64_t skipBytes = partSize * i;
-            int64_t position = skipBytes;
-
-            // Create a UploadPartRequest, uploading parts
-            content->clear();
-            content->seekg(position, content->beg);
-            UploadPartRequest request(BucketName1, targetObjectKey, content);
-            request.setRequestPayer(RequestPayer::Requester);
-            request.setPartNumber(i + 1);
-            request.setUploadId(initOutcome.result().UploadId());
-            request.setContentLength(partSize);
-            auto uploadPartOutcome = PayerClient->UploadPart(request);
-            EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
-
-        }
-    }
-
-    ListMultipartUploadsRequest listRequest1(BucketName1);
-    listRequest1.setRequestPayer(RequestPayer::Requester);
-    auto lmuOutcome = PayerClient->ListMultipartUploads(listRequest1);
-    EXPECT_EQ(lmuOutcome.isSuccess(), true);
-
-    std::string uploadId;
-    for (auto const& upload : lmuOutcome.result().MultipartUploadList())
-    {
-        if (upload.UploadId == initOutcome.result().UploadId())
-        {
-            uploadId = upload.UploadId;
-        }
-    }
-    EXPECT_EQ(uploadId.empty(), false);
-
-    AbortMultipartUploadRequest abortRequest(BucketName1, targetObjectKey, uploadId);
+    AbortMultipartUploadRequest abortRequest(BucketName, targetObjectKey, initOutcome.result().UploadId());
     auto abortOutcome = PayerClient->AbortMultipartUpload(abortRequest);
     EXPECT_EQ(abortOutcome.isSuccess(), false);
     EXPECT_EQ(abortOutcome.error().Code(), "AccessDenied");
+    
     abortRequest.setRequestPayer(RequestPayer::Requester);
     abortOutcome = PayerClient->AbortMultipartUpload(abortRequest);
     EXPECT_EQ(abortOutcome.isSuccess(), true);
 }
 
-TEST_F(ObjectRequestPaymentTest, ObjectAcl)
-{
-    std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectacl");
-
-    std::string text = "hellowworld";
-    PutObjectRequest putrequest(BucketName1, objName, std::make_shared<std::stringstream>(text));
-    putrequest.setRequestPayer(RequestPayer::Requester);
-
-    auto putOutcome = PayerClient->PutObject(putrequest);
-    EXPECT_EQ(putOutcome.isSuccess(), true);
-
-    GetObjectAclRequest getAclrequest(BucketName1, objName);
-    auto aclOutcome = PayerClient->GetObjectAcl(getAclrequest);
-    EXPECT_EQ(aclOutcome.isSuccess(), false);
-    EXPECT_EQ(aclOutcome.error().Code(), "AccessDenied");
-    getAclrequest.setRequestPayer(RequestPayer::Requester);
-    aclOutcome = PayerClient->GetObjectAcl(getAclrequest);
-    EXPECT_EQ(aclOutcome.isSuccess(), true);
-    EXPECT_EQ(aclOutcome.result().Acl(), CannedAccessControlList::Default);
-
-    SetObjectAclRequest setAclRequest(BucketName1, objName, CannedAccessControlList::PublicRead);
-    auto setOutCome = PayerClient->SetObjectAcl(setAclRequest);
-    EXPECT_EQ(setOutCome.isSuccess(), false);
-    EXPECT_EQ(setOutCome.error().Code(), "AccessDenied");
-    setAclRequest.setRequestPayer(RequestPayer::Requester);
-    setOutCome = PayerClient->SetObjectAcl(setAclRequest);
-    EXPECT_EQ(setOutCome.isSuccess(), true);
-}
-
-TEST_F(ObjectRequestPaymentTest, GetObjectMeta)
-{
-    auto meta = ObjectMetaData();
-    // sets the content type.
-    meta.setContentType("text/plain");
-    // sets the cache control
-    meta.setCacheControl("max-age=3");
-    // sets the custom metadata.
-    meta.UserMetaData()["meta"] = "meta-value";
-
-    // uploads the file
-    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
-    *content << "Thank you for using Aliyun Object Storage Service!";
-    PutObjectRequest putrequest(BucketName1, "GetObjectMeta", content);
-    putrequest.setRequestPayer(RequestPayer::Requester);
-    auto putOutcome = PayerClient->PutObject(putrequest);
-    GetObjectMetaRequest request(BucketName1, "GetObjectMeta");
-    request.setRequestPayer(RequestPayer::Requester);
-
-    // get the object meta information
-    auto outcome = PayerClient->GetObjectMeta(request);
-    EXPECT_EQ(outcome.isSuccess(), true);
-
-    // delete the object
-    DeleteObjectRequest delRequest(BucketName1, "GetObjectMeta");
-    auto delOutcome = PayerClient->DeleteObject(delRequest);
-    EXPECT_EQ(delOutcome.isSuccess(), false);
-    EXPECT_EQ(delOutcome.error().Code(), "AccessDenied");
-    delRequest.setRequestPayer(RequestPayer::Requester);
-    delOutcome = PayerClient->DeleteObject(delRequest);
-    EXPECT_EQ(delOutcome.isSuccess(), true);
-
-}
-
-TEST_F(ObjectRequestPaymentTest, DeleteObjects)
-{
-    const size_t TestKeysCnt = 10;
-    auto keyPrefix = TestUtils::GetObjectKey("DeleteObjectsBasicTest");
-
-    for (size_t i = 0; i < TestKeysCnt; i++) {
-        auto key = keyPrefix;
-        auto content = TestUtils::GetRandomStream(100);
-        key.append(std::to_string(i)).append(".txt");
-        PutObjectRequest putrequest(BucketName1, key, content);
-        putrequest.setRequestPayer(RequestPayer::Requester);
-        auto outcome = PayerClient->PutObject(putrequest);
-        EXPECT_EQ(outcome.isSuccess(), true);
-    }
-
-    DeleteObjectsRequest delRequest(BucketName1);
-    for (size_t i = 0; i < TestKeysCnt; i++) {
-        auto key = keyPrefix;
-        key.append(std::to_string(i)).append(".txt");
-        delRequest.addKey(key);
-    }
-    auto delOutcome = PayerClient->DeleteObjects(delRequest);
-    EXPECT_EQ(delOutcome.isSuccess(), false);
-    EXPECT_EQ(delOutcome.error().Code(), "AccessDenied");
-
-    delRequest.setRequestPayer(RequestPayer::Requester);
-
-    delOutcome = PayerClient->DeleteObjects(delRequest);
-    EXPECT_EQ(delOutcome.isSuccess(), true);
-    EXPECT_EQ(delOutcome.result().keyList().size(), TestKeysCnt);
-    EXPECT_EQ(delOutcome.result().Quiet(), false);
-}
-
-TEST_F(ObjectRequestPaymentTest, SetAndGetObjectSymlink)
-{
-
-    std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectsymlink");
-    // put object
-    std::string text = "hellowworld";
-    PutObjectRequest putrequest(BucketName1,objName,std::make_shared<std::stringstream>(text));
-    putrequest.setRequestPayer(RequestPayer::Requester);
-    auto putOutcome = PayerClient->PutObject(putrequest);
-    EXPECT_EQ(putOutcome.isSuccess(), true);
-
-    // create symlink success
-    std::string linkName = objName + "-link";
-    CreateSymlinkRequest setRequest(BucketName1, linkName);
-    setRequest.SetSymlinkTarget(objName);
-    CreateSymlinkOutcome  linkOutcom = PayerClient->CreateSymlink(setRequest);
-    EXPECT_EQ(linkOutcom.isSuccess(), false);
-    EXPECT_EQ(linkOutcom.error().Code(), "AccessDenied");
-
-    setRequest.setRequestPayer(RequestPayer::Requester);
-    linkOutcom = PayerClient->CreateSymlink(setRequest);
-    EXPECT_EQ(linkOutcom.isSuccess(), true);
-
-    GetSymlinkRequest getRequest(BucketName1, linkName);
-    GetSymlinkOutcome getLinkOutcome = PayerClient->GetSymlink(getRequest);
-    EXPECT_EQ(getLinkOutcome.isSuccess(), false);
-    EXPECT_EQ(getLinkOutcome.error().Code(), "AccessDenied");
-
-    getRequest.setRequestPayer(RequestPayer::Requester);
-    getLinkOutcome = PayerClient->GetSymlink(getRequest);
-    EXPECT_EQ(getLinkOutcome.isSuccess(), true);
-    EXPECT_EQ(getLinkOutcome.result().SymlinkTarget(), objName);
-}
-
-TEST_F(ObjectRequestPaymentTest, SetAndGetObjectRestore)
-{
-    std::string objName = TestUtils::GetObjectKey("test-cpp-sdk-objectrestore");
-
-    // first: put object
-    std::string text = "hellowworld";
-    ObjectMetaData meta;
-    meta.addHeader("x-oss-storage-class", "Archive");
-    PutObjectRequest putrequest(BucketName1, objName, std::make_shared<std::stringstream>(text), meta);
-    putrequest.setRequestPayer(RequestPayer::Requester);
-    auto putOutcome = PayerClient->PutObject(putrequest);
-    EXPECT_EQ(putOutcome.isSuccess(), true);
-
-    TestUtils::WaitForCacheExpire(2);
-
-    //second:restore object
-    RestoreObjectRequest request(BucketName1, objName);
-    VoidOutcome restoreOutCome = PayerClient->RestoreObject(request);
-    EXPECT_EQ(restoreOutCome.isSuccess(), false);
-    EXPECT_EQ(restoreOutCome.error().Code(), "AccessDenied");
-
-    request.setRequestPayer(RequestPayer::Requester);
-    restoreOutCome = PayerClient->RestoreObject(request);
-    EXPECT_EQ(restoreOutCome.isSuccess(), true);
-}
-
-TEST_F(ObjectRequestPaymentTest, SelectObject)
+TEST_F(ObjectRequestPaymentTest, SelectObjectTest)
 {
     std::string sqlMessage = std::string("name,school,company,age\r\n")
         .append("Lora Francis,School A,Staples Inc,27\r\n")
@@ -548,14 +594,13 @@ TEST_F(ObjectRequestPaymentTest, SelectObject)
     std::string key = TestUtils::GetObjectKey("SqlObjectWithCsvData");
     std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
     *content << sqlMessage;
-    PutObjectRequest putRequest(BucketName1, key, content);
-    putRequest.setRequestPayer(RequestPayer::Requester);
     // put object
-    auto putOutcome = PayerClient->PutObject(putRequest);
+    PutObjectRequest putRequest(BucketName, key, content);
+    auto putOutcome = Client->PutObject(putRequest);
     EXPECT_EQ(putOutcome.isSuccess(), true);
 
     // select object
-    SelectObjectRequest selectRequest(BucketName1, key);
+    SelectObjectRequest selectRequest(BucketName, key);
     selectRequest.setExpression("select * from ossobject");
 
     CSVInputFormat csvInputFormat;
@@ -568,15 +613,29 @@ TEST_F(ObjectRequestPaymentTest, SelectObject)
 
     CSVOutputFormat csvOutputFormat;
     selectRequest.setOutputFormat(csvOutputFormat);
-    selectRequest.setRequestPayer(RequestPayer::Requester);
 
     auto outcome = PayerClient->SelectObject(selectRequest);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
+
+    selectRequest.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->SelectObject(selectRequest);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
+    EXPECT_EQ(outcome.error().Message(), "Select API does not support requester pay now.");
 
     // createSelectObjectMeta
-    CreateSelectObjectMetaRequest metaRequest(BucketName1, key);
+    CreateSelectObjectMetaRequest metaRequest(BucketName, key);
     metaRequest.setInputFormat(csvInputFormat);
-    metaRequest.setRequestPayer(RequestPayer::Requester);
     auto metaOutcome = PayerClient->CreateSelectObjectMeta(metaRequest);
+    EXPECT_EQ(metaOutcome.isSuccess(), false);
+    EXPECT_EQ(metaOutcome.error().Code(), "AccessDenied");
+
+    metaRequest.setRequestPayer(RequestPayer::Requester);
+    metaOutcome = PayerClient->CreateSelectObjectMeta(metaRequest);
+    EXPECT_EQ(metaOutcome.isSuccess(), false);
+    EXPECT_EQ(metaOutcome.error().Code(), "AccessDenied");
+    EXPECT_EQ(metaOutcome.error().Message(), "Select API does not support requester pay now.");
 }
 
 class ListObjectsAsyncContext : public AsyncCallerContext
@@ -623,18 +682,19 @@ static void ListObjectsHandler(const AlibabaCloud::OSS::OssClient* client,
     }
 }
 
-TEST_F(ObjectRequestPaymentTest, ListObjectsAsync)
+TEST_F(ObjectRequestPaymentTest, ListObjectsAsyncTest)
 {
     // create test file
     for (int i = 0; i < 20; i++) {
         std::string key = TestUtils::GetObjectKey("ListAllObjectsAsync");
         auto content = TestUtils::GetRandomStream(100);
-        auto outcome = Client->PutObject(BucketName1, key, content);
+        auto outcome = Client->PutObject(BucketName, key, content);
         EXPECT_EQ(outcome.isSuccess(), true);
     }
 
     // list objects async
-    ListObjectsRequest request(BucketName1);
+    ListObjectsRequest request(BucketName);
+    request.setPrefix("ListAllObjectsAsync");
     request.setRequestPayer(RequestPayer::Requester);
     ListObjectAsyncHandler handler = ListObjectsHandler;
     std::shared_ptr<ListObjectsAsyncContext> content = std::make_shared<ListObjectsAsyncContext>();
@@ -680,7 +740,7 @@ static void GetObjectHandler(const AlibabaCloud::OSS::OssClient* client,
         ctx->cv.notify_all();
     }
 }
-TEST_F(ObjectRequestPaymentTest, GetObjectAsync)
+TEST_F(ObjectRequestPaymentTest, GetObjectAsyncTest)
 {
 
     GetObjectOutcome dummy;
@@ -688,15 +748,15 @@ TEST_F(ObjectRequestPaymentTest, GetObjectAsync)
     std::string tmpFile = TestUtils::GetTargetFileName("GetObjectAsyncBasicTest").append(".tmp");
     auto content = TestUtils::GetRandomStream(102400);
 
-    auto pOutcome = Client->PutObject(BucketName1, key, content);
+    auto pOutcome = Client->PutObject(BucketName, key, content);
     EXPECT_EQ(pOutcome.isSuccess(), true);
 
     GetObjectAsyncHandler handler = GetObjectHandler;
-    GetObjectRequest request(BucketName1, key);
+    GetObjectRequest request(BucketName, key);
     request.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<GetObjectAsyncContex> memContext = std::make_shared<GetObjectAsyncContex>();
 
-    GetObjectRequest fileRequest(BucketName1, key);
+    GetObjectRequest fileRequest(BucketName, key);
     fileRequest.setRequestPayer(RequestPayer::Requester);
     fileRequest.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(tmpFile, std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios::binary); });
     std::shared_ptr<GetObjectAsyncContex> fileContext = std::make_shared<GetObjectAsyncContex>();
@@ -754,7 +814,7 @@ static void PutObjectHandler(const AlibabaCloud::OSS::OssClient* client,
     }
 }
 
-TEST_F(ObjectRequestPaymentTest, PutObjectAsync)
+TEST_F(ObjectRequestPaymentTest, PutObjectAsyncTest)
 {
 
     std::string memKey = TestUtils::GetObjectKey("PutObjectAsyncBasicTest");
@@ -766,12 +826,12 @@ TEST_F(ObjectRequestPaymentTest, PutObjectAsync)
     auto fileContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::out | std::ios::binary);
 
     PutObjectAsyncHandler handler = PutObjectHandler;
-    PutObjectRequest memRequest(BucketName1, memKey, memContent);
+    PutObjectRequest memRequest(BucketName, memKey, memContent);
     memRequest.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<PutObjectAsyncContex> memContext = std::make_shared<PutObjectAsyncContex>();
     memContext->setUuid("PutobjectasyncFromMem");
 
-    PutObjectRequest fileRequest(BucketName1, fileKey, fileContent);
+    PutObjectRequest fileRequest(BucketName, fileKey, fileContent);
     fileRequest.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<PutObjectAsyncContex> fileContext = std::make_shared<PutObjectAsyncContex>();
     fileContext->setUuid("PutobjectasyncFromFile");
@@ -831,12 +891,12 @@ static void UploadPartHandler(const AlibabaCloud::OSS::OssClient* client,
     }
 }
 
-TEST_F(ObjectRequestPaymentTest, UploadPartAsync)
+TEST_F(ObjectRequestPaymentTest, UploadPartAsyncTest)
 {
 
     std::string memKey = TestUtils::GetObjectKey("UploadPartMemObjectAsyncBasicTest");
     auto memContent = TestUtils::GetRandomStream(102400);
-    InitiateMultipartUploadRequest memInitRequest(BucketName1, memKey);
+    InitiateMultipartUploadRequest memInitRequest(BucketName, memKey);
     auto memInitOutcome = Client->InitiateMultipartUpload(memInitRequest);
     EXPECT_EQ(memInitOutcome.isSuccess(), true);
     EXPECT_EQ(memInitOutcome.result().Key(), memKey);
@@ -845,19 +905,19 @@ TEST_F(ObjectRequestPaymentTest, UploadPartAsync)
     std::string tmpFile = TestUtils::GetTargetFileName("UploadPartFileObjectAsyncBasicTest").append(".tmp");
     TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
     auto fileContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::out | std::ios::binary);
-    InitiateMultipartUploadRequest fileInitRequest(BucketName1, fileKey);
+    InitiateMultipartUploadRequest fileInitRequest(BucketName, fileKey);
     auto fileInitOutcome = Client->InitiateMultipartUpload(fileInitRequest);
     EXPECT_EQ(fileInitOutcome.isSuccess(), true);
     EXPECT_EQ(fileInitOutcome.result().Key(), fileKey);
 
     UploadPartAsyncHandler handler = UploadPartHandler;
 
-    UploadPartRequest memRequest(BucketName1, memKey, 1, memInitOutcome.result().UploadId(), memContent);
+    UploadPartRequest memRequest(BucketName, memKey, 1, memInitOutcome.result().UploadId(), memContent);
     memRequest.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<UploadPartAsyncContext> memContext = std::make_shared<UploadPartAsyncContext>();
     memContext->setUuid("UploadPartAsyncFromMem");
 
-    UploadPartRequest fileRequest(BucketName1, fileKey, 1, fileInitOutcome.result().UploadId(), fileContent);
+    UploadPartRequest fileRequest(BucketName, fileKey, 1, fileInitOutcome.result().UploadId(), fileContent);
     fileRequest.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<UploadPartAsyncContext> fileContext = std::make_shared<UploadPartAsyncContext>();
     fileContext->setUuid("UploadPartAsyncFromFile");
@@ -877,15 +937,15 @@ TEST_F(ObjectRequestPaymentTest, UploadPartAsync)
 
     fileContent->close();
 
-    auto memListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName1, memKey, memInitOutcome.result().UploadId()));
+    auto memListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName, memKey, memInitOutcome.result().UploadId()));
     EXPECT_EQ(memListPartsOutcome.isSuccess(), true);
-    auto fileListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName1, fileKey, fileInitOutcome.result().UploadId()));
+    auto fileListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName, fileKey, fileInitOutcome.result().UploadId()));
     EXPECT_EQ(fileListPartsOutcome.isSuccess(), true);
 
-    auto memCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName1, memKey,
+    auto memCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName, memKey,
         memListPartsOutcome.result().PartList(), memInitOutcome.result().UploadId()));
     EXPECT_EQ(memCompleteOutcome.isSuccess(), true);
-    auto fileCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName1, fileKey,
+    auto fileCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName, fileKey,
         fileListPartsOutcome.result().PartList(), fileInitOutcome.result().UploadId()));
     EXPECT_EQ(fileCompleteOutcome.isSuccess(), true);
 
@@ -914,45 +974,45 @@ static void UploadPartCopyHandler(const AlibabaCloud::OSS::OssClient* client,
     }
 }
 
-TEST_F(ObjectRequestPaymentTest, UploadPartCopyAsync)
+TEST_F(ObjectRequestPaymentTest, UploadPartCopyAsyncTest)
 {
     // put object from buffer
     std::string memObjKey = TestUtils::GetObjectKey("PutObjectFromBuffer");
     auto memObjContent = TestUtils::GetRandomStream(102400);
-    auto putMemObjOutcome = Client->PutObject(PutObjectRequest(BucketName1, memObjKey, memObjContent));
+    auto putMemObjOutcome = Client->PutObject(PutObjectRequest(BucketName, memObjKey, memObjContent));
     EXPECT_EQ(putMemObjOutcome.isSuccess(), true);
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, memObjKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, memObjKey), true);
 
     // put object from local file
     std::string fileObjKey = TestUtils::GetObjectKey("PutObjectFromFile");
     std::string tmpFile = TestUtils::GetTargetFileName("PutObjectFromFile").append(".tmp");
     TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
     auto fileObjContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::out | std::ios::binary);
-    auto putFileObjOutcome = Client->PutObject(PutObjectRequest(BucketName1, fileObjKey, fileObjContent));
+    auto putFileObjOutcome = Client->PutObject(PutObjectRequest(BucketName, fileObjKey, fileObjContent));
     EXPECT_EQ(putFileObjOutcome.isSuccess(), true);
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, fileObjKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, fileObjKey), true);
 
     // close the file
     fileObjContent->close();
 
     // apply the upload id
     std::string memKey = TestUtils::GetObjectKey("UploadPartCopyMemObjectAsyncBasicTest");
-    auto memInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName1, memKey));
+    auto memInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, memKey));
     EXPECT_EQ(memInitObjOutcome.isSuccess(), true);
     EXPECT_EQ(memInitObjOutcome.result().Key(), memKey);
 
     std::string fileKey = TestUtils::GetObjectKey("UploadPartCopyFileObjectAsyncBasicTest");
-    auto fileInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName1, fileKey));
+    auto fileInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, fileKey));
     EXPECT_EQ(fileInitObjOutcome.isSuccess(), true);
     EXPECT_EQ(fileInitObjOutcome.result().Key(), fileKey);
 
     // construct parameter
     UploadPartCopyAsyncHandler handler = UploadPartCopyHandler;
-    UploadPartCopyRequest memRequest(BucketName1, memKey, BucketName1, memObjKey, memInitObjOutcome.result().UploadId(), 1);
+    UploadPartCopyRequest memRequest(BucketName, memKey, BucketName, memObjKey, memInitObjOutcome.result().UploadId(), 1);
     memRequest.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<UploadPartAsyncContext> memContext = std::make_shared<UploadPartAsyncContext>();
     memContext->setUuid("UploadPartCopyAsyncFromMem");
-    UploadPartCopyRequest fileRequest(BucketName1, fileKey, BucketName1, fileObjKey, fileInitObjOutcome.result().UploadId(), 1);
+    UploadPartCopyRequest fileRequest(BucketName, fileKey, BucketName, fileObjKey, fileInitObjOutcome.result().UploadId(), 1);
     fileRequest.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<UploadPartAsyncContext> fileContext = std::make_shared<UploadPartAsyncContext>();
     fileContext->setUuid("UploadPartCopyAsyncFromFile");
@@ -970,17 +1030,17 @@ TEST_F(ObjectRequestPaymentTest, UploadPartCopyAsync)
     }
 
     // list parts
-    auto memListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName1, memKey, memInitObjOutcome.result().UploadId()));
+    auto memListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName, memKey, memInitObjOutcome.result().UploadId()));
     EXPECT_EQ(memListPartsOutcome.isSuccess(), true);
-    auto fileListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName1, fileKey, fileInitObjOutcome.result().UploadId()));
+    auto fileListPartsOutcome = Client->ListParts(ListPartsRequest(BucketName, fileKey, fileInitObjOutcome.result().UploadId()));
     EXPECT_EQ(fileListPartsOutcome.isSuccess(), true);
 
     // complete
-    CompleteMultipartUploadRequest memCompleteRequest(BucketName1, memKey, memListPartsOutcome.result().PartList());
+    CompleteMultipartUploadRequest memCompleteRequest(BucketName, memKey, memListPartsOutcome.result().PartList());
     memCompleteRequest.setUploadId(memInitObjOutcome.result().UploadId());
     auto memCompleteOutcome = Client->CompleteMultipartUpload(memCompleteRequest);
     EXPECT_EQ(memCompleteOutcome.isSuccess(), true);
-    CompleteMultipartUploadRequest fileCompleteRequest(BucketName1, fileKey, fileListPartsOutcome.result().PartList());
+    CompleteMultipartUploadRequest fileCompleteRequest(BucketName, fileKey, fileListPartsOutcome.result().PartList());
     fileCompleteRequest.setUploadId(fileInitObjOutcome.result().UploadId());
     auto fileCompleteOutcome = Client->CompleteMultipartUpload(fileCompleteRequest);
     EXPECT_EQ(fileCompleteOutcome.isSuccess(), true);
@@ -990,18 +1050,17 @@ TEST_F(ObjectRequestPaymentTest, UploadPartCopyAsync)
     EXPECT_EQ(RemoveFile(tmpFile), true);
 }
 
-TEST_F(ObjectRequestPaymentTest, ListObjectsCallable)
+TEST_F(ObjectRequestPaymentTest, ListObjectsCallableTest)
 {
-    //create test file
     for (int i = 0; i < 20; i++) {
         std::string key = TestUtils::GetObjectKey("ListAllObjectsCallableTest");
         auto content = TestUtils::GetRandomStream(100);
-        auto outcome = Client->PutObject(BucketName1, key, content);
+        auto outcome = Client->PutObject(BucketName, key, content);
         EXPECT_EQ(outcome.isSuccess(), true);
     }
 
     //list object use default
-    ListObjectsRequest request(BucketName1);
+    ListObjectsRequest request(BucketName);
     request.setPrefix("ListAllObjectsCallableTest");
     request.setRequestPayer(RequestPayer::Requester);
     auto listOutcomeCallable = PayerClient->ListObjectsCallable(request);
@@ -1018,22 +1077,21 @@ TEST_F(ObjectRequestPaymentTest, ListObjectsCallable)
     EXPECT_EQ(i, 20);
 }
 
-TEST_F(ObjectRequestPaymentTest, GetObjectCallable)
+TEST_F(ObjectRequestPaymentTest, GetObjectCallableTest)
 {
-
     GetObjectOutcome dummy;
     std::string key = TestUtils::GetObjectKey("GetObjectCallableBasicTest");
     std::string tmpFile = TestUtils::GetTargetFileName("GetObjectCallableBasicTest").append(".tmp");
     auto content = TestUtils::GetRandomStream(102400);
 
-    auto pOutcome = Client->PutObject(BucketName1, key, content);
+    auto pOutcome = Client->PutObject(BucketName, key, content);
     EXPECT_EQ(pOutcome.isSuccess(), true);
 
-    GetObjectRequest request(BucketName1, key);
+    GetObjectRequest request(BucketName, key);
     request.setRequestPayer(RequestPayer::Requester);
     std::shared_ptr<GetObjectAsyncContex> memContext = std::make_shared<GetObjectAsyncContex>();
 
-    GetObjectRequest fileRequest(BucketName1, key);
+    GetObjectRequest fileRequest(BucketName, key);
     fileRequest.setRequestPayer(RequestPayer::Requester);
     fileRequest.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(tmpFile, std::ios_base::in | std::ios_base::out | std::ios_base::trunc | std::ios::binary); });
 
@@ -1060,7 +1118,7 @@ TEST_F(ObjectRequestPaymentTest, GetObjectCallable)
     RemoveFile(tmpFile);
 }
 
-TEST_F(ObjectRequestPaymentTest, PutObjectCallable)
+TEST_F(ObjectRequestPaymentTest, PutObjectCallableTest)
 {
     std::string memKey = TestUtils::GetObjectKey("PutObjectCallableBasicTest");
     auto memContent = TestUtils::GetRandomStream(102400);
@@ -1070,9 +1128,9 @@ TEST_F(ObjectRequestPaymentTest, PutObjectCallable)
     TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
     auto fileContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::in | std::ios::binary);
 
-    PutObjectRequest putrequest1(BucketName1, memKey, memContent);
+    PutObjectRequest putrequest1(BucketName, memKey, memContent);
     putrequest1.setRequestPayer(RequestPayer::Requester);
-    PutObjectRequest putrequest2(BucketName1, fileKey, fileContent);
+    PutObjectRequest putrequest2(BucketName, fileKey, fileContent);
     putrequest2.setRequestPayer(RequestPayer::Requester);
     auto memOutcomeCallable = PayerClient->PutObjectCallable(putrequest1);
     auto fileOutcomeCallable = PayerClient->PutObjectCallable(putrequest2);
@@ -1083,8 +1141,8 @@ TEST_F(ObjectRequestPaymentTest, PutObjectCallable)
     auto memOutcome = memOutcomeCallable.get();
     EXPECT_EQ(fileOutcome.isSuccess(), true);
     EXPECT_EQ(memOutcome.isSuccess(), true);
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, memKey), true);
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, fileKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, memKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, fileKey), true);
 
     memContent = nullptr;
     fileContent = nullptr;
@@ -1092,11 +1150,11 @@ TEST_F(ObjectRequestPaymentTest, PutObjectCallable)
     RemoveFile(tmpFile);
 }
 
-TEST_F(ObjectRequestPaymentTest, UploadPartCallable)
+TEST_F(ObjectRequestPaymentTest, UploadPartCallableTest)
 {
     auto memKey = TestUtils::GetObjectKey("MultipartUploadCallable-MemObject");
     auto memContent = TestUtils::GetRandomStream(102400);
-    auto memInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName1, memKey));
+    auto memInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, memKey));
     EXPECT_EQ(memInitOutcome.isSuccess(), true);
 
     auto fileKey = TestUtils::GetObjectKey("MultipartUploadCallable-FileObject");
@@ -1104,11 +1162,11 @@ TEST_F(ObjectRequestPaymentTest, UploadPartCallable)
     TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
     {
         auto fileContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::in | std::ios::binary);
-        auto fileInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName1, fileKey));
+        auto fileInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, fileKey));
         EXPECT_EQ(fileInitOutcome.isSuccess(), true);
 
-        UploadPartRequest uprequest1(BucketName1, memKey, 1, memInitOutcome.result().UploadId(), memContent);
-        UploadPartRequest uprequest2(BucketName1, fileKey, 1, fileInitOutcome.result().UploadId(), fileContent);
+        UploadPartRequest uprequest1(BucketName, memKey, 1, memInitOutcome.result().UploadId(), memContent);
+        UploadPartRequest uprequest2(BucketName, fileKey, 1, fileInitOutcome.result().UploadId(), fileContent);
         uprequest1.setRequestPayer(RequestPayer::Requester);
         uprequest2.setRequestPayer(RequestPayer::Requester);
 
@@ -1123,20 +1181,20 @@ TEST_F(ObjectRequestPaymentTest, UploadPartCallable)
         EXPECT_EQ(menOutcome.isSuccess(), true);
 
         // list part
-        auto memListPartOutcome = Client->ListParts(ListPartsRequest(BucketName1, memKey, memInitOutcome.result().UploadId()));
-        auto fileListPartOutcome = Client->ListParts(ListPartsRequest(BucketName1, fileKey, fileInitOutcome.result().UploadId()));
+        auto memListPartOutcome = Client->ListParts(ListPartsRequest(BucketName, memKey, memInitOutcome.result().UploadId()));
+        auto fileListPartOutcome = Client->ListParts(ListPartsRequest(BucketName, fileKey, fileInitOutcome.result().UploadId()));
         EXPECT_EQ(memListPartOutcome.isSuccess(), true);
         EXPECT_EQ(fileListPartOutcome.isSuccess(), true);
 
-        auto memCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName1, memKey,
+        auto memCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName, memKey,
             memListPartOutcome.result().PartList(), memInitOutcome.result().UploadId()));
-        auto fileCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName1, fileKey,
+        auto fileCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName, fileKey,
             fileListPartOutcome.result().PartList(), fileInitOutcome.result().UploadId()));
         EXPECT_EQ(memCompleteOutcome.isSuccess(), true);
         EXPECT_EQ(fileCompleteOutcome.isSuccess(), true);
 
-        EXPECT_EQ(Client->DoesObjectExist(BucketName1, memKey), true);
-        EXPECT_EQ(Client->DoesObjectExist(BucketName1, fileKey), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, memKey), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, fileKey), true);
 
         memContent = nullptr;
         fileContent = nullptr;
@@ -1144,41 +1202,41 @@ TEST_F(ObjectRequestPaymentTest, UploadPartCallable)
     EXPECT_EQ(RemoveFile(tmpFile), true);
 }
 
-TEST_F(ObjectRequestPaymentTest, UploadPartCopyCallable)
+TEST_F(ObjectRequestPaymentTest, UploadPartCopyCallableTest)
 {
     // put object from buffer
     std::string memObjKey = TestUtils::GetObjectKey("PutObjectFromBuffer");
     auto memObjContent = TestUtils::GetRandomStream(102400);
-    auto putMemObjOutcome = Client->PutObject(PutObjectRequest(BucketName1, memObjKey, memObjContent));
+    auto putMemObjOutcome = Client->PutObject(PutObjectRequest(BucketName, memObjKey, memObjContent));
     EXPECT_EQ(putMemObjOutcome.isSuccess(), true);
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, memObjKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, memObjKey), true);
 
     // put object from local file
     std::string fileObjKey = TestUtils::GetObjectKey("PutObjectFromFile");
     std::string tmpFile = TestUtils::GetTargetFileName("PutObjectFromFile").append(".tmp");
     TestUtils::WriteRandomDatatoFile(tmpFile, 1024);
     auto fileObjContent = std::make_shared<std::fstream>(tmpFile, std::ios_base::in | std::ios::binary);
-    auto putFileObjOutcome = Client->PutObject(PutObjectRequest(BucketName1, fileObjKey, fileObjContent));
+    auto putFileObjOutcome = Client->PutObject(PutObjectRequest(BucketName, fileObjKey, fileObjContent));
     EXPECT_EQ(putFileObjOutcome.isSuccess(), true);
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, fileObjKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, fileObjKey), true);
 
     // close file
     fileObjContent->close();
 
     // apply upload id
     std::string memKey = TestUtils::GetObjectKey("UploadPartCopyCallableMemObjectBasicTest");
-    auto memInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName1, memKey));
+    auto memInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, memKey));
     EXPECT_EQ(memInitObjOutcome.isSuccess(), true);
     EXPECT_EQ(memInitObjOutcome.result().Key(), memKey);
 
     std::string fileKey = TestUtils::GetObjectKey("UploadPartCopyCallableFileObjectBasicTest");
-    auto fileInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName1, fileKey));
+    auto fileInitObjOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, fileKey));
     EXPECT_EQ(fileInitObjOutcome.isSuccess(), true);
     EXPECT_EQ(fileInitObjOutcome.result().Key(), fileKey);
 
     // upload part copy
-    UploadPartCopyRequest request1(BucketName1, memKey, BucketName1, memObjKey, memInitObjOutcome.result().UploadId(), 1);
-    UploadPartCopyRequest request2(BucketName1, fileKey, BucketName1, fileObjKey, fileInitObjOutcome.result().UploadId(), 1);
+    UploadPartCopyRequest request1(BucketName, memKey, BucketName, memObjKey, memInitObjOutcome.result().UploadId(), 1);
+    UploadPartCopyRequest request2(BucketName, fileKey, BucketName, fileObjKey, fileInitObjOutcome.result().UploadId(), 1);
     request1.setRequestPayer(RequestPayer::Requester);
     request2.setRequestPayer(RequestPayer::Requester);
     auto memOutcomeCallable = PayerClient->UploadPartCopyCallable(request1);
@@ -1192,25 +1250,291 @@ TEST_F(ObjectRequestPaymentTest, UploadPartCopyCallable)
     EXPECT_EQ(memOutcome.isSuccess(), true);
 
     // list part
-    auto memListPartOutcome = Client->ListParts(ListPartsRequest(BucketName1, memKey, memInitObjOutcome.result().UploadId()));
-    auto fileListPartOutcome = Client->ListParts(ListPartsRequest(BucketName1, fileKey, fileInitObjOutcome.result().UploadId()));
+    auto memListPartOutcome = Client->ListParts(ListPartsRequest(BucketName, memKey, memInitObjOutcome.result().UploadId()));
+    auto fileListPartOutcome = Client->ListParts(ListPartsRequest(BucketName, fileKey, fileInitObjOutcome.result().UploadId()));
     EXPECT_EQ(memListPartOutcome.isSuccess(), true);
     EXPECT_EQ(fileListPartOutcome.isSuccess(), true);
 
     // complete the part
-    auto memCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName1, memKey,
+    auto memCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName, memKey,
         memListPartOutcome.result().PartList(), memInitObjOutcome.result().UploadId()));
-    auto fileCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName1, fileKey,
+    auto fileCompleteOutcome = Client->CompleteMultipartUpload(CompleteMultipartUploadRequest(BucketName, fileKey,
         fileListPartOutcome.result().PartList(), fileInitObjOutcome.result().UploadId()));
     EXPECT_EQ(memCompleteOutcome.isSuccess(), true);
     EXPECT_EQ(fileCompleteOutcome.isSuccess(), true);
 
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, memKey), true);
-    EXPECT_EQ(Client->DoesObjectExist(BucketName1, fileKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, memKey), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, fileKey), true);
 
     memObjContent = nullptr;
     fileObjContent = nullptr;
     EXPECT_EQ(RemoveFile(tmpFile), true);
+}
+
+static bool CompareImageInfo(const std::string &src, const std::string &dst)
+{
+    if (src == dst) {
+        return true;
+    }
+    //the filesize maybe not equal 
+    const char * srcPtr = strstr(src.c_str(), "Format");
+    const char * dstPtr = strstr(dst.c_str(), "Format");
+    return strcmp(srcPtr, dstPtr) == 0 ? true : false;
+}
+TEST_F(ObjectRequestPaymentTest, ProcessObjectRequestTest)
+{
+    std::string ImageFilePath = Config::GetDataPath();
+    ImageFilePath.append("example.jpg");
+    std::string Process = "image/resize,m_fixed,w_100,h_100";
+    std::string ImageInfo = "{\n    \"FileSize\": {\"value\": \"3267\"},\n    \"Format\": {\"value\": \"jpg\"},\n    \"ImageHeight\": {\"value\": \"100\"},\n    \"ImageWidth\": {\"value\": \"100\"},\n    \"ResolutionUnit\": {\"value\": \"1\"},\n    \"XResolution\": {\"value\": \"1/1\"},\n    \"YResolution\": {\"value\": \"1/1\"}}";
+
+    std::string key = TestUtils::GetObjectKey("ImageProcessBysetProcessAndSavetoTest");
+    std::string key1 = key;
+    std::string key2 = key;
+    key.append("-noraml.jpg");
+    key1.append("-saveas.jpg");
+    key2.append("-saveas2.jpg");
+    auto pOutcome = Client->PutObject(BucketName, key, ImageFilePath);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+
+    std::stringstream ss;
+    ss << Process
+        << "|sys/saveas"
+        << ",o_" << Base64EncodeUrlSafe(key1)
+        << ",b_" << Base64EncodeUrlSafe(BucketName);
+
+    ProcessObjectRequest request(BucketName, key, ss.str());
+    auto gOutcome = PayerClient->ProcessObject(request);
+    EXPECT_EQ(gOutcome.isSuccess(), false);
+    EXPECT_EQ(gOutcome.error().Code(), "AccessDenied");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    gOutcome = PayerClient->ProcessObject(request);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+
+    std::istreambuf_iterator<char> isb(*gOutcome.result().Content()), end;
+    std::string json_str = std::string(isb, end);
+    std::cout << json_str << std::endl;
+    EXPECT_TRUE(json_str.find(key1) != std::string::npos);
+
+    std::string imageInfo = GetOssImageObjectInfo(BucketName, key1);
+    EXPECT_TRUE(CompareImageInfo(imageInfo, ImageInfo));
+}
+
+TEST_F(ObjectRequestPaymentTest, ObjectTaggingBasicTest)
+{
+    auto key = TestUtils::GetObjectKey("ObjectTaggingBasicTest");
+    auto content = std::make_shared<std::stringstream>("Tagging Test");
+    auto outcome = Client->PutObject(BucketName, key, content);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    Tagging tagging;
+    tagging.addTag(Tag("key1", "value1"));
+    tagging.addTag(Tag("key2", "value2"));
+    SetObjectTaggingRequest request(BucketName, key, tagging);
+    auto putTaggingOutcome = PayerClient->SetObjectTagging(request);
+    EXPECT_EQ(putTaggingOutcome.isSuccess(), false);
+    EXPECT_EQ(putTaggingOutcome.error().Code(), "AccessDenied");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    putTaggingOutcome = PayerClient->SetObjectTagging(request);
+    EXPECT_EQ(putTaggingOutcome.isSuccess(), true);
+    EXPECT_TRUE(putTaggingOutcome.result().RequestId().size() > 0U);
+
+    GetObjectTaggingRequest gRequest(BucketName, key);
+    auto getTaggingOutcome = PayerClient->GetObjectTagging(gRequest);
+    EXPECT_EQ(getTaggingOutcome.isSuccess(), false);
+    EXPECT_EQ(getTaggingOutcome.error().Code(), "AccessDenied");
+
+    gRequest.setRequestPayer(RequestPayer::Requester);
+    getTaggingOutcome = PayerClient->GetObjectTagging(gRequest);
+    EXPECT_EQ(getTaggingOutcome.isSuccess(), true);
+    EXPECT_EQ(getTaggingOutcome.result().Tagging().Tags().size(), 2U);
+    EXPECT_TRUE(getTaggingOutcome.result().RequestId().size() > 0U);
+
+    size_t i = 0;
+    for (const auto& tag : getTaggingOutcome.result().Tagging().Tags()) {
+        EXPECT_EQ(tagging.Tags()[i].Key(), tag.Key());
+        EXPECT_EQ(tagging.Tags()[i].Value(), tag.Value());
+        i++;
+    }
+
+    DeleteObjectTaggingRequest dRequest(BucketName, key);
+    auto delTaggingOutcome = PayerClient->DeleteObjectTagging(dRequest);
+    EXPECT_EQ(delTaggingOutcome.isSuccess(), false);
+    EXPECT_EQ(delTaggingOutcome.error().Code(), "AccessDenied");
+
+    dRequest.setRequestPayer(RequestPayer::Requester);
+    delTaggingOutcome = PayerClient->DeleteObjectTagging(dRequest);
+    EXPECT_EQ(delTaggingOutcome.isSuccess(), true);
+    EXPECT_TRUE(delTaggingOutcome.result().RequestId().size() > 0U);
+    
+    getTaggingOutcome = Client->GetObjectTagging(GetObjectTaggingRequest(BucketName, key));
+    EXPECT_EQ(getTaggingOutcome.isSuccess(), true);
+    EXPECT_EQ(getTaggingOutcome.result().Tagging().Tags().size(), 0U);
+}
+
+TEST_F(ObjectRequestPaymentTest, NormalResumableUploadWithSizeOverPartSizeTest)
+{
+    std::string key = TestUtils::GetObjectKey("ResumableUploadObjectOverPartSize");
+    std::string tmpFile = TestUtils::GetTargetFileName("ResumableUploadObjectOverPartSize").append(".tmp");
+    int num = 4;
+    TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num + 10);
+
+    UploadObjectRequest request(BucketName, key, tmpFile);
+    request.setPartSize(100 * 1024);
+    request.setThreadNum(1);
+    auto outcome = PayerClient->ResumableUploadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->ResumableUploadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    auto getObjectOutcome = Client->GetObject(BucketName, key);
+    EXPECT_EQ(getObjectOutcome.isSuccess(), true);
+
+    std::fstream file(tmpFile, std::ios::in | std::ios::binary);
+    std::string oriMd5 = ComputeContentMD5(file);
+    std::string memMd5 = ComputeContentMD5(*getObjectOutcome.result().Content());
+    EXPECT_EQ(oriMd5, memMd5);
+
+    file.close();
+    EXPECT_EQ(RemoveFile(tmpFile), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, NormalResumableUploadWithSizeUnderPartSizeTest)
+{
+    std::string key = TestUtils::GetObjectKey("ResumableUploadObjectUnderPartSize");
+    std::string tmpFile = TestUtils::GetTargetFileName("ResumableUploadObjectUnderPartSize").append(".tmp");
+    TestUtils::WriteRandomDatatoFile(tmpFile, 10240);
+
+    UploadObjectRequest request(BucketName, key, tmpFile);
+    request.setPartSize(100 * 1024);
+    request.setThreadNum(1);
+    auto outcome = PayerClient->ResumableUploadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->ResumableUploadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    auto getObjectOutcome = Client->GetObject(BucketName, key);
+    EXPECT_EQ(getObjectOutcome.isSuccess(), true);
+    EXPECT_EQ(RemoveFile(tmpFile), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, NormalResumableDownloadWithSizeOverPartSizeTest)
+{
+    // upload object
+    std::string key = TestUtils::GetObjectKey("ResumableDownloadObjectOverPartSize");
+    std::string tmpFile = TestUtils::GetTargetFileName("ResumableDownloadObjectOverPartSize").append(".tmp");
+    std::string targetFile = TestUtils::GetTargetFileName("ResumableDownloadTargetObject");
+    int num = 4;
+    TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+    auto uploadOutcome = Client->PutObject(BucketName, key, tmpFile);
+    EXPECT_EQ(uploadOutcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+    // download object
+    DownloadObjectRequest request(BucketName, key, targetFile);
+    request.setPartSize(100 * 1024);
+    request.setThreadNum(1);
+    auto outcome = PayerClient->ResumableDownloadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->ResumableDownloadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+    std::string downloadMd5 = TestUtils::GetFileMd5(targetFile);
+    EXPECT_EQ(uploadMd5, downloadMd5);
+
+    EXPECT_EQ(RemoveFile(targetFile), true);
+    EXPECT_EQ(RemoveFile(tmpFile), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, NormalResumableDownloadWithSizeUnderPartSizeTest)
+{
+    // upload object
+    std::string key = TestUtils::GetObjectKey("ResumableDownloadObjectUnderPartSize");
+    std::string tmpFile = TestUtils::GetTargetFileName("ResumableDownloadObjectUnderPartSize").append(".tmp");
+    std::string targetFile = TestUtils::GetTargetFileName("ResumableDownloadTargetObject");
+    int num = 4;
+    TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+    auto uploadOutcome = Client->PutObject(BucketName, key, tmpFile);
+    EXPECT_EQ(uploadOutcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+    // download object
+    DownloadObjectRequest request(BucketName, key, targetFile);
+    request.setThreadNum(1);
+    auto outcome = PayerClient->ResumableDownloadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->ResumableDownloadObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+    std::string downloadMd5 = TestUtils::GetFileMd5(targetFile);
+    EXPECT_EQ(uploadMd5, downloadMd5);
+
+    EXPECT_EQ(RemoveFile(targetFile), true);
+    EXPECT_EQ(RemoveFile(tmpFile), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, NormalResumableCopyWithSizeOverPartSizeTest)
+{
+    std::string sourceKey = TestUtils::GetObjectKey("NormalCopySourceObjectOverPartSize");
+    std::string targetKey = TestUtils::GetObjectKey("NormalCopyTargetObjectOverPartSize");
+    // put object into bucket
+    int num = 1 + rand() % 10;
+    auto putObjectContent = TestUtils::GetRandomStream(102400 * num);
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+    // Copy Object
+    MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
+    request.setPartSize(100 * 1024);
+    request.setThreadNum(1);
+    auto outcome = PayerClient->ResumableCopyObject(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->ResumableCopyObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
+}
+
+TEST_F(ObjectRequestPaymentTest, NormalResumableCopyWithSizeUnderPartSizeTest)
+{
+    std::string sourceKey = TestUtils::GetObjectKey("NormalCopySourceObjectUnderPartSize");
+    std::string targetKey = TestUtils::GetObjectKey("NormalCopyTargetObjectUnderPartSize");
+    // put Object into bucket
+    auto putObjectContent = TestUtils::GetRandomStream(1024 * (rand() % 100));
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+    // copy object
+    MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
+    request.setPartSize(100 * 1024 + 1);
+    auto outcome = PayerClient->ResumableCopyObject(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+
+    request.setRequestPayer(RequestPayer::Requester);
+    outcome = PayerClient->ResumableCopyObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
 }
 
 }

@@ -116,7 +116,7 @@ int GetObjectRequest::validate() const
 
 HeaderCollection GetObjectRequest::specialHeaders() const
 {
-    HeaderCollection headers;
+    auto headers = OssObjectRequest::specialHeaders();
     if (rangeIsSet_) {
         std::stringstream ss;
         ss << "bytes=" << range_[0] << "-";
@@ -159,10 +159,7 @@ HeaderCollection GetObjectRequest::specialHeaders() const
         }
         headers["If-None-Match"] = ss.str();
     }
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
-    }
+
     return headers;
 }
 

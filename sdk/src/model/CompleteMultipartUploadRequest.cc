@@ -111,11 +111,9 @@ ParameterCollection CompleteMultipartUploadRequest::specialParameters()const
 
 HeaderCollection CompleteMultipartUploadRequest::specialHeaders() const
 {
-    HeaderCollection headers = metaData_.toHeaderCollection();
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
-    }
+    auto headers = metaData_.toHeaderCollection();
+    auto baseHeaders = OssObjectRequest::specialHeaders();
+    headers.insert(baseHeaders.begin(), baseHeaders.end());
     return headers;
 }
 

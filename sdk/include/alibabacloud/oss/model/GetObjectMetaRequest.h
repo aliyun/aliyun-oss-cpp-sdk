@@ -30,21 +30,7 @@ namespace OSS
         {
         }
     protected:
-        virtual ParameterCollection specialParameters() const 
-        {
-            ParameterCollection parameter;
-            parameter["objectMeta"] = "";
-            return parameter;
-        }
-        virtual HeaderCollection specialHeaders() const
-        {
-            HeaderCollection headers;
-            if (requestPayer_ == RequestPayer::Requester)
-            {
-                headers["x-oss-request-payer"] = ("requester");
-            }
-            return headers;
-        }
+        virtual ParameterCollection specialParameters() const;
     };
 } 
 }

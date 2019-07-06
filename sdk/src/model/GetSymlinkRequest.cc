@@ -30,13 +30,4 @@ ParameterCollection GetSymlinkRequest::specialParameters() const
     return paramters;
 }
 
-HeaderCollection AlibabaCloud::OSS::GetSymlinkRequest::specialHeaders() const
-{
-    HeaderCollection header;
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        header["x-oss-request-payer"] = "requester";
-    }
-    return header;
-}
 

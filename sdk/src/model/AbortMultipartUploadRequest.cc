@@ -16,9 +16,7 @@
 
 
 #include <alibabacloud/oss/model/AbortMultipartUploadRequest.h>
-#include <sstream>
 #include "../utils/Utils.h"
-#include "ModelError.h"
 
 using namespace AlibabaCloud::OSS;
 
@@ -34,14 +32,4 @@ ParameterCollection AbortMultipartUploadRequest::specialParameters() const
     ParameterCollection parameters;
     parameters["uploadId"] = uploadId_;
     return parameters;
-}
-
-HeaderCollection AlibabaCloud::OSS::AbortMultipartUploadRequest::specialHeaders() const
-{
-    HeaderCollection headers;
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
-    }
-    return headers;
 }
