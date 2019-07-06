@@ -155,10 +155,10 @@ ParameterCollection UploadPartCopyRequest::specialParameters() const
 
 HeaderCollection UploadPartCopyRequest::specialHeaders() const
 {
-    HeaderCollection header;
+    auto headers = OssObjectRequest::specialHeaders();
     std::string source;
     source.append("/").append(sourceBucket_).append("/").append(UrlEncode(sourceKey_));
-    header["x-oss-copy-source"] = source;
+    headers["x-oss-copy-source"] = source;
 
     if (sourceRangeIsSet_) {
         std::string range("bytes=");
@@ -166,30 +166,26 @@ HeaderCollection UploadPartCopyRequest::specialHeaders() const
         if (sourceRange_[1] > 0){
             range.append(std::to_string(sourceRange_[1]));
         }
-        header["x-oss-copy-source-range"] = range;
+        headers["x-oss-copy-source-range"] = range;
     }
 
     if(sourceIfMatchETagIsSet_) {
-        header["x-oss-copy-source-if-match"] = sourceIfMatchETag_;
+        headers["x-oss-copy-source-if-match"] = sourceIfMatchETag_;
     }
 
     if(sourceIfNotMatchETagIsSet_) {
-        header["x-oss-copy-source-if-none-match"] = sourceIfNotMatchETag_;
+        headers["x-oss-copy-source-if-none-match"] = sourceIfNotMatchETag_;
     }
 
     if(sourceIfModifiedSinceIsSet_) {
-        header["x-oss-copy-source-if-modified-since"] = sourceIfModifiedSince_;
+        headers["x-oss-copy-source-if-modified-since"] = sourceIfModifiedSince_;
     }
 
     if (sourceIfUnModifiedSinceIsSet_) {
-        header["x-oss-copy-source-if-unmodified-since"] = sourceIfUnModifiedSince_;
-    }
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        header["x-oss-request-payer"] = "requester";
+        headers["x-oss-copy-source-if-unmodified-since"] = sourceIfUnModifiedSince_;
     }
 
-    return header;
+    return headers;
 }
 
 int UploadPartCopyRequest::validate() const

@@ -80,6 +80,9 @@ PutObjectOutcome ResumableUploader::Upload()
                     TransferProgress uploadPartProcess = { UploadPartProcessCallback, (void *)this };
                     uploadPartRequest.setTransferProgress(uploadPartProcess);
                 }
+                if (request_.RequestPayer() == RequestPayer::Requester) {
+                    uploadPartRequest.setRequestPayer(request_.RequestPayer());
+                }
 
                 auto outcome = client_->UploadPart(uploadPartRequest);
 #ifdef ENABLE_OSS_TEST
@@ -147,6 +150,9 @@ PutObjectOutcome ResumableUploader::Upload()
                 request_.MetaData().HttpMetaData().at("x-oss-pub-key-url");
         }
     }
+    if (request_.RequestPayer() == RequestPayer::Requester) {
+        completeMultipartUploadReq.setRequestPayer(request_.RequestPayer());
+    }
     auto outcome = client_->CompleteMultipartUpload(completeMultipartUploadReq);
     if (!outcome.isSuccess()) {
         return PutObjectOutcome(outcome.error());
@@ -180,6 +186,9 @@ int ResumableUploader::prepare(OssError& err)
     auto initMultipartUploadReq = InitiateMultipartUploadRequest(request_.Bucket(), request_.Key(), request_.MetaData());
     if (!request_.EncodingType().empty()) {
         initMultipartUploadReq.setEncodingType(request_.EncodingType());
+    }
+    if (request_.RequestPayer() == RequestPayer::Requester) {
+        initMultipartUploadReq.setRequestPayer(request_.RequestPayer());
     }
     auto outcome = client_->InitiateMultipartUpload(initMultipartUploadReq);
     if(!outcome.isSuccess()){
@@ -295,6 +304,9 @@ int ResumableUploader::getPartsToUpload(OssError &err, PartList &partsUploaded, 
         auto listPartsRequest = ListPartsRequest(request_.Bucket(), request_.Key(), uploadID_);
         if (!request_.EncodingType().empty()) {
             listPartsRequest.setEncodingType(request_.EncodingType());
+        }
+        if (request_.RequestPayer() == RequestPayer::Requester) {
+            listPartsRequest.setRequestPayer(request_.RequestPayer());
         }
         while(true){
             listPartsRequest.setPartNumberMarker(marker);

@@ -70,7 +70,7 @@ void DeleteObjectsRequest::clearKeyList()
     keyList_.clear();
 }
 
-void AlibabaCloud::OSS::DeleteObjectsRequest::setRequestPayer(RequestPayer value)
+void DeleteObjectsRequest::setRequestPayer(RequestPayer value)
 {
     requestPayer_ = value; 
 }
@@ -102,12 +102,11 @@ ParameterCollection DeleteObjectsRequest::specialParameters() const
     return parameters;
 }
 
-HeaderCollection AlibabaCloud::OSS::DeleteObjectsRequest::specialHeaders() const
+HeaderCollection DeleteObjectsRequest::specialHeaders() const
 {
     HeaderCollection headers;
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
+    if (requestPayer_ == RequestPayer::Requester) {
+        headers["x-oss-request-payer"] = ToLower(ToRequestPayerName(RequestPayer::Requester));
     }
     return headers;
 }

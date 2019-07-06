@@ -450,7 +450,7 @@ VoidOutcome OssClientImpl::SetBucketPolicy(const SetBucketPolicyRequest& request
         return VoidOutcome(outcome.error());
     }
 }
-VoidOutcome AlibabaCloud::OSS::OssClientImpl::SetBucketRequestPayment(const SetBucketRequestPaymentRequest& request) const
+VoidOutcome OssClientImpl::SetBucketRequestPayment(const SetBucketRequestPaymentRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
     if (outcome.isSuccess()) {
@@ -708,7 +708,7 @@ GetBucketPolicyOutcome OssClientImpl::GetBucketPolicy(const GetBucketPolicyReque
         return GetBucketPolicyOutcome(outcome.error());
     }
 }
-GetBucketPaymentOutcome AlibabaCloud::OSS::OssClientImpl::GetBucketRequestPayment(const GetBucketRequestPaymentRequest& request) const
+GetBucketPaymentOutcome OssClientImpl::GetBucketRequestPayment(const GetBucketRequestPaymentRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
     if (outcome.isSuccess()) {
@@ -1156,6 +1156,9 @@ PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest&
         if (request.TransferProgress().Handler) {
             putObjectReq.setTransferProgress(request.TransferProgress());
         }
+        if (request.RequestPayer() == RequestPayer::Requester) {
+            putObjectReq.setRequestPayer(request.RequestPayer());
+        }
         return PutObject(putObjectReq);
     }
     else
@@ -1174,6 +1177,9 @@ CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectReques
     }
 
     auto getObjectMetaReq = GetObjectMetaRequest(request.SrcBucket(), request.SrcKey());
+    if (request.RequestPayer() == RequestPayer::Requester) {
+        getObjectMetaReq.setRequestPayer(request.RequestPayer());
+    }
     auto outcome = GetObjectMeta(getObjectMetaReq);
     if (!outcome.isSuccess()) {
         return CopyObjectOutcome(outcome.error());
@@ -1182,6 +1188,9 @@ CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectReques
     auto objectSize = outcome.result().ContentLength();
     if (objectSize < (int64_t)request.PartSize()) {
         auto copyObjectReq = CopyObjectRequest(request.Bucket(), request.Key(), request.MetaData());
+        if (request.RequestPayer() == RequestPayer::Requester) {
+            copyObjectReq.setRequestPayer(request.RequestPayer());
+        }
         return CopyObject(copyObjectReq);
     }
 
@@ -1198,6 +1207,9 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
     }
 
     auto getObjectMetaReq = GetObjectMetaRequest(request.Bucket(), request.Key());
+    if (request.RequestPayer() == RequestPayer::Requester) {
+        getObjectMetaReq.setRequestPayer(request.RequestPayer());
+    }
     auto outcome = GetObjectMeta(getObjectMetaReq);
     if (!outcome.isSuccess()) {
         return GetObjectOutcome(outcome.error());
@@ -1211,6 +1223,9 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
         }
         if (request.TransferProgress().Handler) {
             getObjectReq.setTransferProgress(request.TransferProgress());
+        }
+        if (request.RequestPayer() == RequestPayer::Requester) {
+            getObjectReq.setRequestPayer(request.RequestPayer());
         }
         getObjectReq.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(request.FilePath(), std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary); });
         auto outcome = this->GetObject(getObjectReq);

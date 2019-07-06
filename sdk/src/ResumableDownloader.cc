@@ -82,7 +82,9 @@ GetObjectOutcome ResumableDownloader::Download()
                     TransferProgress uploadPartProcess = { DownloadPartProcessCallback, (void *)this };
                     getObjectReq.setTransferProgress(uploadPartProcess);
                 }
-
+                if (request_.RequestPayer() == RequestPayer::Requester) {
+                    getObjectReq.setRequestPayer(request_.RequestPayer());
+                }
                 auto outcome = client_->GetObject(getObjectReq);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && part.partNumber == 2) {
@@ -169,7 +171,11 @@ GetObjectOutcome ResumableDownloader::Download()
 
     ObjectMetaData meta;
     if (outcomes.empty()) {
-        auto hOutcome = client_->HeadObject(HeadObjectRequest(request_.Bucket(), request_.Key()));
+        HeadObjectRequest hRequest(request_.Bucket(), request_.Key());
+        if (request_.RequestPayer() == RequestPayer::Requester) {
+            hRequest.setRequestPayer(request_.RequestPayer());
+        }
+        auto hOutcome = client_->HeadObject(hRequest);
         if (!hOutcome.isSuccess()) {
             return GetObjectOutcome(hOutcome.error());
         }

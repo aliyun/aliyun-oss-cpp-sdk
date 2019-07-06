@@ -44,25 +44,8 @@ namespace OSS
         void setRequestPayer(RequestPayer value) { requestPayer_ = value; }
 
     protected:
-        virtual ParameterCollection specialParameters() const 
-        {
-            ParameterCollection params;
-            if (delimiterIsSet_) params["delimiter"] = delimiter_;
-            if (markerIsSet_) params["marker"] = marker_;
-            if (maxKeysIsSet_) params["max-keys"] = std::to_string(maxKeys_);
-            if (prefixIsSet_) params["prefix"] = prefix_;
-            if (encodingTypeIsSet_) params["encoding-type"] = encodingType_;
-            return params;
-        }
-        virtual HeaderCollection specialHeaders() const
-        {
-            HeaderCollection headers;
-            if (requestPayer_ == RequestPayer::Requester)
-            {
-                 headers["x-oss-request-payer"] = "requester";
-            }
-            return headers;
-        }
+        virtual ParameterCollection specialParameters() const;
+        virtual HeaderCollection specialHeaders() const;
     private:
         std::string delimiter_;
         bool delimiterIsSet_;

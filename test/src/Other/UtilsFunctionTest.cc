@@ -676,5 +676,27 @@ TEST_F(UtilsFunctionTest, ToLiveChannelStatusTypeTest)
     EXPECT_EQ(ToLiveChannelStatusType("lived"), LiveChannelStatus::UnknownStatus);
 }
 
+TEST_F(UtilsFunctionTest, TwoHeaderCollectionInsertTest)
+{
+    HeaderCollection headers1;
+    HeaderCollection headers2;
+    HeaderCollection headers3;
+
+    headers1["key1"] = "value1";
+    headers1["key2"] = "value2";
+
+    headers2["key1"] = "value1-1";
+    headers2["key3"] = "value3";
+
+
+    headers1.insert(headers2.begin(), headers2.end());
+    headers1.insert(headers3.begin(), headers3.end());
+
+    EXPECT_EQ(headers1.size(), 3U);
+    EXPECT_EQ(headers1["key1"], "value1");
+    EXPECT_EQ(headers1["key2"], "value2");
+    EXPECT_EQ(headers1["key3"], "value3");
+}
+
 }
 }

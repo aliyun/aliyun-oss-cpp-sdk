@@ -91,13 +91,12 @@ namespace OSS
     };
 
 
- enum class RequestPayer
- {
-     NotSet = 0,
-     BucketOwner,
-     Requester
- };
-
+    enum class RequestPayer
+    {
+        NotSet = 0,
+        BucketOwner,
+        Requester
+    };
 
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 

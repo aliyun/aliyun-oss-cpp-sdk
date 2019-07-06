@@ -89,6 +89,7 @@ TEST_F(LogTest, DisableLogCallbackTest)
     auto outcome = Client->ListBuckets();
     EXPECT_EQ(outcome.isSuccess(), true);
     EXPECT_EQ(LogString.empty(), true);
+    SetLogLevel(LogLevel::LogOff);
 }
 
 TEST_F(LogTest, EnableLogTest)
@@ -103,6 +104,8 @@ TEST_F(LogTest, EnableLogTest)
     }
     EXPECT_EQ(outcome.isSuccess(), true);
     EXPECT_EQ(LogString.empty(), false);
+    SetLogLevel(LogLevel::LogOff);
+
 }
 
 TEST_F(LogTest, LogMacroTest)
@@ -159,6 +162,7 @@ TEST_F(LogTest, LogMacroTest)
     EXPECT_TRUE(strstr(LogString.c_str(), "[ALL]") != nullptr);
     EXPECT_TRUE(strstr(LogString.c_str(), "[LogTest]") != nullptr);
     EXPECT_TRUE(strstr(LogString.c_str(), "LogMacroTestAll") != nullptr);
+    SetLogLevel(LogLevel::LogOff);
 }
 
 TEST_F(LogTest, EndofLineTest)
@@ -189,6 +193,7 @@ TEST_F(LogTest, EndofLineTest)
     EXPECT_EQ(LogString.c_str()[LogString.size() - 1], '\n');
     EXPECT_EQ(LogString.c_str()[LogString.size() - 2], ']');
     std::cout << LogString;
+    SetLogLevel(LogLevel::LogOff);
 }
 
 }

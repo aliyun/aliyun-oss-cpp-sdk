@@ -72,7 +72,7 @@ void ListMultipartUploadsRequest::setEncodingType(const std::string &encodingTyp
     encodingTypeIsSet_ = true;
 }
 
-void AlibabaCloud::OSS::ListMultipartUploadsRequest::setRequestPayer(RequestPayer value)
+void ListMultipartUploadsRequest::setRequestPayer(RequestPayer value)
 {
     requestPayer_ = value;
 }
@@ -106,12 +106,11 @@ ParameterCollection ListMultipartUploadsRequest::specialParameters() const
     return parameters;
 }
 
-HeaderCollection AlibabaCloud::OSS::ListMultipartUploadsRequest::specialHeaders() const
+HeaderCollection ListMultipartUploadsRequest::specialHeaders() const
 {
     HeaderCollection headers;
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
+    if (requestPayer_ == RequestPayer::Requester) {
+        headers["x-oss-request-payer"] = ToLower(ToRequestPayerName(RequestPayer::Requester));
     }
     return headers;
 }

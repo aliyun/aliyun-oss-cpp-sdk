@@ -67,16 +67,11 @@ std::shared_ptr<std::iostream> UploadPartRequest::Body() const
 
 HeaderCollection UploadPartRequest::specialHeaders() const
 {
-    HeaderCollection headers;
+    auto headers = OssObjectRequest::specialHeaders();
     headers[Http::CONTENT_TYPE] = "";
     if (contentLengthIsSet_) {
         headers[Http::CONTENT_LENGTH] = std::to_string(contentLength_);
     }
-    if (requestPayer_ == RequestPayer::Requester)
-    {
-        headers["x-oss-request-payer"] = "requester";
-    }
-
     return headers;
 }
 

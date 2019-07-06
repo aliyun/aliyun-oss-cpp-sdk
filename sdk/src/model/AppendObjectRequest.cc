@@ -96,6 +96,9 @@ HeaderCollection AppendObjectRequest::specialHeaders() const
         headers[Http::CONTENT_TYPE] = LookupMimeType(Key());
     }
 
+    auto baseHeaders = OssObjectRequest::specialHeaders();
+    headers.insert(baseHeaders.begin(), baseHeaders.end());
+
     return headers;
 }
 

@@ -88,8 +88,9 @@ namespace OSS
     RuleStatus ToRuleStatusType(const char *name);
 
     const char * ToLiveChannelStatusName(LiveChannelStatus status);
-    LiveChannelStatus ToLiveChannelStatusType(const char *name);	
-	const char* ToRequestPayerName(RequestPayer status);
+    LiveChannelStatus ToLiveChannelStatusType(const char *name);
+
+	const char* ToRequestPayerName(RequestPayer payer);
 	RequestPayer ToRequestPayer(const char* name);
 }
 }

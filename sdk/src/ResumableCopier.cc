@@ -71,6 +71,9 @@ CopyObjectOutcome ResumableCopier::Copy()
                     request_.SourceIfMatchEtag(), request_.SourceIfNotMatchEtag(),
                     request_.SourceIfModifiedSince(), request_.SourceIfUnModifiedSince());
                 uploadPartCopyReq.setCopySourceRange(offset, offset + length - 1);
+                if (request_.RequestPayer() == RequestPayer::Requester) {
+                    uploadPartCopyReq.setRequestPayer(request_.RequestPayer());
+                }
 
                 auto outcome = client_->UploadPartCopy(uploadPartCopyReq);
 #ifdef ENABLE_OSS_TEST
@@ -134,6 +137,9 @@ CopyObjectOutcome ResumableCopier::Copy()
     if (!request_.EncodingType().empty()) {
         completeMultipartUploadReq.setEncodingType(request_.EncodingType());
     }
+    if (request_.RequestPayer() == RequestPayer::Requester) {
+        completeMultipartUploadReq.setRequestPayer(request_.RequestPayer());
+    }
 
     auto compOutcome = client_->CompleteMultipartUpload(completeMultipartUploadReq);
     if (!compOutcome.isSuccess()) {
@@ -144,7 +150,11 @@ CopyObjectOutcome ResumableCopier::Copy()
         RemoveFile(recordPath_);
     }
     CopyObjectResult result;
-    auto hOutcome = client_->HeadObject(HeadObjectRequest(request_.Bucket(), request_.Key()));
+    HeadObjectRequest hRequest(request_.Bucket(), request_.Key());
+    if (request_.RequestPayer() == RequestPayer::Requester) {
+        hRequest.setRequestPayer(request_.RequestPayer());
+    }
+    auto hOutcome = client_->HeadObject(HeadObjectRequest(hRequest));
     if (hOutcome.isSuccess()) {
         result.setLastModified(hOutcome.result().LastModified());
     }
@@ -159,7 +169,11 @@ int ResumableCopier::prepare(OssError& err)
     if (metaData.HttpMetaData().find("x-oss-metadata-directive") == metaData.HttpMetaData().end() ||
         (metaData.HttpMetaData().find("x-oss-metadata-directive") != metaData.HttpMetaData().end() && 
             metaData.HttpMetaData().at("x-oss-metadata-directive") == "COPY")) {
-        auto headObjectOutcome = client_->HeadObject(HeadObjectRequest(request_.SrcBucket(), request_.SrcKey()));
+        HeadObjectRequest hRequest(request_.SrcBucket(), request_.SrcKey());
+        if (request_.RequestPayer() == RequestPayer::Requester) {
+            hRequest.setRequestPayer(request_.RequestPayer());
+        }
+        auto headObjectOutcome = client_->HeadObject(hRequest);
         if (!headObjectOutcome.isSuccess()) {
             err = headObjectOutcome.error();
             return -1;
@@ -171,6 +185,9 @@ int ResumableCopier::prepare(OssError& err)
     auto initMultipartUploadReq = InitiateMultipartUploadRequest(request_.Bucket(), request_.Key(), metaData);
     if (!request_.EncodingType().empty()) {
         initMultipartUploadReq.setEncodingType(request_.EncodingType());
+    }
+    if (request_.RequestPayer() == RequestPayer::Requester) {
+        initMultipartUploadReq.setRequestPayer(request_.RequestPayer());
     }
     auto outcome = client_->InitiateMultipartUpload(initMultipartUploadReq);
     if (!outcome.isSuccess()) {
@@ -296,6 +313,9 @@ int ResumableCopier::getPartsToUploadCopy(OssError &err, PartList &partsCopied, 
         auto listPartsRequest = ListPartsRequest(request_.Bucket(), request_.Key(), uploadID_);
         if (!request_.EncodingType().empty()) {
             listPartsRequest.setEncodingType(request_.EncodingType());
+        }
+        if (request_.RequestPayer() == RequestPayer::Requester) {
+            listPartsRequest.setRequestPayer(request_.RequestPayer());
         }
         while (true) {
             listPartsRequest.setPartNumberMarker(marker);

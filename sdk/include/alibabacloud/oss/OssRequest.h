@@ -78,6 +78,7 @@ namespace OSS
         void setRequestPayer(RequestPayer value);
     protected:
         virtual int validate() const;
+        virtual HeaderCollection specialHeaders() const;
         RequestPayer requestPayer_;
     };
 
@@ -88,7 +89,8 @@ namespace OSS
             const std::string& checkpointDir, const uint64_t partSize, const uint32_t threadNum) :
             OssRequest(bucket, key), 
             partSize_(partSize),
-            checkpointDir_(checkpointDir)
+            checkpointDir_(checkpointDir),
+            requestPayer_(AlibabaCloud::OSS::RequestPayer::NotSet)
         {
             threadNum_ = threadNum == 0 ? 1 : threadNum;
         }
@@ -114,6 +116,9 @@ namespace OSS
         void setObjectMtime(const std::string& mtime);
         const std::string& ObjectMtime() const;
 
+        void setRequestPayer(RequestPayer value);
+        AlibabaCloud::OSS::RequestPayer RequestPayer() const;
+
     protected:
         friend class OssClientImpl;
         virtual int validate() const;
@@ -125,6 +130,7 @@ namespace OSS
         uint32_t threadNum_;
         std::string checkpointDir_;
         std::string mtime_;
+        AlibabaCloud::OSS::RequestPayer requestPayer_;
     };
 
     class ALIBABACLOUD_OSS_EXPORT LiveChannelRequest : public OssRequest
