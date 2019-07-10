@@ -83,7 +83,9 @@ PutObjectOutcome ResumableUploader::Upload()
                 if (request_.RequestPayer() == RequestPayer::Requester) {
                     uploadPartRequest.setRequestPayer(request_.RequestPayer());
                 }
-
+                if (request_.TrafficLimit() != 0) {
+                    uploadPartRequest.setTrafficLimit(request_.TrafficLimit());
+                }
                 auto outcome = client_->UploadPart(uploadPartRequest);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && part.PartNumber() == 2) {

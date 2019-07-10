@@ -38,6 +38,7 @@ namespace OSS
         void setContentMd5(const std::string& value);
         void setExpires(const std::string& value);
         void setCallback(const std::string& callback, const std::string& callbackVar = "");
+        void setTrafficLimit(uint64_t value);
         void setTagging(const std::string& value);
         ObjectMetaData& MetaData();
         virtual std::shared_ptr<std::iostream> Body() const;

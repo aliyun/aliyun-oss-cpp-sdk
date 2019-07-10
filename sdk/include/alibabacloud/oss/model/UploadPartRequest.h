@@ -38,6 +38,7 @@ namespace OSS
         void setUploadId(const std::string& uploadId);
         void setConetent(const std::shared_ptr<std::iostream>& content);
         void setContentLength(uint64_t length);
+        void setTrafficLimit(uint64_t value);
     protected:
         virtual HeaderCollection specialHeaders() const;
         virtual ParameterCollection specialParameters() const;
@@ -48,6 +49,7 @@ namespace OSS
         std::shared_ptr<std::iostream> content_;
         uint64_t contentLength_;
         bool contentLengthIsSet_;
+        uint64_t trafficLimit_;
     };
 } 
 }

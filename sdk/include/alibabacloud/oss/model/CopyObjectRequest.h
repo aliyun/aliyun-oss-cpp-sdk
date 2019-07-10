@@ -40,6 +40,8 @@ namespace OSS
         void setAcl(const CannedAccessControlList& acl);
         void setTagging(const std::string& value);
         void setTaggingDirective(const CopyActionList& action);
+        void setTrafficLimit(uint64_t value);
+
     protected:
         virtual HeaderCollection specialHeaders() const ;
     private:

@@ -1159,6 +1159,9 @@ PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest&
         if (request.RequestPayer() == RequestPayer::Requester) {
             putObjectReq.setRequestPayer(request.RequestPayer());
         }
+        if (request.TrafficLimit() != 0) {
+            putObjectReq.setTrafficLimit(request.TrafficLimit());
+        }
         return PutObject(putObjectReq);
     }
     else
@@ -1190,6 +1193,9 @@ CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectReques
         auto copyObjectReq = CopyObjectRequest(request.Bucket(), request.Key(), request.MetaData());
         if (request.RequestPayer() == RequestPayer::Requester) {
             copyObjectReq.setRequestPayer(request.RequestPayer());
+        }
+        if (request.TrafficLimit() != 0) {
+            copyObjectReq.setTrafficLimit(request.TrafficLimit());
         }
         return CopyObject(copyObjectReq);
     }
@@ -1226,6 +1232,9 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
         }
         if (request.RequestPayer() == RequestPayer::Requester) {
             getObjectReq.setRequestPayer(request.RequestPayer());
+        }
+        if (request.TrafficLimit() != 0) {
+            getObjectReq.setTrafficLimit(request.TrafficLimit());
         }
         getObjectReq.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(request.FilePath(), std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary); });
         auto outcome = this->GetObject(getObjectReq);

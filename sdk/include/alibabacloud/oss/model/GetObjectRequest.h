@@ -44,6 +44,7 @@ namespace OSS
         void addNonmatchingETagConstraint(const std::string& match);
         void setProcess(const std::string& process);
         void addResponseHeaders(RequestResponseHeader header, const std::string& value);
+        void setTrafficLimit(uint64_t value);
 
     protected:
         virtual HeaderCollection specialHeaders() const ;
@@ -58,6 +59,7 @@ namespace OSS
         std::vector<std::string> nonmatchingETags_;
         std::string process_;
         std::map<std::string, std::string> responseHeaderParameters_;
+        uint64_t trafficLimit_;
     };
 } 
 }

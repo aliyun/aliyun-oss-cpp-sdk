@@ -265,6 +265,16 @@ AlibabaCloud::OSS::RequestPayer OssResumableBaseRequest::RequestPayer() const
     return requestPayer_;
 }
 
+void OssResumableBaseRequest::setTrafficLimit(uint64_t value)
+{
+    trafficLimit_ = value;
+}
+
+uint64_t OssResumableBaseRequest::TrafficLimit() const
+{
+    return trafficLimit_;
+}
+
 void LiveChannelRequest::setBucket(const std::string &bucket)
 {
     bucket_ = bucket;
