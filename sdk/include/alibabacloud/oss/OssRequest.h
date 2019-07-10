@@ -90,7 +90,8 @@ namespace OSS
             OssRequest(bucket, key), 
             partSize_(partSize),
             checkpointDir_(checkpointDir),
-            requestPayer_(AlibabaCloud::OSS::RequestPayer::NotSet)
+            requestPayer_(AlibabaCloud::OSS::RequestPayer::NotSet),
+            trafficLimit_(0)
         {
             threadNum_ = threadNum == 0 ? 1 : threadNum;
         }
@@ -118,6 +119,9 @@ namespace OSS
 
         void setRequestPayer(RequestPayer value);
         AlibabaCloud::OSS::RequestPayer RequestPayer() const;
+		
+        void setTrafficLimit(uint64_t value);
+        uint64_t TrafficLimit() const;
 
     protected:
         friend class OssClientImpl;
@@ -131,6 +135,7 @@ namespace OSS
         std::string checkpointDir_;
         std::string mtime_;
         AlibabaCloud::OSS::RequestPayer requestPayer_;
+        uint64_t trafficLimit_;
     };
 
     class ALIBABACLOUD_OSS_EXPORT LiveChannelRequest : public OssRequest

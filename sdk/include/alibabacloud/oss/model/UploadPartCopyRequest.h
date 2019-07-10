@@ -49,6 +49,7 @@ namespace OSS
         void SetSourceIfNotMatchETag(const std::string& value);
         void SetSourceIfModifiedSince(const std::string& value);
         void SetSourceIfUnModifiedSince(const std::string& value);
+        void setTrafficLimit(uint64_t value);
     protected:
         virtual ParameterCollection specialParameters() const;
         virtual HeaderCollection specialHeaders() const;
@@ -68,6 +69,7 @@ namespace OSS
         bool sourceIfModifiedSinceIsSet_;
         std::string sourceIfUnModifiedSince_;
         bool sourceIfUnModifiedSinceIsSet_;
+        uint64_t trafficLimit_;
     };
 } 
 }

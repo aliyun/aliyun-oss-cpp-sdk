@@ -81,6 +81,11 @@ void CopyObjectRequest::setTaggingDirective(const CopyActionList& action)
     metaData_.addHeader("x-oss-tagging-directive", ToCopyActionName(action));
 }
 
+void CopyObjectRequest::setTrafficLimit(uint64_t value)
+{
+    metaData_.addHeader("x-oss-traffic-limit", std::to_string(value));
+}
+
 HeaderCollection CopyObjectRequest::specialHeaders() const
 {
     auto headers = metaData_.toHeaderCollection();

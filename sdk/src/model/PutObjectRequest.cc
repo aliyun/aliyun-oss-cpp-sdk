@@ -83,6 +83,11 @@ void PutObjectRequest::setTagging(const std::string& value)
     metaData_.addHeader("x-oss-tagging", value);
 }
 
+void PutObjectRequest::setTrafficLimit(uint64_t value)
+{
+    metaData_.addHeader("x-oss-traffic-limit", std::to_string(value));
+}
+
 ObjectMetaData &PutObjectRequest::MetaData()
 {
     return metaData_;

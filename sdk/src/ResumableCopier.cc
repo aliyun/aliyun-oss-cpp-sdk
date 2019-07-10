@@ -74,7 +74,9 @@ CopyObjectOutcome ResumableCopier::Copy()
                 if (request_.RequestPayer() == RequestPayer::Requester) {
                     uploadPartCopyReq.setRequestPayer(request_.RequestPayer());
                 }
-
+                if (request_.TrafficLimit() != 0) {
+                    uploadPartCopyReq.setTrafficLimit(request_.TrafficLimit());
+                }
                 auto outcome = client_->UploadPartCopy(uploadPartCopyReq);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && (part.PartNumber() == 2 || part.PartNumber() == 4)) {
