@@ -67,6 +67,11 @@ void GeneratePresignedUrlRequest::setProcess(const std::string &value)
     parameters_["x-oss-process"] = value;
 }
 
+void GeneratePresignedUrlRequest::setTrafficLimit(uint64_t value)
+{
+    parameters_["x-oss-traffic-limit"] = std::to_string(value);
+}
+
 void GeneratePresignedUrlRequest::addResponseHeaders(RequestResponseHeader header, const std::string &value)
 {
     static const char *ResponseHeader[] = {

@@ -34,7 +34,8 @@ UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::strin
     partNumber_(partNumber),
     uploadId_(uploadId),
     content_(content),
-    contentLengthIsSet_(false)
+    contentLengthIsSet_(false),
+    trafficLimit_(0)
 {
     setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
 }
@@ -60,6 +61,10 @@ void UploadPartRequest::setContentLength(uint64_t length)
     contentLengthIsSet_ = true;
 }
 
+void UploadPartRequest::setTrafficLimit(uint64_t value)
+{
+    trafficLimit_ = value;
+}
 std::shared_ptr<std::iostream> UploadPartRequest::Body() const
 {
     return content_;
@@ -71,6 +76,9 @@ HeaderCollection UploadPartRequest::specialHeaders() const
     headers[Http::CONTENT_TYPE] = "";
     if (contentLengthIsSet_) {
         headers[Http::CONTENT_LENGTH] = std::to_string(contentLength_);
+    }
+    if (trafficLimit_ != 0) {
+        headers["x-oss-traffic-limit"] = std::to_string(trafficLimit_);
     }
     return headers;
 }

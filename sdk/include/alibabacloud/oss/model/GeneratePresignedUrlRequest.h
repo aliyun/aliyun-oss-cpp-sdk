@@ -38,6 +38,7 @@ namespace OSS
         void setContentMd5(const std::string& value);
         void setExpires(int64_t unixTime);
         void setProcess(const std::string& process);
+        void setTrafficLimit(uint64_t value);
         void addResponseHeaders(RequestResponseHeader header, const std::string& value);
         void addParameter(const std::string& key, const std::string& value);
         MetaData& UserMetaData();

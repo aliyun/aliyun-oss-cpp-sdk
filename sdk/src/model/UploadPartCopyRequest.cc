@@ -47,7 +47,8 @@ UploadPartCopyRequest::UploadPartCopyRequest(const std::string &bucket, const st
     sourceIfMatchETagIsSet_(false),
     sourceIfNotMatchETagIsSet_(false),
     sourceIfModifiedSinceIsSet_(false),
-    sourceIfUnModifiedSinceIsSet_(false)
+    sourceIfUnModifiedSinceIsSet_(false),
+    trafficLimit_(0)
 {
 }
 
@@ -63,7 +64,8 @@ UploadPartCopyRequest::UploadPartCopyRequest(const std::string& bucket, const st
     sourceBucket_(srcBucket),
     sourceKey_(srcKey),
     partNumber_(partNumber),
-    sourceRangeIsSet_(false)
+    sourceRangeIsSet_(false),
+    trafficLimit_(0)
 {
     if (!sourceIfMatchETag.empty()) {
         sourceIfMatchETag_ = sourceIfMatchETag;
@@ -145,6 +147,10 @@ void UploadPartCopyRequest::SetSourceIfUnModifiedSince(const std::string& value)
     sourceIfUnModifiedSinceIsSet_ = true;
 }
 
+void UploadPartCopyRequest::setTrafficLimit(uint64_t value)
+{
+    trafficLimit_ = value;
+}
 ParameterCollection UploadPartCopyRequest::specialParameters() const
 {
     ParameterCollection parameters;
@@ -185,6 +191,9 @@ HeaderCollection UploadPartCopyRequest::specialHeaders() const
         headers["x-oss-copy-source-if-unmodified-since"] = sourceIfUnModifiedSince_;
     }
 
+    if (trafficLimit_ != 0) {
+        header["x-oss-traffic-limit"] = std::to_string(trafficLimit_);
+    }
     return headers;
 }
 

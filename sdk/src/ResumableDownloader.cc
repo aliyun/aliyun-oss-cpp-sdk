@@ -85,6 +85,9 @@ GetObjectOutcome ResumableDownloader::Download()
                 if (request_.RequestPayer() == RequestPayer::Requester) {
                     getObjectReq.setRequestPayer(request_.RequestPayer());
                 }
+                if (request_.TrafficLimit() != 0) {
+                    getObjectReq.setTrafficLimit(request_.TrafficLimit());
+                }
                 auto outcome = client_->GetObject(getObjectReq);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && part.partNumber == 2) {

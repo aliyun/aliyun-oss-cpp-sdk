@@ -82,6 +82,11 @@ void AppendObjectRequest::setTagging(const std::string& value)
     metaData_.addHeader("x-oss-tagging", value);
 }
 
+void AppendObjectRequest::setTrafficLimit(uint64_t value)
+{
+    metaData_.addHeader("x-oss-traffic-limit", std::to_string(value));
+}
+
 std::shared_ptr<std::iostream> AppendObjectRequest::Body() const
 {
     return content_;
