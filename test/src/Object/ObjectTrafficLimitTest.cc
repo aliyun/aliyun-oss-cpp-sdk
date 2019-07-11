@@ -157,12 +157,12 @@ TEST_F(ObjectTrafficLimitTest, CopyObjectTest)
     copyRequest.setCopySource(BucketName, key);
     /* set copy traffic limit 800KB/s*/
     copyRequest.setTrafficLimit(819200*8);
-    auto theory_time = (4800 * 1024 * 8) / (819200 * 8);
+    //auto theory_time = (4800 * 1024 * 8) / (819200 * 8);
     Timer timer;
     timer.reset();
     /*begin copy object*/
     CopyObjectOutcome copyOutCome = Client->CopyObject(copyRequest);
-    auto time = timer.elapsed();
+    //auto time = timer.elapsed();
     EXPECT_EQ(copyOutCome.isSuccess(), true);
 
     DeleteObjectRequest delRequest(BucketName, key);
@@ -246,11 +246,11 @@ TEST_F(ObjectTrafficLimitTest, UploadPartCopyTest)
         request.setUploadId(initOutcome.result().UploadId());
         request.setCopySourceRange(position, position + size - 1);
         request.setTrafficLimit(819200*6);
-        auto theory_time = (600 * 1024 * 8) / (819200 * 6);
+        //auto theory_time = (600 * 1024 * 8) / (819200 * 6);
         Timer timer;
         timer.reset();
         auto uploadPartOutcome = Client->UploadPartCopy(request);
-        auto time = timer.elapsed();
+        //auto time = timer.elapsed();
         //EXPECT_EQ(time, theory_time);
         EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
         EXPECT_FALSE(uploadPartOutcome.result().RequestId().empty());

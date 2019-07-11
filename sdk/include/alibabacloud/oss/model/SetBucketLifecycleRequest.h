@@ -26,9 +26,7 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT SetBucketLifecycleRequest : public OssBucketRequest
     {
     public:
-        SetBucketLifecycleRequest(const std::string& bucket):
-            OssBucketRequest(bucket)
-        {}
+        SetBucketLifecycleRequest(const std::string& bucket);
         void addLifecycleRule(const LifecycleRule& rule) { lifecycleRules_.push_back(rule); }
         void setLifecycleRules(const LifecycleRuleList& ruleList) { lifecycleRules_= ruleList; }
         void clearLifecycleRules() { lifecycleRules_.clear(); }

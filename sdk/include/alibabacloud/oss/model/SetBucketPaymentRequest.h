@@ -26,17 +26,8 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT SetBucketRequestPaymentRequest : public OssBucketRequest
     {
     public:
-        SetBucketRequestPaymentRequest(const std::string& bucket) :
-            OssBucketRequest(bucket),
-            payer_(RequestPayer::NotSet)
-        {
-        }
-        SetBucketRequestPaymentRequest(const std::string& bucket,
-            RequestPayer payer) :
-            OssBucketRequest(bucket),
-            payer_(payer)
-        {
-        }
+        SetBucketRequestPaymentRequest(const std::string& bucket);
+        SetBucketRequestPaymentRequest(const std::string& bucket, RequestPayer payer);
         void setRequestPayer(RequestPayer payer) { payer_ = payer; }
     protected:
         virtual std::string payload() const;

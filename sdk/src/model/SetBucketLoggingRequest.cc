@@ -21,6 +21,20 @@
 
 using namespace AlibabaCloud::OSS;
 
+SetBucketLoggingRequest::SetBucketLoggingRequest(const std::string& bucket) :
+    SetBucketLoggingRequest(bucket, "", "")
+{
+}
+
+SetBucketLoggingRequest::SetBucketLoggingRequest(const std::string& bucket,
+    const std::string& targetBucket, const std::string& targetPrefix) :
+    OssBucketRequest(bucket),
+    targetBucket_(targetBucket),
+    targetPrefix_(targetPrefix)
+{
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
+}
+
 std::string SetBucketLoggingRequest::payload() const
 {
     std::stringstream ss;

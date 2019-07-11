@@ -21,6 +21,19 @@
 
 using namespace AlibabaCloud::OSS;
 
+SetBucketRequestPaymentRequest::SetBucketRequestPaymentRequest(const std::string& bucket) :
+    SetBucketRequestPaymentRequest(bucket, RequestPayer::NotSet)
+{
+}
+
+SetBucketRequestPaymentRequest::SetBucketRequestPaymentRequest(const std::string& bucket,
+    RequestPayer payer) :
+    OssBucketRequest(bucket),
+    payer_(payer)
+{
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
+}
+
 std::string SetBucketRequestPaymentRequest::payload() const
 {
     std::stringstream ss;

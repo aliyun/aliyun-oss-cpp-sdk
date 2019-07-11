@@ -25,6 +25,7 @@ SetBucketStorageCapacityRequest::SetBucketStorageCapacityRequest(const std::stri
     OssBucketRequest(bucket),
     storageCapacity_(storageCapacity)
 {
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
 }
 
 ParameterCollection SetBucketStorageCapacityRequest::specialParameters() const

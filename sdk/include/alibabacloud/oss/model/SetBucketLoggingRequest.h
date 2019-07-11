@@ -25,17 +25,9 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT SetBucketLoggingRequest : public OssBucketRequest
     {
     public:
-        SetBucketLoggingRequest(const std::string& bucket):
-            OssBucketRequest(bucket)
-        {
-        }
+        SetBucketLoggingRequest(const std::string& bucket);
         SetBucketLoggingRequest(const std::string& bucket,
-            const std::string& targetBucket, const std::string& targetPrefix):
-            OssBucketRequest(bucket),
-            targetBucket_(targetBucket),
-            targetPrefix_(targetPrefix)
-        {
-        }
+            const std::string& targetBucket, const std::string& targetPrefix);
         void setTargetBucket(const std::string& bucket) { targetBucket_ = bucket; }
         void setTargetPrefix(const std::string& prefix) { targetPrefix_ = prefix; }
     protected:

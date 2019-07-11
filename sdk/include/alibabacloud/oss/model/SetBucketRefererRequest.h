@@ -27,22 +27,10 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT SetBucketRefererRequest : public OssBucketRequest
     {
     public:
-        SetBucketRefererRequest(const std::string& bucket):
-            OssBucketRequest(bucket),
-            allowEmptyReferer_(true)
-        {
-        }
-        SetBucketRefererRequest(const std::string& bucket, const RefererList& refererList) :
-            SetBucketRefererRequest(bucket, refererList, true)
-        {
-        }
+        SetBucketRefererRequest(const std::string& bucket);
+        SetBucketRefererRequest(const std::string& bucket, const RefererList& refererList);
         SetBucketRefererRequest(const std::string& bucket, const RefererList& refererList,
-            bool allowEmptyReferer) :
-            OssBucketRequest(bucket),
-            allowEmptyReferer_(allowEmptyReferer),
-            refererList_(refererList)
-        {
-        }
+            bool allowEmptyReferer);
         void setAllowEmptyReferer(bool allow) 
         { 
             allowEmptyReferer_ = allow; 
