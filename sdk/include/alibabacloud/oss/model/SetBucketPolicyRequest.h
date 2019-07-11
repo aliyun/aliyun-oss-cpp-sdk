@@ -25,16 +25,8 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT SetBucketPolicyRequest : public OssBucketRequest
     {
     public:
-        SetBucketPolicyRequest(const std::string& bucket) :
-            OssBucketRequest(bucket)
-        {
-        }
-        SetBucketPolicyRequest(const std::string& bucket,
-            const std::string& policy) :
-            OssBucketRequest(bucket),
-            policy_(policy)
-        {
-        }
+        SetBucketPolicyRequest(const std::string& bucket);
+        SetBucketPolicyRequest(const std::string& bucket, const std::string& policy);
         void setPolicy(const std::string& policy) { policy_ = policy; }
     protected:
         virtual std::string payload() const;

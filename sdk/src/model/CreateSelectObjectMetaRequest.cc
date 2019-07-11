@@ -26,7 +26,7 @@ CreateSelectObjectMetaRequest::CreateSelectObjectMetaRequest(const std::string& 
     inputFormat_(nullptr), 
     overWriteIfExists_(false)
 {
-    
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
 }
 
 void CreateSelectObjectMetaRequest::setOverWriteIfExists(bool overWriteIfExists)

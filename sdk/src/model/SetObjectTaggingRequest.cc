@@ -25,6 +25,7 @@ using namespace AlibabaCloud::OSS;
 SetObjectTaggingRequest::SetObjectTaggingRequest(const std::string& bucket, const std::string& key):
     OssObjectRequest(bucket, key)
 {
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
 }
 
 SetObjectTaggingRequest::SetObjectTaggingRequest(const std::string& bucket, const std::string& key,
@@ -32,6 +33,7 @@ SetObjectTaggingRequest::SetObjectTaggingRequest(const std::string& bucket, cons
     OssObjectRequest(bucket, key),
     tagging_(tagging)
 {
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
 }
 
 void SetObjectTaggingRequest::setTagging(const Tagging& tagging)

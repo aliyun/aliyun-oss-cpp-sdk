@@ -22,6 +22,12 @@
 
 using namespace AlibabaCloud::OSS;
 
+SetBucketLifecycleRequest::SetBucketLifecycleRequest(const std::string& bucket) :
+    OssBucketRequest(bucket)
+{
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
+}
+
 std::string SetBucketLifecycleRequest::payload() const
 {
     std::stringstream ss;

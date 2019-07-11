@@ -43,6 +43,7 @@ CompleteMultipartUploadRequest::CompleteMultipartUploadRequest(
     uploadId_(uploadId),
     encodingTypeIsSet_(false)
 {
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
 }
 
 int CompleteMultipartUploadRequest::validate() const

@@ -24,12 +24,7 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT SetBucketWebsiteRequest : public OssBucketRequest
     {
     public:
-        SetBucketWebsiteRequest(const std::string& bucket):
-            OssBucketRequest(bucket),
-            indexDocumentIsSet_(false),
-            errorDocumentIsSet_(false)
-        {
-        }
+        SetBucketWebsiteRequest(const std::string& bucket);
         void setIndexDocument(const std::string& document)
         { 
             indexDocument_ = document; 

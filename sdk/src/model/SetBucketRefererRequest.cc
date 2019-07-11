@@ -19,6 +19,27 @@
 
 using namespace AlibabaCloud::OSS;
 
+SetBucketRefererRequest::SetBucketRefererRequest(const std::string& bucket) :
+    OssBucketRequest(bucket),
+    allowEmptyReferer_(true)
+{
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
+}
+
+SetBucketRefererRequest::SetBucketRefererRequest(const std::string& bucket, const RefererList& refererList) :
+    SetBucketRefererRequest(bucket, refererList, true)
+{
+}
+
+SetBucketRefererRequest::SetBucketRefererRequest(const std::string& bucket, const RefererList& refererList,
+    bool allowEmptyReferer) :
+    OssBucketRequest(bucket),
+    allowEmptyReferer_(allowEmptyReferer),
+    refererList_(refererList)
+{
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
+}
+
 std::string SetBucketRefererRequest::payload() const
 {
     std::stringstream ss;

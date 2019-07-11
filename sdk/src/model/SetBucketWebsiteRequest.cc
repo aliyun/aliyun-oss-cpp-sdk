@@ -21,6 +21,14 @@
 
 using namespace AlibabaCloud::OSS;
 
+SetBucketWebsiteRequest::SetBucketWebsiteRequest(const std::string& bucket) :
+    OssBucketRequest(bucket),
+    indexDocumentIsSet_(false),
+    errorDocumentIsSet_(false)
+{
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
+}
+
 std::string SetBucketWebsiteRequest::payload() const
 {
     std::stringstream ss;
