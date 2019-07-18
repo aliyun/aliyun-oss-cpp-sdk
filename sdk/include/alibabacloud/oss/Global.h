@@ -24,7 +24,7 @@
 #   endif // _MSC_VER
 #   define ALIBABACLOUD_DECL_EXPORT __declspec(dllexport)
 #   define ALIBABACLOUD_DECL_IMPORT __declspec(dllimport)
-#elif defined(__linux__)
+#elif __GNUC__ >= 4
 #   define ALIBABACLOUD_DECL_EXPORT __attribute__((visibility("default")))
 #   define ALIBABACLOUD_DECL_IMPORT __attribute__((visibility("default")))
 #endif
