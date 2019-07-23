@@ -112,7 +112,10 @@ static const int TIXML2_PATCH_VERSION = 0;
 // attack that can result from ill, malicious, or even correctly formed XML, 
 // so there needs to be a limit in place.
 static const int TINYXML2_MAX_ELEMENT_DEPTH = 100;
-
+namespace AlibabaCloud
+{
+namespace OSS
+{
 namespace tinyxml2
 {
 class XMLDocument;
@@ -2306,7 +2309,8 @@ private:
 
 
 }	// tinyxml2
-
+}
+}
 
 #if defined(_MSC_VER)
 #   pragma warning(pop)

@@ -267,7 +267,10 @@ license you like.
 # endif
 
 #endif // if !defined(JSON_IS_AMALGAMATION)
-
+namespace AlibabaCloud
+{
+namespace OSS
+{
 namespace Json {
 typedef int Int;
 typedef unsigned int UInt;
@@ -302,7 +305,8 @@ typedef UInt64 LargestUInt;
 #define JSONCPP_ISTREAM       std::istream
 #endif // if JSONCPP_USING_SECURE_MEMORY
 } // end namespace Json
-
+}
+}
 #endif // JSON_CONFIG_H_INCLUDED
 
 // //////////////////////////////////////////////////////////////////////
@@ -329,7 +333,10 @@ typedef UInt64 LargestUInt;
 #if !defined(JSON_IS_AMALGAMATION)
 #include "config.h"
 #endif // if !defined(JSON_IS_AMALGAMATION)
-
+namespace AlibabaCloud
+{
+namespace OSS
+{
 namespace Json {
 
 // writer.h
@@ -353,7 +360,8 @@ class ValueIterator;
 class ValueConstIterator;
 
 } // namespace Json
-
+}
+}
 #endif // JSON_FORWARDS_H_INCLUDED
 
 // //////////////////////////////////////////////////////////////////////
@@ -382,7 +390,10 @@ class ValueConstIterator;
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
 #pragma pack(push, 8)
-
+namespace AlibabaCloud
+{
+namespace OSS
+{
 namespace Json {
 
 /** \brief Configuration passed to reader and writer.
@@ -426,7 +437,8 @@ public:
 };
 
 } // namespace Json
-
+}
+}
 #pragma pack(pop)
 
 #endif // CPPTL_JSON_FEATURES_H_INCLUDED
@@ -492,6 +504,10 @@ public:
 
 /** \brief JSON (JavaScript Object Notation).
  */
+namespace AlibabaCloud
+{
+namespace OSS
+{
 namespace Json {
 
 /** Base class for all exceptions we throw.
@@ -1317,12 +1333,13 @@ public:
 };
 
 } // namespace Json
-
+}
+}
 
 namespace std {
 /// Specialize std::swap() for Json::Value.
 template<>
-inline void swap(Json::Value& a, Json::Value& b) { a.swap(b); }
+inline void swap(AlibabaCloud::OSS::Json::Value& a, AlibabaCloud::OSS::Json::Value& b) { a.swap(b); }
 }
 
 #pragma pack(pop)
@@ -1372,7 +1389,10 @@ inline void swap(Json::Value& a, Json::Value& b) { a.swap(b); }
 #endif // if defined(JSONCPP_DISABLE_DLL_INTERFACE_WARNING)
 
 #pragma pack(push, 8)
-
+namespace AlibabaCloud
+{
+namespace OSS
+{
 namespace Json {
 
 /** \brief Unserialize a <a HREF="http://www.json.org">JSON</a> document into a
@@ -1749,7 +1769,8 @@ bool JSON_API parseFromStream(
 JSON_API JSONCPP_ISTREAM& operator>>(JSONCPP_ISTREAM&, Value&);
 
 } // namespace Json
-
+}
+}
 #pragma pack(pop)
 
 #if defined(JSONCPP_DISABLE_DLL_INTERFACE_WARNING)
@@ -1794,7 +1815,10 @@ JSON_API JSONCPP_ISTREAM& operator>>(JSONCPP_ISTREAM&, Value&);
 #endif // if defined(JSONCPP_DISABLE_DLL_INTERFACE_WARNING)
 
 #pragma pack(push, 8)
-
+namespace AlibabaCloud
+{
+namespace OSS
+{
 namespace Json {
 
 class Value;
@@ -2120,7 +2144,8 @@ JSONCPP_STRING JSON_API valueToQuotedString(const char* value);
 JSON_API JSONCPP_OSTREAM& operator<<(JSONCPP_OSTREAM&, const Value& root);
 
 } // namespace Json
-
+}
+}
 #pragma pack(pop)
 
 #if defined(JSONCPP_DISABLE_DLL_INTERFACE_WARNING)
