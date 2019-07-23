@@ -107,6 +107,10 @@ license you like.
  *
  * It is an internal header that must not be exposed.
  */
+namespace AlibabaCloud
+{
+namespace OSS
+{
 
 namespace Json {
 static char getDecimalPoint() {
@@ -196,7 +200,8 @@ static inline void fixNumericLocaleInput(char* begin, char* end) {
 }
 
 } // namespace Json {
-
+}
+}
 #endif // LIB_JSONCPP_JSON_TOOL_H_INCLUDED
 
 // //////////////////////////////////////////////////////////////////////
@@ -265,6 +270,10 @@ static inline void fixNumericLocaleInput(char* begin, char* end) {
 #endif
 
 static size_t const stackLimit_g = JSONCPP_DEPRECATED_STACK_LIMIT; // see readValue()
+namespace AlibabaCloud
+{
+namespace OSS
+{
 
 namespace Json {
 
@@ -2272,7 +2281,8 @@ JSONCPP_ISTREAM& operator>>(JSONCPP_ISTREAM& sin, Value& root) {
 }
 
 } // namespace Json
-
+}
+}
 // //////////////////////////////////////////////////////////////////////
 // End of content of file: src/lib_json/json_reader.cpp
 // //////////////////////////////////////////////////////////////////////
@@ -2292,6 +2302,10 @@ JSONCPP_ISTREAM& operator>>(JSONCPP_ISTREAM& sin, Value& root) {
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
 
 // included by json_value.cpp
+namespace AlibabaCloud
+{
+namespace OSS
+{
 
 namespace Json {
 
@@ -2453,7 +2467,8 @@ ValueIterator& ValueIterator::operator=(const SelfType& other) {
 }
 
 } // namespace Json
-
+}
+}
 // //////////////////////////////////////////////////////////////////////
 // End of content of file: src/lib_json/json_valueiterator.inl
 // //////////////////////////////////////////////////////////////////////
@@ -2489,6 +2504,10 @@ ValueIterator& ValueIterator::operator=(const SelfType& other) {
 #include <algorithm> // min()
 
 #define JSON_ASSERT_UNREACHABLE assert(false)
+namespace AlibabaCloud
+{
+namespace OSS
+{
 
 namespace Json {
 
@@ -2644,7 +2663,8 @@ static inline void releaseStringValue(char* value, unsigned) {
 #endif // JSONCPP_USING_SECURE_MEMORY
 
 } // namespace Json
-
+}
+}
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
@@ -2656,6 +2676,10 @@ static inline void releaseStringValue(char* value, unsigned) {
 
 #include "json_valueiterator.inl"
 #endif // if !defined(JSON_IS_AMALGAMATION)
+namespace AlibabaCloud
+{
+namespace OSS
+{
 
 namespace Json {
 #if JSON_USE_EXCEPTION
@@ -4139,7 +4163,8 @@ Value& Path::make(Value& root) const {
 }
 
 } // namespace Json
-
+}
+}
 // //////////////////////////////////////////////////////////////////////
 // End of content of file: src/lib_json/json_value.cpp
 // //////////////////////////////////////////////////////////////////////
@@ -4227,6 +4252,10 @@ Value& Path::make(Value& root) const {
 // Disable warning about strdup being deprecated.
 #pragma warning(disable : 4996)
 #endif
+namespace AlibabaCloud
+{
+namespace OSS
+{
 
 namespace Json {
 
@@ -5386,7 +5415,8 @@ JSONCPP_OSTREAM& operator<<(JSONCPP_OSTREAM& sout, Value const& root) {
 }
 
 } // namespace Json
-
+}
+}
 // //////////////////////////////////////////////////////////////////////
 // End of content of file: src/lib_json/json_writer.cpp
 // //////////////////////////////////////////////////////////////////////
