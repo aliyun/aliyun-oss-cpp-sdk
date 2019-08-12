@@ -226,6 +226,11 @@ VoidOutcome OssClient::SetBucketRequestPayment(const SetBucketRequestPaymentRequ
     return client_->SetBucketRequestPayment(request);
 }
 
+VoidOutcome OssClient::SetBucketEncryption(const SetBucketEncryptionRequest& request) const
+{
+    return client_->SetBucketEncryption(request);
+}
+
 VoidOutcome OssClient::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
 {
     return client_->DeleteBucketPolicy(request);
@@ -279,6 +284,11 @@ VoidOutcome OssClient::DeleteBucketCors(const std::string &bucket) const
 VoidOutcome OssClient::DeleteBucketCors(const DeleteBucketCorsRequest& request) const
 {
     return client_->DeleteBucketCors(request);
+}
+
+VoidOutcome OssClient::DeleteBucketEncryption(const DeleteBucketEncryptionRequest& request) const
+{
+    return client_->DeleteBucketEncryption(request);
 }
 
 GetBucketAclOutcome OssClient::GetBucketAcl(const std::string &bucket) const
@@ -388,6 +398,11 @@ GetBucketPolicyOutcome OssClient::GetBucketPolicy(const GetBucketPolicyRequest& 
 GetBucketPaymentOutcome OssClient::GetBucketRequestPayment(const GetBucketRequestPaymentRequest& request) const
 {
     return client_->GetBucketRequestPayment(request);
+}
+
+GetBucketEncryptionOutcome OssClient::GetBucketEncryption(const GetBucketEncryptionRequest& request) const
+{
+    return client_->GetBucketEncryption(request);
 }
 
 GetObjectOutcome OssClient::GetObject(const std::string &bucket, const std::string &key) const

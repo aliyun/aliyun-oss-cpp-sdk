@@ -134,6 +134,10 @@
 #include <alibabacloud/oss/model/SetBucketPaymentRequest.h>
 #include <alibabacloud/oss/model/GetBucketPaymentRequest.h>
 #include <alibabacloud/oss/model/GetBucketPaymentResult.h>
+#include <alibabacloud/oss/model/SetBucketEncryptionRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketEncryptionRequest.h>
+#include <alibabacloud/oss/model/GetBucketEncryptionRequest.h>
+#include <alibabacloud/oss/model/GetBucketEncryptionResult.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -160,6 +164,7 @@ namespace OSS
     using GetBucketStorageCapacityOutcome = Outcome<OssError, GetBucketStorageCapacityResult>;
     using GetBucketPolicyOutcome = Outcome<OssError, GetBucketPolicyResult>;
     using GetBucketPaymentOutcome = Outcome<OssError, GetBucketPaymentResult>;
+    using GetBucketEncryptionOutcome = Outcome<OssError, GetBucketEncryptionResult>;
 
     using GetObjectOutcome = Outcome<OssError, GetObjectResult>;
     using PutObjectOutcome = Outcome<OssError, PutObjectResult>;
