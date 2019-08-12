@@ -90,7 +90,9 @@ namespace OSS
     const char * ToLiveChannelStatusName(LiveChannelStatus status);
     LiveChannelStatus ToLiveChannelStatusType(const char *name);
 
-	const char* ToRequestPayerName(RequestPayer payer);
-	RequestPayer ToRequestPayer(const char* name);
+    const char* ToRequestPayerName(RequestPayer payer);
+    RequestPayer ToRequestPayer(const char* name);
+    const char* ToSSEAlgorithmName(SSEAlgorithm sse);
+    SSEAlgorithm ToSSEAlgorithm(const char* name);
 }
 }
