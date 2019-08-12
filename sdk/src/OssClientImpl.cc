@@ -463,6 +463,19 @@ VoidOutcome OssClientImpl::SetBucketRequestPayment(const SetBucketRequestPayment
     }
 }
 
+VoidOutcome AlibabaCloud::OSS::OssClientImpl::SetBucketEncryption(const SetBucketEncryptionRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Put);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
 VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
@@ -529,6 +542,19 @@ VoidOutcome OssClientImpl::DeleteBucketCors(const DeleteBucketCorsRequest& reque
 }
 
 VoidOutcome OssClientImpl::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Delete);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::DeleteBucketEncryption(const DeleteBucketEncryptionRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
     if (outcome.isSuccess()) {
@@ -719,6 +745,20 @@ GetBucketPaymentOutcome OssClientImpl::GetBucketRequestPayment(const GetBucketRe
     }
     else {
         return GetBucketPaymentOutcome(outcome.error());
+    }
+}
+
+GetBucketEncryptionOutcome OssClientImpl::GetBucketEncryption(const GetBucketEncryptionRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetBucketEncryptionResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetBucketEncryptionOutcome(std::move(result)) :
+            GetBucketEncryptionOutcome(OssError("ParseXMLError", "Parsing GetBucketEncryption result fail."));
+    }
+    else {
+        return GetBucketEncryptionOutcome(outcome.error());
     }
 }
 
