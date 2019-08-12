@@ -858,5 +858,16 @@ RequestPayer AlibabaCloud::OSS::ToRequestPayer(const char* name)
     else return RequestPayer::NotSet;
 }
 
+const char* AlibabaCloud::OSS::ToSSEAlgorithmName(SSEAlgorithm sse)
+{
+    static const char* StatusName[] = { "KMS", "AES256" };
+    return StatusName[static_cast<int>(sse) - static_cast<int>(SSEAlgorithm::KMS)];
+}
 
+SSEAlgorithm AlibabaCloud::OSS::ToSSEAlgorithm(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("kms")) return SSEAlgorithm::KMS;
+    else return SSEAlgorithm::AES256;
+}
 
