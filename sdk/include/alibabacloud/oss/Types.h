@@ -98,6 +98,11 @@ namespace OSS
         Requester
     };
 
+    enum class SSEAlgorithm
+    {
+        KMS,
+        AES256
+    };
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 
     struct  ALIBABACLOUD_OSS_EXPORT caseSensitiveLess
