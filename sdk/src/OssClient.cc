@@ -231,6 +231,11 @@ VoidOutcome OssClient::SetBucketEncryption(const SetBucketEncryptionRequest& req
     return client_->SetBucketEncryption(request);
 }
 
+VoidOutcome OssClient::SetBucketTagging(const SetBucketTaggingRequest& request) const
+{
+    return client_->SetBucketTagging(request);
+}
+
 VoidOutcome OssClient::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
 {
     return client_->DeleteBucketPolicy(request);
@@ -289,6 +294,11 @@ VoidOutcome OssClient::DeleteBucketCors(const DeleteBucketCorsRequest& request) 
 VoidOutcome OssClient::DeleteBucketEncryption(const DeleteBucketEncryptionRequest& request) const
 {
     return client_->DeleteBucketEncryption(request);
+}
+
+VoidOutcome OssClient::DeleteBucketTagging(const DeleteBucketTaggingRequest& request) const
+{
+    return client_->DeleteBucketTagging(request);
 }
 
 GetBucketAclOutcome OssClient::GetBucketAcl(const std::string &bucket) const
@@ -403,6 +413,11 @@ GetBucketPaymentOutcome OssClient::GetBucketRequestPayment(const GetBucketReques
 GetBucketEncryptionOutcome OssClient::GetBucketEncryption(const GetBucketEncryptionRequest& request) const
 {
     return client_->GetBucketEncryption(request);
+}
+
+GetBucketTaggingOutcome OssClient::GetBucketTagging(const GetBucketTaggingRequest& request) const
+{
+    return client_->GetBucketTagging(request);
 }
 
 GetObjectOutcome OssClient::GetObject(const std::string &bucket, const std::string &key) const
