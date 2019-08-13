@@ -476,6 +476,18 @@ VoidOutcome AlibabaCloud::OSS::OssClientImpl::SetBucketEncryption(const SetBucke
     }
 }
 
+VoidOutcome OssClientImpl::SetBucketTagging(const SetBucketTaggingRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Put);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
 VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
@@ -555,6 +567,19 @@ VoidOutcome OssClientImpl::DeleteBucketPolicy(const DeleteBucketPolicyRequest& r
 }
 
 VoidOutcome OssClientImpl::DeleteBucketEncryption(const DeleteBucketEncryptionRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Delete);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::DeleteBucketTagging(const DeleteBucketTaggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
     if (outcome.isSuccess()) {
@@ -759,6 +784,20 @@ GetBucketEncryptionOutcome OssClientImpl::GetBucketEncryption(const GetBucketEnc
     }
     else {
         return GetBucketEncryptionOutcome(outcome.error());
+    }
+}
+
+GetBucketTaggingOutcome OssClientImpl::GetBucketTagging(const GetBucketTaggingRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetBucketTaggingResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetBucketTaggingOutcome(std::move(result)) :
+            GetBucketTaggingOutcome(OssError("ParseXMLError", "Parsing GetBucketTagging result fail."));
+    }
+    else {
+        return GetBucketTaggingOutcome(outcome.error());
     }
 }
 
