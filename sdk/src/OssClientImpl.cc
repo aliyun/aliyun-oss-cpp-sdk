@@ -488,6 +488,18 @@ VoidOutcome OssClientImpl::SetBucketTagging(const SetBucketTaggingRequest& reque
         return VoidOutcome(outcome.error());
     }
 }
+VoidOutcome OssClientImpl::SetBucketQosInfo(const SetBucketQosInfoRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Put);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
 VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
@@ -580,6 +592,19 @@ VoidOutcome OssClientImpl::DeleteBucketEncryption(const DeleteBucketEncryptionRe
 }
 
 VoidOutcome OssClientImpl::DeleteBucketTagging(const DeleteBucketTaggingRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Delete);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::DeleteBucketQosInfo(const DeleteBucketQosInfoRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
     if (outcome.isSuccess()) {
@@ -798,6 +823,34 @@ GetBucketTaggingOutcome OssClientImpl::GetBucketTagging(const GetBucketTaggingRe
     }
     else {
         return GetBucketTaggingOutcome(outcome.error());
+    }
+}
+
+GetBucketQosInfoOutcome OssClientImpl::GetBucketQosInfo(const GetBucketQosInfoRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetBucketQosInfoResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetBucketQosInfoOutcome(std::move(result)) :
+            GetBucketQosInfoOutcome(OssError("ParseXMLError", "Parsing GetBucketQosInfo result fail."));
+    }
+    else {
+        return GetBucketQosInfoOutcome(outcome.error());
+    }
+}
+
+GetUserQosInfoOutcome OssClientImpl::GetUserQosInfo(const GetUserQosInfoRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetUserQosInfoResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetUserQosInfoOutcome(std::move(result)) :
+            GetUserQosInfoOutcome(OssError("ParseXMLError", "Parsing GetUserQosInfo result fail."));
+    }
+    else {
+        return GetUserQosInfoOutcome(outcome.error());
     }
 }
 
