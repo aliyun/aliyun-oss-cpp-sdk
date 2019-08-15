@@ -56,6 +56,7 @@ namespace OSS
         VoidOutcome SetBucketRequestPayment(const SetBucketRequestPaymentRequest& request) const;
         VoidOutcome SetBucketEncryption(const SetBucketEncryptionRequest& request) const;
         VoidOutcome SetBucketTagging(const SetBucketTaggingRequest& request) const;
+        VoidOutcome SetBucketQosInfo(const SetBucketQosInfoRequest& request) const;
 
         VoidOutcome DeleteBucket(const DeleteBucketRequest &request) const;
         VoidOutcome DeleteBucketLogging(const DeleteBucketLoggingRequest& request) const;
@@ -65,6 +66,7 @@ namespace OSS
         VoidOutcome DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const;
         VoidOutcome DeleteBucketEncryption(const DeleteBucketEncryptionRequest& request) const;
         VoidOutcome DeleteBucketTagging(const DeleteBucketTaggingRequest& request) const;
+        VoidOutcome DeleteBucketQosInfo(const DeleteBucketQosInfoRequest& request) const;
 
         ListObjectOutcome ListObjects(const ListObjectsRequest &request) const;
 
@@ -82,6 +84,8 @@ namespace OSS
         GetBucketPaymentOutcome GetBucketRequestPayment(const GetBucketRequestPaymentRequest& request) const;
         GetBucketEncryptionOutcome GetBucketEncryption(const GetBucketEncryptionRequest& request) const;
         GetBucketTaggingOutcome GetBucketTagging(const GetBucketTaggingRequest& request) const;
+        GetBucketQosInfoOutcome GetBucketQosInfo(const GetBucketQosInfoRequest& request) const;
+        GetUserQosInfoOutcome GetUserQosInfo(const GetUserQosInfoRequest& request) const;
 
         /*Object*/
         GetObjectOutcome GetObject(const GetObjectRequest &request) const;
