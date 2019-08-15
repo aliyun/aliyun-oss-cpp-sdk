@@ -142,6 +142,12 @@
 #include <alibabacloud/oss/model/GetBucketTaggingRequest.h>
 #include <alibabacloud/oss/model/GetBucketTaggingResult.h>
 #include <alibabacloud/oss/model/DeleteBucketTaggingRequest.h>
+#include <alibabacloud/oss/model/SetBucketQosInfoRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketQosInfoRequest.h>
+#include <alibabacloud/oss/model/GetBucketQosInfoRequest.h>
+#include <alibabacloud/oss/model/GetBucketQosInfoResult.h>
+#include <alibabacloud/oss/model/GetUserQosInfoRequest.h>
+#include <alibabacloud/oss/model/GetUserQosInfoResult.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -170,6 +176,8 @@ namespace OSS
     using GetBucketPaymentOutcome = Outcome<OssError, GetBucketPaymentResult>;
     using GetBucketEncryptionOutcome = Outcome<OssError, GetBucketEncryptionResult>;
     using GetBucketTaggingOutcome = Outcome<OssError, GetBucketTaggingResult>;
+    using GetBucketQosInfoOutcome = Outcome<OssError, GetBucketQosInfoResult>;
+    using GetUserQosInfoOutcome = Outcome<OssError, GetUserQosInfoResult>;
 
     using GetObjectOutcome = Outcome<OssError, GetObjectResult>;
     using PutObjectOutcome = Outcome<OssError, PutObjectResult>;

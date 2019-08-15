@@ -236,6 +236,11 @@ VoidOutcome OssClient::SetBucketTagging(const SetBucketTaggingRequest& request) 
     return client_->SetBucketTagging(request);
 }
 
+VoidOutcome OssClient::SetBucketQosInfo(const SetBucketQosInfoRequest& request) const
+{
+    return client_->SetBucketQosInfo(request);
+}
+
 VoidOutcome OssClient::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
 {
     return client_->DeleteBucketPolicy(request);
@@ -299,6 +304,11 @@ VoidOutcome OssClient::DeleteBucketEncryption(const DeleteBucketEncryptionReques
 VoidOutcome OssClient::DeleteBucketTagging(const DeleteBucketTaggingRequest& request) const
 {
     return client_->DeleteBucketTagging(request);
+}
+
+VoidOutcome OssClient::DeleteBucketQosInfo(const DeleteBucketQosInfoRequest& request) const
+{
+    return client_->DeleteBucketQosInfo(request);
 }
 
 GetBucketAclOutcome OssClient::GetBucketAcl(const std::string &bucket) const
@@ -418,6 +428,16 @@ GetBucketEncryptionOutcome OssClient::GetBucketEncryption(const GetBucketEncrypt
 GetBucketTaggingOutcome OssClient::GetBucketTagging(const GetBucketTaggingRequest& request) const
 {
     return client_->GetBucketTagging(request);
+}
+
+GetBucketQosInfoOutcome OssClient::GetBucketQosInfo(const GetBucketQosInfoRequest& request) const
+{
+    return client_->GetBucketQosInfo(request);
+}
+
+GetUserQosInfoOutcome OssClient::GetUserQosInfo(const GetUserQosInfoRequest& request) const
+{
+    return client_->GetUserQosInfo(request);
 }
 
 GetObjectOutcome OssClient::GetObject(const std::string &bucket, const std::string &key) const
