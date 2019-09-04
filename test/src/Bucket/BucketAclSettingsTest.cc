@@ -163,5 +163,20 @@ TEST_F(BucketAclSettingsTest, GetBucketAclResult)
     EXPECT_EQ(result.Owner().DisplayName(), "user_example");
 }
 
+TEST_F(BucketAclSettingsTest, SetBucketAclInvalidValidateTest)
+{
+    auto aclOutcome = Client->SetBucketAcl("Invalid-bucket-test", CannedAccessControlList::PublicRead);
+    EXPECT_EQ(aclOutcome.isSuccess(), false);
+    EXPECT_EQ(aclOutcome.error().Code(), "ValidateError");
+}
+
+TEST_F(BucketAclSettingsTest, OssBucketRequestSetBucketTest)
+{
+    GetBucketAclRequest request(BucketName);
+    request.setBucket(BucketName);
+    auto aclOutcome = Client->GetBucketAcl(request);
+    EXPECT_EQ(aclOutcome.isSuccess(), true);
+}
+
 }
 }

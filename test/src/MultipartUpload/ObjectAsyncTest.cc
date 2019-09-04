@@ -408,5 +408,9 @@ TEST_F(ObjectAsyncTest, ListObjectsAsyncBasicTest)
     EXPECT_EQ(Client->DoesBucketExist(ListObjectBucketName), false);
 }
 
+TEST_F(ObjectAsyncTest, AsyncCallerContextClassTest)
+{
+    AsyncCallerContext context("AsyncCallerContextClassTest");
+}
 }
 }

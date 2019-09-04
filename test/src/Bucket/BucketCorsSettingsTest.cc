@@ -415,5 +415,19 @@ TEST_F(BucketCorsSettingsTest, GetBucketCorsResultWithEmpty)
     EXPECT_EQ(result.CORSRules().size(), 2UL);
 }
 
+TEST_F(BucketCorsSettingsTest, DeleteBucketTest)
+{
+    auto dOutcome = Client->DeleteBucketCors(BucketName);
+    EXPECT_EQ(dOutcome.isSuccess(), true);
+}
+
+TEST_F(BucketCorsSettingsTest, DeleteBucketCorsInvalidValidateTest)
+{
+    auto deloutcome = Client->DeleteBucketCors(DeleteBucketCorsRequest("Invalid-bucket-test"));
+
+    EXPECT_EQ(deloutcome.isSuccess(), false);
+    EXPECT_EQ(deloutcome.error().Code(), "ValidateError");
+}
+
 }
 }

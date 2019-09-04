@@ -108,5 +108,21 @@ TEST_F(BucketPolicySettingsTest, GetBucketPolicyResult)
     EXPECT_EQ(result.Policy(), "policy");
 }
 
+TEST_F(BucketPolicySettingsTest, DeleteBucketPolicyInvalidValidateTest)
+{
+    auto deloutcome = Client->DeleteBucketPolicy(DeleteBucketPolicyRequest("Invalid-bucket-test"));
+
+    EXPECT_EQ(deloutcome.isSuccess(), false);
+    EXPECT_EQ(deloutcome.error().Code(), "ValidateError");
+}
+
+TEST_F(BucketPolicySettingsTest, GetBucketPolicyInvalidValidateTest)
+{
+    auto getoutcome = Client->GetBucketPolicy(GetBucketPolicyRequest("Invalid-bucket-test"));
+
+    EXPECT_EQ(getoutcome.isSuccess(), false);
+    EXPECT_EQ(getoutcome.error().Code(), "ValidateError");
+}
+
 }
 }
