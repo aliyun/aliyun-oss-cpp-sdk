@@ -119,5 +119,12 @@ TEST_F(BucketRequestPaymentTest, BucketPaymentResult)
     EXPECT_EQ(result.Payer(), RequestPayer::BucketOwner);
 }
 
+TEST_F(BucketRequestPaymentTest, GetBucketRequestPaymentInvalidValidateTest)
+{
+    auto getoutcome = Client->GetBucketRequestPayment(GetBucketRequestPaymentRequest("Invalid-bucket-test"));
+
+    EXPECT_EQ(getoutcome.isSuccess(), false);
+    EXPECT_EQ(getoutcome.error().Code(), "ValidateError");
+}
 }
 }

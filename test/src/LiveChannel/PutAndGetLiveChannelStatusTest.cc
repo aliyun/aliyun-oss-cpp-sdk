@@ -150,5 +150,14 @@ TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelResultTest)
     EXPECT_EQ(result2.AudioCodec(), "ADPCM");
 }
 
+TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelStatusInvalidBucketTest)
+{
+    std::string channelName = "not_exist";
+
+    GetLiveChannelStatRequest request4("Invalid-bucket-test", channelName);
+    auto getStatOutcome = Client->GetLiveChannelStat(request4);
+    EXPECT_EQ(getStatOutcome.isSuccess(), false);
+    EXPECT_EQ(getStatOutcome.error().Code(), "ValidateError");
+}
 }
 }

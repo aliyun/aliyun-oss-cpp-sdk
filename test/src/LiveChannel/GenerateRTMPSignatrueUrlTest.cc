@@ -92,5 +92,14 @@ TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlUT)
 	EXPECT_TRUE(signedURL.find("playlistName") != std::string::npos);
 }
 
+TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlInvalidBucketTest)
+{
+    std::string channelName = "not_exist";
+    GenerateRTMPSignedUrlRequest request("Invalid-bucket-test", channelName, "", 0);
+
+    auto generateOutcome = Client->GenerateRTMPSignedUrl(request);
+    EXPECT_EQ(generateOutcome.isSuccess(), false);
+    EXPECT_EQ(generateOutcome.error().Code(), "ValidateError");
+}
 }
 }

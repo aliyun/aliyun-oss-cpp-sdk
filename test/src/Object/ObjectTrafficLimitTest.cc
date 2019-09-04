@@ -426,5 +426,24 @@ TEST_F(ObjectTrafficLimitTest, PutAndGetObjectWithPreSignedUriTest)
     //EXPECT_EQ(gOutcome.isSuccess(), true);
 }
 
+TEST_F(ObjectTrafficLimitTest, NormalResumableCopyWithSizelessPartSizeTest)
+{
+    std::string sourceKey = TestUtils::GetObjectKey("NormalCopySourceObjectOverPartSize");
+    std::string targetKey = TestUtils::GetObjectKey("NormalCopyTargetObjectOverPartSize");
+    // put object into bucket
+    auto putObjectContent = TestUtils::GetRandomStream(102400 - 2);
+    auto putObjectOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+    EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+    // Copy Object
+    MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey);
+    request.setPartSize(100 * 1024);
+    request.setThreadNum(1);
+    request.setTrafficLimit(819201);
+    auto outcome = Client->ResumableCopyObject(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
+}
 }
 }

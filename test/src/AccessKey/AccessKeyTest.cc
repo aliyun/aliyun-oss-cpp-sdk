@@ -141,5 +141,30 @@ TEST_F(AccessKeyTest, ValidCredentialsTest)
     EXPECT_EQ(outcome.isSuccess(), true);
 }
 
+TEST_F(AccessKeyTest, GeneratePresignedUrlRequestCredentialsProviderTest)
+{
+    ClientConfiguration conf;
+    auto credentialsProvider = std::make_shared<MyCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret, "haha");
+    std::shared_ptr<OssClient> client = std::make_shared<OssClient>(Config::Endpoint, credentialsProvider, conf);
+    auto outcome = client->GeneratePresignedUrl(GeneratePresignedUrlRequest("bucket","key"));
+    EXPECT_EQ(outcome.isSuccess(), true);
+}
+
+TEST_F(AccessKeyTest, GenerateRTMPSignatureUrlCredentialsProviderTest)
+{
+    ClientConfiguration conf;
+    auto credentialsProvider = std::make_shared<MyCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret, "haha");
+    std::shared_ptr<OssClient> client = std::make_shared<OssClient>(Config::Endpoint, credentialsProvider, conf);
+    std::string channelName = "channel";
+    GenerateRTMPSignedUrlRequest request("bucket", channelName, "", 0);
+    request.setPlayList("test.m3u8");
+
+    time_t tExpire = time(nullptr) + 15 * 60;
+    request.setExpires(tExpire);
+    auto generateOutcome = client->GenerateRTMPSignedUrl(request);
+
+    EXPECT_EQ(generateOutcome.isSuccess(), true);
+}
+
 }
 }
