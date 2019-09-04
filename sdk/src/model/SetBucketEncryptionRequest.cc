@@ -34,7 +34,7 @@ void SetBucketEncryptionRequest::setSSEAlgorithm(SSEAlgorithm sse)
     SSEAlgorithm_ = sse;
 }
 
-void SetBucketEncryptionRequest::setKMSMasterKeyID(std::string key)
+void SetBucketEncryptionRequest::setKMSMasterKeyID(const std::string& key)
 {
     KMSMasterKeyID_ = key;
 }

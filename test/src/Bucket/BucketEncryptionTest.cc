@@ -87,8 +87,8 @@ namespace OSS {
         GetBucketEncryptionRequest getrequest(BucketName);
         auto getoutcome = Client->GetBucketEncryption(getrequest);
         EXPECT_EQ(getoutcome.isSuccess(),true);
-        EXPECT_EQ(getoutcome.result().Sse(), SSEAlgorithm::KMS);
-        EXPECT_EQ(getoutcome.result().Key(), "1234");
+        EXPECT_EQ(getoutcome.result().SSEAlgorithm(), SSEAlgorithm::KMS);
+        EXPECT_EQ(getoutcome.result().KMSMasterKeyID(), "1234");
 
         setrequest.setSSEAlgorithm(SSEAlgorithm::AES256);
         setoutcome = Client->SetBucketEncryption(setrequest);
@@ -96,7 +96,7 @@ namespace OSS {
 
         getoutcome = Client->GetBucketEncryption(getrequest);
         EXPECT_EQ(getoutcome.isSuccess(), true);
-        EXPECT_EQ(getoutcome.result().Sse(), SSEAlgorithm::AES256);
+        EXPECT_EQ(getoutcome.result().SSEAlgorithm(), SSEAlgorithm::AES256);
     }
 
     TEST_F(BucketEncryptionTest, GetBucketEncryptionResult)
@@ -109,8 +109,8 @@ namespace OSS {
                             </ApplyServerSideEncryptionByDefault>
                         </ServerSideEncryptionRule>)";
         GetBucketEncryptionResult result(xml);
-        EXPECT_EQ(result.Sse(), SSEAlgorithm::KMS);
-        EXPECT_EQ(result.Key(), "1234");
+        EXPECT_EQ(result.SSEAlgorithm(), SSEAlgorithm::KMS);
+        EXPECT_EQ(result.KMSMasterKeyID(), "1234");
     }
 }
 }

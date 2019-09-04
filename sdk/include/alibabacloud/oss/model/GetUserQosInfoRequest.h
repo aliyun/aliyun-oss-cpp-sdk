@@ -20,14 +20,14 @@
 
 namespace AlibabaCloud
 {
-    namespace OSS
+namespace OSS
+{
+    class ALIBABACLOUD_OSS_EXPORT GetUserQosInfoRequest : public OssRequest
     {
-        class ALIBABACLOUD_OSS_EXPORT GetUserQosInfoRequest : public OssRequest
-        {
-        public:
-            GetUserQosInfoRequest();
-        protected:
-            virtual ParameterCollection specialParameters() const;
-        };
-    }
+    public:
+        GetUserQosInfoRequest();
+    protected:
+        virtual ParameterCollection specialParameters() const;
+    };
+}
 }
