@@ -26,16 +26,8 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT SetBucketQosInfoRequest : public OssBucketRequest
     {
     public:
-        SetBucketQosInfoRequest(const std::string& bucket) :
-            SetBucketQosInfoRequest(bucket, QosConfiguration())
-        {
-        }
-        SetBucketQosInfoRequest(const std::string& bucket, QosConfiguration qos):
-            OssBucketRequest(bucket),
-            qosInfo_(qos)
-        {
-            setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
-        }
+        SetBucketQosInfoRequest(const std::string& bucket);
+        SetBucketQosInfoRequest(const std::string& bucket, const QosConfiguration& qos);
     protected:
         virtual std::string payload() const;
         virtual ParameterCollection specialParameters() const;

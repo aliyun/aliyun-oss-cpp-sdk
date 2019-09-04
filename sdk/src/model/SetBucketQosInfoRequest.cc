@@ -17,6 +17,18 @@
 #include <alibabacloud/oss/model/SetBucketQosInfoRequest.h>
 using namespace AlibabaCloud::OSS;
 
+SetBucketQosInfoRequest::SetBucketQosInfoRequest(const std::string& bucket) :
+    SetBucketQosInfoRequest(bucket, QosConfiguration())
+{
+}
+
+SetBucketQosInfoRequest::SetBucketQosInfoRequest(const std::string& bucket, const QosConfiguration& qos) :
+    OssBucketRequest(bucket),
+    qosInfo_(qos)
+{
+    setFlags(Flags() | REQUEST_FLAG_CONTENTMD5);
+}
+
 std::string SetBucketQosInfoRequest::payload() const
 {
     std::string str;

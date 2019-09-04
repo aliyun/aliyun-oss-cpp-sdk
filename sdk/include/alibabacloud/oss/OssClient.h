@@ -109,12 +109,12 @@ namespace OSS
         VoidOutcome SetBucketStorageCapacity(const std::string& bucket, int64_t storageCapacity) const;
         VoidOutcome SetBucketStorageCapacity(const SetBucketStorageCapacityRequest& request) const;
         VoidOutcome SetBucketPolicy(const SetBucketPolicyRequest& request) const;
-        VoidOutcome DeleteBucket(const std::string& bucket) const;
         VoidOutcome SetBucketRequestPayment(const SetBucketRequestPaymentRequest& request) const;
         VoidOutcome SetBucketEncryption(const SetBucketEncryptionRequest& request) const;
         VoidOutcome SetBucketTagging(const SetBucketTaggingRequest& request) const;
         VoidOutcome SetBucketQosInfo(const SetBucketQosInfoRequest& request) const;
 
+        VoidOutcome DeleteBucket(const std::string& bucket) const;
         VoidOutcome DeleteBucket(const DeleteBucketRequest& request) const;
         VoidOutcome DeleteBucketLogging(const std::string& bucket) const;
         VoidOutcome DeleteBucketLogging(const DeleteBucketLoggingRequest& request) const;
@@ -128,6 +128,7 @@ namespace OSS
         VoidOutcome DeleteBucketEncryption(const DeleteBucketEncryptionRequest& request) const;
         VoidOutcome DeleteBucketTagging(const DeleteBucketTaggingRequest& request) const;
         VoidOutcome DeleteBucketQosInfo(const DeleteBucketQosInfoRequest& request) const;
+
         GetBucketAclOutcome GetBucketAcl(const std::string& bucket) const;
         GetBucketAclOutcome GetBucketAcl(const GetBucketAclRequest& request) const;
         GetBucketLocationOutcome GetBucketLocation(const std::string& bucket) const;

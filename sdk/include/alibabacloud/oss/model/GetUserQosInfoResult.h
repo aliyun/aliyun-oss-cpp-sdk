@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#pragma once
 #include <memory>
 #include <iostream>
 #include <alibabacloud/oss/OssResult.h>
@@ -21,21 +21,20 @@
 
 namespace AlibabaCloud
 {
-    namespace OSS
+namespace OSS
+{
+    class ALIBABACLOUD_OSS_EXPORT GetUserQosInfoResult : public OssResult
     {
-        class ALIBABACLOUD_OSS_EXPORT GetUserQosInfoResult : public OssResult
-        {
-        public:
-            GetUserQosInfoResult();
-            GetUserQosInfoResult(const std::string& data);
-            GetUserQosInfoResult(const std::shared_ptr<std::iostream>& data);
-            GetUserQosInfoResult& operator=(const std::string& data);
-            const QosConfiguration& QosInfo() const { return qosInfo_; }
-            const std::string& Region() const { return region_; }
-        private:
-            std::string region_;
-            QosConfiguration qosInfo_;
-        };
-    }
+    public:
+        GetUserQosInfoResult();
+        GetUserQosInfoResult(const std::string& data);
+        GetUserQosInfoResult(const std::shared_ptr<std::iostream>& data);
+        GetUserQosInfoResult& operator=(const std::string& data);
+        const QosConfiguration& QosInfo() const { return qosInfo_; }
+        const std::string& Region() const { return region_; }
+    private:
+        std::string region_;
+        QosConfiguration qosInfo_;
+    };
 }
-#pragma once
+}

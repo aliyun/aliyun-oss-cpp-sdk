@@ -31,10 +31,10 @@ namespace OSS
         GetBucketEncryptionResult(const std::string& data);
         GetBucketEncryptionResult(const std::shared_ptr<std::iostream>& data);
         GetBucketEncryptionResult& operator=(const std::string& data);
-        SSEAlgorithm Sse() const { return SSEAlgorithm_; }
-        const std::string& Key() const { return KMSMasterKeyID_; }
+        AlibabaCloud::OSS::SSEAlgorithm SSEAlgorithm() const { return SSEAlgorithm_; }
+        const std::string& KMSMasterKeyID() const { return KMSMasterKeyID_; }
     private:
-        SSEAlgorithm SSEAlgorithm_;
+        AlibabaCloud::OSS::SSEAlgorithm SSEAlgorithm_;
         std::string KMSMasterKeyID_;
     };
 }

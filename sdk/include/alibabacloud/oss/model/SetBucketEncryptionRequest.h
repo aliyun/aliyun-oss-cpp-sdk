@@ -28,7 +28,7 @@ namespace OSS
     public:
         SetBucketEncryptionRequest(const std::string& bucket, SSEAlgorithm sse = SSEAlgorithm::AES256, const std::string& key = "");
         void setSSEAlgorithm(SSEAlgorithm sse);
-        void setKMSMasterKeyID(std::string key);
+        void setKMSMasterKeyID(const std::string& key);
     protected:
         virtual ParameterCollection specialParameters() const;
         virtual std::string payload() const;
