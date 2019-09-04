@@ -2342,5 +2342,87 @@ public:
         EXPECT_EQ(copyAclOutcome.isSuccess(), true);
         EXPECT_EQ(copyAclOutcome.result().Acl(), CannedAccessControlList::PublicReadWrite);
     }
+
+    TEST_F(ResumableObjectTest, ResumableUploadWithProgressCallbackTest)
+    {
+        std::string key = TestUtils::GetObjectKey("NormalResumableUploadObjectWithCallback");
+        std::string tmpFile = TestUtils::GetTargetFileName("NormalResumableUploadObjectWithCallback").append(".tmp");
+        TestUtils::WriteRandomDatatoFile(tmpFile, 102400);
+        std::string checkpointDir = TestUtils::GetTargetFileName("checkpoint");
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
+
+        TransferProgress progressCallback = { ProgressCallback, this };
+        UploadObjectRequest request(BucketName, key, tmpFile, checkpointDir, 102400, 1);
+        request.setTransferProgress(progressCallback);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableDownloadWithRangeAndProgressCallbackTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("NormalDownloadSourceObjectWithRangeLength");
+        std::string targetKey = TestUtils::GetObjectKey("NormalDownloadTargetObjectWithRangeLength");
+        auto putObjectContent = TestUtils::GetRandomStream(102400 - 1);
+        auto putObjectOutcome = Client->PutObject(BucketName, sourceKey, putObjectContent);
+        EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        TransferProgress progressCallback = { ProgressCallback, this };
+        DownloadObjectRequest request(BucketName, sourceKey, targetKey);
+        request.setPartSize(102400);
+        request.setRange(20, 30);
+        request.setThreadNum(1);
+        request.setTransferProgress(progressCallback);
+
+        auto outcome = Client->ResumableDownloadObject(request);
+    }
+
+    TEST_F(ResumableObjectTest, OssResumableBaseRequestTest)
+    {
+        std::string key = TestUtils::GetObjectKey("NormalResumableUploadObjectWithCallback");
+        std::string tmpFile = TestUtils::GetTargetFileName("NormalResumableUploadObjectWithCallback").append(".tmp");
+        TestUtils::WriteRandomDatatoFile(tmpFile, 102400);
+        std::string checkpointDir = TestUtils::GetTargetFileName("checkpoint");
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
+
+        UploadObjectRequest request(BucketName, key, tmpFile, checkpointDir, 102400, 1);
+        request.setBucket(BucketName);
+        request.setKey(key);
+        request.setObjectSize(102400);
+        request.setObjectMtime("invalid");
+
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+    TEST_F(ResumableObjectTest, ResumableCopierTrafficLimitTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("NormalCopySourceObjectWithMetadataDirectiveTest");
+        std::string copyTargetKey = TestUtils::GetObjectKey("NormalCopyTargetObjectWithCopyMetadataTest");
+        std::string replaceTargetKey = TestUtils::GetObjectKey("NormalCopyTargetObjectWithReplaceMetadataDirectiveTest");
+
+        // put object
+        ObjectMetaData meta;
+        meta.UserMetaData()["copy"] = "copyvalue";
+        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        auto putObjectOutcome = Client->PutObject(BucketName, sourceKey, putObjectContent, meta);
+        EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        // normal copy meta
+        MultiCopyObjectRequest copyRequest(BucketName, copyTargetKey, BucketName, sourceKey);
+        copyRequest.setPartSize(102400);
+        copyRequest.setThreadNum(1);
+        copyRequest.setTrafficLimit(819201);
+        auto copyOutcome = Client->ResumableCopyObject(copyRequest);
+        EXPECT_EQ(copyOutcome.isSuccess(), true);
+    }
+
 }
 }

@@ -25,6 +25,8 @@
 #include <fstream>
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/Utils.h"
+#include "src/client/Client.h"
+
 #ifdef GetObject
 #undef GetObject
 #endif // GetObject
@@ -414,5 +416,30 @@ TEST_F(HttpClientTest, SetNetworkInterfaceTest)
     EXPECT_TRUE(outcome.result().RequestId().size() > 0);
 }
 
+class Classtest : public Client
+{
+public:
+
+    Classtest(const std::string& servicename, const ClientConfiguration& configuration) : Client(servicename, configuration) {}
+
+    virtual ~Classtest()
+    {
+    }
+
+protected:
+    std::shared_ptr<HttpRequest> buildHttpRequest(const std::string& endpoint, const ServiceRequest& msg, Http::Method method) const
+    {
+        return std::make_shared<HttpRequest>(method);
+    }
+};
+
+TEST_F(HttpClientTest, ClientClassTest)
+{
+    ClientConfiguration conf;
+
+    Classtest client("oss", conf);
+
+    auto name = client.serviceName();
+}
 }
 }

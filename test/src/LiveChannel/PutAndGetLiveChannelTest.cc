@@ -321,5 +321,26 @@ TEST_F(PutAndGetLiveChannelTest, PutAndGetLiveChannelResultTest)
     EXPECT_EQ(result.PlayUrl(), "http://test-bucket.oss-cn-hangzhou.aliyuncs.com/test-channel/playlist.m3u8");
 }
 
+TEST_F(PutAndGetLiveChannelTest, GetLiveChannelInfoInvalidBucketTest)
+{
+    std::string channelName;
+    channelName.assign(1024, 'a');
+
+    auto getOutcome = Client->GetLiveChannelInfo(GetLiveChannelInfoRequest(
+        "Invalid-bucket-test", channelName));
+    EXPECT_EQ(getOutcome.isSuccess(), false);
+    EXPECT_EQ(getOutcome.error().Code(), "ValidateError");
+}
+
+TEST_F(PutAndGetLiveChannelTest, LiveChannelRequestTest)
+{
+    std::string channelName;
+    channelName.assign(1024, 'a');
+
+    GetLiveChannelInfoRequest request("bucket", channelName);
+    request.setBucket("bucket");
+    auto getOutcome = Client->GetLiveChannelInfo(request);
+}
+
 }
 }
