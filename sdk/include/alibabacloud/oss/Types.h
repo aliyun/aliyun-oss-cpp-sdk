@@ -103,6 +103,15 @@ namespace OSS
         KMS,
         AES256
     };
+	
+    enum RedirectType
+    {
+        Mirror = 0,
+        External,
+        Internal,
+        AliCDN,
+        INVALID
+    };
 
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 

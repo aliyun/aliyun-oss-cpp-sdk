@@ -871,3 +871,21 @@ SSEAlgorithm AlibabaCloud::OSS::ToSSEAlgorithm(const char* name)
     else return SSEAlgorithm::AES256;
 }
 
+const char* AlibabaCloud::OSS::ToRedirectTypeName(RedirectType type)
+{
+    if (type > RedirectType::AliCDN)
+        return "";
+
+    static const char* StatusName[] = { "Mirror", "External", "Internal", "AliCDN" };
+    return StatusName[type - RedirectType::Mirror];
+}
+
+RedirectType AlibabaCloud::OSS::ToRedirectType(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("mirror")) return RedirectType::Mirror;
+    else if (!statusName.compare("external")) return RedirectType::External;
+    else if (!statusName.compare("internal")) return RedirectType::Internal;
+    else if (!statusName.compare("alicdn")) return RedirectType::AliCDN;
+    else return RedirectType::INVALID;
+}

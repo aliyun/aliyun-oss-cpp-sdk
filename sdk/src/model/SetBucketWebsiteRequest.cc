@@ -42,6 +42,129 @@ std::string SetBucketWebsiteRequest::payload() const
         ss << "    <Key>" << errorDocument_ << "</Key>" << std::endl;
         ss << "  </ErrorDocument>" << std::endl;
     }
+	if (!websiteRoutingRule_.empty()) {
+		ss << "  <RoutingRules>" << std::endl;
+		for (const auto& rule : websiteRoutingRule_) {
+			ss << "  <RoutingRule>" << std::endl;
+			ss << "  <RuleNumber>" << rule.getRuleNumber() << "</RuleNumber>" << std::endl;
+			if (rule.getRoutingRuleCondition().hasRoutingRuleCondition()) {
+				ss << "<Condition>" << std::endl;
+				if (rule.getRoutingRuleCondition().hasKeyPrefixEquals()) {
+					ss << "<KeyPrefixEquals>" << rule.getRoutingRuleCondition().getKeyPrefixEquals() << "</KeyPrefixEquals>" << std::endl;
+				}
+				if (rule.getRoutingRuleCondition().hasHttpErrorCodeReturnedEquals()) {
+					ss << "<HttpErrorCodeReturnedEquals>" << rule.getRoutingRuleCondition().getHttpErrorCodeReturnedEquals() << "</HttpErrorCodeReturnedEquals>" << std::endl;
+				}
+				if (rule.getRoutingRuleCondition().hasRoutingRuleIncludeHeaderList()) {
+					ss << "<IncludeHeader>" << std::endl;
+
+					for (const auto& header : rule.getRoutingRuleCondition().getIncludeHeaderList()) {
+						ss << "  <Key>" << header.getKey() << "</Key>" << std::endl;
+						ss << "  <Equals>" << header.getEquals() << "</Equals>" << std::endl;
+					}
+					ss << "</IncludeHeader>" << std::endl;
+				}
+				ss << "</Condition>" << std::endl;
+			}
+			if (rule.getRoutingRuleRedirect().getRedirectType() != AlibabaCloud::OSS::RedirectType::INVALID) {
+				ss << "  <Redirect>" << std::endl;
+				ss << "  <RedirectType>" << ToRedirectTypeName(rule.getRoutingRuleRedirect().getRedirectType()) << "</RedirectType>" << std::endl;
+				if (!rule.getRoutingRuleRedirect().getPassQueryString().empty())
+				{
+					ss << "  <PassQueryString>" << rule.getRoutingRuleRedirect().getPassQueryString() << "</PassQueryString>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getMirrorURL().empty())
+				{
+					ss << "  <MirrorURL>" << rule.getRoutingRuleRedirect().getMirrorURL() << "</MirrorURL>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getMirrorPassQueryString().empty())
+				{
+					ss << "  <MirrorPassQueryString>" << rule.getRoutingRuleRedirect().getMirrorPassQueryString() << "</MirrorPassQueryString>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getMirrorFollowRedirect().empty())
+				{
+					ss << "  <MirrorFollowRedirect>" << rule.getRoutingRuleRedirect().getMirrorFollowRedirect() << "</MirrorFollowRedirect>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getMirrorCheckMd5().empty())
+				{
+					ss << "  <MirrorCheckMd5>" << rule.getRoutingRuleRedirect().getMirrorCheckMd5() << "</MirrorCheckMd5>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getMirrorMultiAlternates().empty())
+				{
+					ss << "<MirrorMultiAlternates>" << std::endl;
+					for (const auto& data : rule.getRoutingRuleRedirect().getMirrorMultiAlternates())
+					{
+						ss << "<MirrorMultiAlternate>" << std::endl;
+
+						ss << "<MirrorMultiAlternateNumber>" << data.getMirrorMultiAlternateNumber() << "</MirrorMultiAlternateNumber>" << std::endl;
+						ss << "<MirrorMultiAlternateURL>" << data.getMirrorMultiAlternateUrl() << "</MirrorMultiAlternateURL>" << std::endl;
+
+						ss << "</MirrorMultiAlternate>" << std::endl;
+					}
+					ss << "</MirrorMultiAlternates>" << std::endl;
+				}
+				if (rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().hasRoutingRuleMirrorHeaders())
+				{
+					ss << "  <MirrorHeaders>" << std::endl;
+					if (!rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getPassAll().empty())
+					{
+						ss << "  <PassAll>" << rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getPassAll() << "</PassAll>" << std::endl;
+					}
+					if (!rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getPass().empty())
+					{
+						for (const auto& pass : rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getPass())
+						{
+							ss << "  <Pass>" << pass << "</Pass>" << std::endl;
+						}
+					}
+					if (!rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getRemove().empty())
+					{
+						for (const auto& remove : rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getRemove())
+						{
+							ss << "  <Remove>" << remove << "</Remove>" << std::endl;
+						}
+					}
+					if (!rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getMirrorHeadersSetList().empty())
+					{
+						ss << "  <Set>" << std::endl;
+						for (const auto& set : rule.getRoutingRuleRedirect().getRoutingRuleMirrorHeaders().getMirrorHeadersSetList())
+						{
+
+							ss << "  <Key>" << set.getKey() << "</Key>" << std::endl;
+							ss << "  <Value>" << set.getValue() << "</Value>" << std::endl;
+						}
+						ss << "  </Set>" << std::endl;
+					}
+
+					ss << "  </MirrorHeaders>" << std::endl;
+
+				}
+				if (!rule.getRoutingRuleRedirect().getProtocol().empty())
+				{
+					ss << "  <Protocol>" << rule.getRoutingRuleRedirect().getProtocol() << "</Protocol>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getHostName().empty())
+				{
+					ss << "  <HostName>" << rule.getRoutingRuleRedirect().getHostName() << "</HostName>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getHttpRedirectCode().empty())
+				{
+					ss << "  <HttpRedirectCode>" << rule.getRoutingRuleRedirect().getHttpRedirectCode() << "</HttpRedirectCode>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getReplaceKeyPrefixWith().empty())
+				{
+					ss << "  <ReplaceKeyPrefixWith>" << rule.getRoutingRuleRedirect().getReplaceKeyPrefixWith() << "</ReplaceKeyPrefixWith>" << std::endl;
+				}
+				if (!rule.getRoutingRuleRedirect().getReplaceKeyWith().empty())
+				{
+					ss << "  <ReplaceKeyWith>" << rule.getRoutingRuleRedirect().getReplaceKeyWith() << "</ReplaceKeyWith>" << std::endl;
+				}
+				ss << "  </Redirect>" << std::endl;
+			}
+			ss << "  </RoutingRule>" << std::endl;
+		}
+		ss << "  </RoutingRules>" << std::endl;
+	}
     ss << "</WebsiteConfiguration>" << std::endl;
     return ss.str();
 }

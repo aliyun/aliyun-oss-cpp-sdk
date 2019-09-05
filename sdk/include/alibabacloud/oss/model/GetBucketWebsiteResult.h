@@ -18,6 +18,8 @@
 #include <memory>
 #include <iostream>
 #include <alibabacloud/oss/OssResult.h>
+#include <alibabacloud/oss/model/WebsiteRoutingRule.h>
+
 
 namespace AlibabaCloud
 {
@@ -32,9 +34,12 @@ namespace OSS
         GetBucketWebsiteResult& operator=(const std::string& data);
         const std::string& IndexDocument() const { return indexDocument_; }
         const std::string& ErrorDocument() const { return errorDocument_; }
+        const WebsiteRoutingRuleList getWebsiteRoutingRuleList() const { return websiteRoutingRule_; }
     private:
         std::string indexDocument_;
         std::string errorDocument_;
+        WebsiteRoutingRuleList websiteRoutingRule_;
+
     };
 } 
 }
