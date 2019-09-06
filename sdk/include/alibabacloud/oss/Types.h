@@ -104,7 +104,7 @@ namespace OSS
         AES256
     };
 	
-    enum RedirectType
+    enum class RedirectType
     {
         Mirror = 0,
         External,
@@ -113,6 +113,13 @@ namespace OSS
         INVALID
     };
 
+    enum class DataRedundancyType
+    {
+        LRS = 0,
+        ZRS,
+        INVALID
+    };
+	
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 
     struct  ALIBABACLOUD_OSS_EXPORT caseSensitiveLess

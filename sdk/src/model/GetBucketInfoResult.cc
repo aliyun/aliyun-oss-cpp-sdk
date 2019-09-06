@@ -88,6 +88,12 @@ GetBucketInfoResult& GetBucketInfoResult::operator =(const std::string& result)
                     sub_node = node->FirstChildElement("Grant");
                     if (sub_node && sub_node->GetText()) acl_ = ToAclType(sub_node->GetText());
                 }
+
+                node = bucket_node->FirstChildElement("DataRedundancyType");
+                if (node && node->GetText()) dataRedundancyType_ = ToDataRedundancyType(node->GetText());
+
+                node = bucket_node->FirstChildElement("Comment");
+                if (node && node->GetText()) comment_ = node->GetText();
             }
             //TODO check the result and the parse flag;
             parseDone_ = true;

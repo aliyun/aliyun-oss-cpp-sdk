@@ -877,7 +877,7 @@ const char* AlibabaCloud::OSS::ToRedirectTypeName(RedirectType type)
         return "";
 
     static const char* StatusName[] = { "Mirror", "External", "Internal", "AliCDN" };
-    return StatusName[type - RedirectType::Mirror];
+    return StatusName[static_cast<int>(type) - static_cast<int>(RedirectType::Mirror)];
 }
 
 RedirectType AlibabaCloud::OSS::ToRedirectType(const char* name)
@@ -888,4 +888,20 @@ RedirectType AlibabaCloud::OSS::ToRedirectType(const char* name)
     else if (!statusName.compare("internal")) return RedirectType::Internal;
     else if (!statusName.compare("alicdn")) return RedirectType::AliCDN;
     else return RedirectType::INVALID;
+}
+
+DataRedundancyType AlibabaCloud::OSS::ToDataRedundancyType(const char* name)
+{
+    std::string storageName = ToLower(name);
+    if (!storageName.compare("lrs")) return DataRedundancyType::LRS;
+    else return DataRedundancyType::ZRS;
+}
+
+const char* AlibabaCloud::OSS::ToDataRedundancyTypeName(DataRedundancyType type)
+{
+    if (type > DataRedundancyType::ZRS)
+        return "";
+
+    static const char* StatusName[] = { "LRS", "ZRS" };
+    return StatusName[static_cast<int>(type) - static_cast<int>(DataRedundancyType::LRS)];
 }

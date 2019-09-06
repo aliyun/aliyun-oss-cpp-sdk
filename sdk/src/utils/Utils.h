@@ -97,5 +97,9 @@ namespace OSS
 	
     const char* ToRedirectTypeName(RedirectType status);
     RedirectType ToRedirectType(const char* name);
+
+    DataRedundancyType ToDataRedundancyType(const char* name);
+    const char* ToDataRedundancyTypeName(DataRedundancyType type);
+
 }
 }
