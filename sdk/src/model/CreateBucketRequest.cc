@@ -26,7 +26,8 @@ CreateBucketRequest::CreateBucketRequest(const std::string &bucket, StorageClass
 CreateBucketRequest::CreateBucketRequest(const std::string &bucket, StorageClass storageClass, CannedAccessControlList acl):
     OssBucketRequest(bucket),
     storageClass_(storageClass),
-    acl_(acl)
+    acl_(acl),
+    dataRedundancyType_(DataRedundancyType::NotSet)
 {
 }
 
@@ -38,6 +39,11 @@ std::string CreateBucketRequest::payload() const
     str.append("<StorageClass>");
     str.append(ToStorageClassName(storageClass_));
     str.append("</StorageClass>\n");
+    if (dataRedundancyType_ != DataRedundancyType::NotSet) {
+        str.append("<DataRedundancyType>");
+        str.append(ToDataRedundancyTypeName(dataRedundancyType_));
+        str.append("</DataRedundancyType>\n");
+    }
     str.append("</CreateBucketConfiguration>");
     return str;
 }

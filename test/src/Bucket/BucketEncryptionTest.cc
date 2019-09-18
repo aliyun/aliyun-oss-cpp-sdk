@@ -36,7 +36,7 @@ namespace OSS {
         static void SetUpTestCase()
         {
             Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
-            BucketName = TestUtils::GetBucketName("cpp-sdk-bucketEncryption");
+            BucketName = TestUtils::GetBucketName("cpp-sdk-bucketencryption");
             Client->CreateBucket(CreateBucketRequest(BucketName));
         }
 
@@ -74,6 +74,11 @@ namespace OSS {
         DeleteBucketEncryptionRequest delrequest(BucketName);
         auto deloutcome = Client->DeleteBucketEncryption(delrequest);
         EXPECT_EQ(deloutcome.isSuccess(), true);
+
+        auto infoOutcome = Client->GetBucketInfo(BucketName);
+        EXPECT_EQ(infoOutcome.isSuccess(), true);
+        EXPECT_EQ(infoOutcome.result().SSEAlgorithm(), SSEAlgorithm::NotSet);
+        EXPECT_EQ(infoOutcome.result().KMSMasterKeyID(), "");
     }
 
     TEST_F(BucketEncryptionTest, GetBucketEncryptionTest)
@@ -90,13 +95,33 @@ namespace OSS {
         EXPECT_EQ(getoutcome.result().SSEAlgorithm(), SSEAlgorithm::KMS);
         EXPECT_EQ(getoutcome.result().KMSMasterKeyID(), "1234");
 
+        auto infoOutcome = Client->GetBucketInfo(BucketName);
+        EXPECT_EQ(infoOutcome.isSuccess(), true);
+        EXPECT_EQ(infoOutcome.result().SSEAlgorithm(), SSEAlgorithm::KMS);
+        EXPECT_EQ(infoOutcome.result().KMSMasterKeyID(), "1234");
+
+
         setrequest.setSSEAlgorithm(SSEAlgorithm::AES256);
+        setrequest.setKMSMasterKeyID("");
         setoutcome = Client->SetBucketEncryption(setrequest);
         EXPECT_EQ(setoutcome.isSuccess(), true);
 
         getoutcome = Client->GetBucketEncryption(getrequest);
         EXPECT_EQ(getoutcome.isSuccess(), true);
         EXPECT_EQ(getoutcome.result().SSEAlgorithm(), SSEAlgorithm::AES256);
+
+        infoOutcome = Client->GetBucketInfo(BucketName);
+        EXPECT_EQ(infoOutcome.isSuccess(), true);
+        EXPECT_EQ(infoOutcome.result().SSEAlgorithm(), SSEAlgorithm::AES256);
+        EXPECT_EQ(infoOutcome.result().KMSMasterKeyID(), "");
+    }
+
+    TEST_F(BucketEncryptionTest, SetBucketEncryptionNegativeTest)
+    {
+        SetBucketEncryptionRequest setrequest(BucketName);
+        setrequest.setSSEAlgorithm(SSEAlgorithm::NotSet);
+        auto setoutcome = Client->SetBucketEncryption(setrequest);
+        EXPECT_EQ(setoutcome.isSuccess(), false);
     }
 
     TEST_F(BucketEncryptionTest, GetBucketEncryptionResult)

@@ -29,12 +29,14 @@ namespace OSS
         CreateBucketRequest(const std::string& bucket, StorageClass storageClass = StorageClass::Standard);
         CreateBucketRequest(const std::string& bucket, StorageClass storageClass, 
             CannedAccessControlList acl);
+        void setDataRedundancyType(DataRedundancyType type) { dataRedundancyType_ = type; }
     protected:
         virtual std::string payload() const;
         virtual HeaderCollection specialHeaders() const;
     private:
         StorageClass storageClass_;
         CannedAccessControlList acl_;
+        DataRedundancyType dataRedundancyType_;
     };
 } 
 }

@@ -39,6 +39,11 @@ namespace OSS
         AlibabaCloud::OSS::StorageClass StorageClass() const { return storageClass_; }
         CannedAccessControlList Acl() const { return acl_; }
         const AlibabaCloud::OSS::Owner& Owner() { return owner_; }
+        AlibabaCloud::OSS::DataRedundancyType DataRedundancyType() const { return dataRedundancyType_; }
+        const std::string& Comment() const { return comment_; }
+        AlibabaCloud::OSS::SSEAlgorithm SSEAlgorithm() { return sseAlgorithm_; }
+        const std::string& KMSMasterKeyID() { return kmsMasterKeyID_; }
+
     private:
         std::string location_;
         std::string name_;
@@ -48,6 +53,10 @@ namespace OSS
         AlibabaCloud::OSS::StorageClass storageClass_;
         CannedAccessControlList acl_;
         AlibabaCloud::OSS::Owner owner_;
+        AlibabaCloud::OSS::DataRedundancyType dataRedundancyType_;
+        std::string comment_;
+        AlibabaCloud::OSS::SSEAlgorithm sseAlgorithm_;
+        std::string kmsMasterKeyID_;
     };
 } 
 }
