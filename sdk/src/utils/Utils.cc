@@ -860,14 +860,28 @@ RequestPayer AlibabaCloud::OSS::ToRequestPayer(const char* name)
 
 const char* AlibabaCloud::OSS::ToSSEAlgorithmName(SSEAlgorithm sse)
 {
-    static const char* StatusName[] = { "KMS", "AES256" };
-    return StatusName[static_cast<int>(sse) - static_cast<int>(SSEAlgorithm::KMS)];
+    static const char* StatusName[] = { "NotSet", "KMS", "AES256" };
+    return StatusName[static_cast<int>(sse) - static_cast<int>(SSEAlgorithm::NotSet)];
 }
 
 SSEAlgorithm AlibabaCloud::OSS::ToSSEAlgorithm(const char* name)
 {
     std::string statusName = ToLower(name);
     if (!statusName.compare("kms")) return SSEAlgorithm::KMS;
-    else return SSEAlgorithm::AES256;
+    else if (!statusName.compare("aes256")) return SSEAlgorithm::AES256;
+    else return SSEAlgorithm::NotSet;
 }
 
+DataRedundancyType AlibabaCloud::OSS::ToDataRedundancyType(const char* name)
+{
+    std::string storageName = ToLower(name);
+    if (!storageName.compare("lrs")) return DataRedundancyType::LRS;
+    else if (!storageName.compare("zrs")) return DataRedundancyType::ZRS;
+    else return DataRedundancyType::NotSet;
+}
+
+const char* AlibabaCloud::OSS::ToDataRedundancyTypeName(DataRedundancyType type)
+{
+    static const char* typeName[] = { "NotSet", "LRS", "ZRS" };
+    return typeName[static_cast<int>(type) - static_cast<int>(DataRedundancyType::NotSet)];
+}

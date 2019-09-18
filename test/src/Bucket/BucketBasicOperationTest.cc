@@ -383,6 +383,8 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoResult)
                             <AccessControlList>
                               <Grant>private</Grant>
                             </AccessControlList>
+                            <Comment>test</Comment>
+                            <DataRedundancyType>LRS</DataRedundancyType>
                           </Bucket>
                         </BucketInfo>)";
     GetBucketInfoResult result(xml);
@@ -390,6 +392,8 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoResult)
     EXPECT_EQ(result.Location(), "oss-cn-hangzhou");
     EXPECT_EQ(result.ExtranetEndpoint(), "oss-cn-hangzhou.aliyuncs.com");
     EXPECT_EQ(result.Acl(), CannedAccessControlList::Private);
+    EXPECT_EQ(result.Comment(), "test");
+    EXPECT_EQ(result.DataRedundancyType(), DataRedundancyType::LRS);
 }
 
 TEST_F(BucketBasicOperationTest, ListBucketsResultTest)
@@ -507,6 +511,50 @@ TEST_F(BucketBasicOperationTest, GetBucketLocationResult)
                         <LocationConstraint xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">oss-cn-hangzhou</LocationConstraint>)";
     GetBucketLocationResult result(xml);
     EXPECT_EQ(result.Location(), "oss-cn-hangzhou");
+}
+
+TEST_F(BucketBasicOperationTest, CreateBucketDataRedundancyTypeTest)
+{
+    auto bucketName = TestUtils::GetBucketName(testPrefix);
+
+    //LRS
+    CreateBucketRequest request(bucketName);
+    request.setDataRedundancyType(DataRedundancyType::LRS);
+    auto outcome = Client->CreateBucket(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(2);
+    auto infoOutcome = Client->GetBucketInfo(bucketName);
+    EXPECT_EQ(infoOutcome.isSuccess(), true);
+    EXPECT_EQ(infoOutcome.result().DataRedundancyType(), DataRedundancyType::LRS);
+
+    Client->DeleteBucket(bucketName);
+
+    //ZRS
+    bucketName = TestUtils::GetBucketName(testPrefix);
+    request.setBucket(bucketName);
+    request.setDataRedundancyType(DataRedundancyType::ZRS);
+    outcome = Client->CreateBucket(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(2);
+    infoOutcome = Client->GetBucketInfo(bucketName);
+    EXPECT_EQ(infoOutcome.isSuccess(), true);
+    EXPECT_EQ(infoOutcome.result().DataRedundancyType(), DataRedundancyType::ZRS);
+    Client->DeleteBucket(bucketName);
+
+    //NotSet
+    bucketName = TestUtils::GetBucketName(testPrefix);
+    request.setBucket(bucketName);
+    request.setDataRedundancyType(DataRedundancyType::NotSet);
+    outcome = Client->CreateBucket(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(2);
+    infoOutcome = Client->GetBucketInfo(bucketName);
+    EXPECT_EQ(infoOutcome.isSuccess(), true);
+    EXPECT_EQ(infoOutcome.result().DataRedundancyType(), DataRedundancyType::LRS);
+    Client->DeleteBucket(bucketName);
 }
 
 }

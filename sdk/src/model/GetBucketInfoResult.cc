@@ -23,7 +23,9 @@ using namespace tinyxml2;
 
 
 GetBucketInfoResult::GetBucketInfoResult() :
-    OssResult()
+    OssResult(),
+    dataRedundancyType_(AlibabaCloud::OSS::DataRedundancyType::NotSet),
+    sseAlgorithm_(AlibabaCloud::OSS::SSEAlgorithm::NotSet)
 {
 }
 
@@ -87,6 +89,22 @@ GetBucketInfoResult& GetBucketInfoResult::operator =(const std::string& result)
                     XMLElement *sub_node;
                     sub_node = node->FirstChildElement("Grant");
                     if (sub_node && sub_node->GetText()) acl_ = ToAclType(sub_node->GetText());
+                }
+
+                node = bucket_node->FirstChildElement("DataRedundancyType");
+                if (node && node->GetText()) dataRedundancyType_ = ToDataRedundancyType(node->GetText());
+
+                node = bucket_node->FirstChildElement("Comment");
+                if (node && node->GetText()) comment_ = node->GetText();
+
+                node = bucket_node->FirstChildElement("ServerSideEncryptionRule");
+                if (node) {
+                    XMLElement *sub_node;
+                    sub_node = node->FirstChildElement("SSEAlgorithm");
+                    if (sub_node && sub_node->GetText()) sseAlgorithm_ = ToSSEAlgorithm(sub_node->GetText());
+
+                    sub_node = node->FirstChildElement("KMSMasterKeyID");
+                    if (sub_node && sub_node->GetText()) kmsMasterKeyID_ = sub_node->GetText();
                 }
             }
             //TODO check the result and the parse flag;

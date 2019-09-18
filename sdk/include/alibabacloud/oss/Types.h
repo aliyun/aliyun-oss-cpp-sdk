@@ -100,8 +100,16 @@ namespace OSS
 
     enum class SSEAlgorithm
     {
+        NotSet = 0,
         KMS,
         AES256
+    };
+
+    enum class DataRedundancyType
+    {
+        NotSet = 0,
+        LRS,
+        ZRS
     };
 
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
