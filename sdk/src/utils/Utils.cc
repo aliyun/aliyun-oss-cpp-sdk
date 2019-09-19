@@ -34,6 +34,14 @@
 
 using namespace AlibabaCloud::OSS;
 
+#if defined(__GNUG__) && __GNUC__ < 5
+
+#else
+static const std::regex ipPattern("((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])");
+static const std::regex bucketNamePattern("^[a-z0-9][a-z0-9\\-]{1,61}[a-z0-9]$");
+static const std::regex loggingPrefixPattern("^[a-zA-Z][a-zA-Z0-9\\-]{0,31}$");
+#endif
+
 std::string AlibabaCloud::OSS::GenerateUuid()
 {
     return "";
@@ -370,7 +378,6 @@ bool AlibabaCloud::OSS::IsIp(const std::string &host)
     }
     return false;
 #else
-    std::regex ipPattern("((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])");
     return std::regex_match(host, ipPattern);
 #endif
 }
@@ -452,8 +459,7 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
 #else
     if (bucketName.empty())
         return false;
-    std::regex ipPattern("^[a-z0-9][a-z0-9\\-]{1,61}[a-z0-9]$");
-    return std::regex_match(bucketName, ipPattern);
+    return std::regex_match(bucketName, bucketNamePattern);
 #endif
 }
 
@@ -484,8 +490,7 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
      }
      return true;
 #else
-     std::regex ipPattern("^[a-zA-Z][a-zA-Z0-9\\-]{0,31}$");
-     return std::regex_match(prefix, ipPattern);
+     return std::regex_match(prefix, loggingPrefixPattern);
 #endif
  }
 
