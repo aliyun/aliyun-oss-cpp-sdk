@@ -126,7 +126,7 @@ TEST_F(ListLiveChannelTest, ListLiveChannelResultTest)
                             <NextMarker>channel-0</NextMarker>
                             <LiveChannel>
                                 <Name>channel-0</Name>
-                                <Description></Description>
+                                <Description>test</Description>
                                 <Status>disabled</Status>
                                 <LastModified>2016-07-30T01:54:21.000Z</LastModified>
                                 <PublishUrls>
@@ -158,7 +158,7 @@ TEST_F(ListLiveChannelTest, ListLiveChannelResultTest)
     EXPECT_EQ(result.NextMarker(), "channel-0");
     std::vector<LiveChannelInfo> vec = result.LiveChannelList();
     EXPECT_EQ(vec.size(), 2u);
-    EXPECT_EQ(vec[0].description, "");
+    EXPECT_EQ(vec[0].description, "test");
     EXPECT_EQ(vec[0].status, "disabled");
     EXPECT_EQ(vec[0].name, "channel-0");
     EXPECT_EQ(vec[0].lastModified, "2016-07-30T01:54:21.000Z");
@@ -166,5 +166,74 @@ TEST_F(ListLiveChannelTest, ListLiveChannelResultTest)
     EXPECT_EQ(vec[0].playUrl, "http://test-bucket.oss-cn-hangzhou.aliyuncs.com/channel-0/playlist.m3u8");
 }
 
+TEST_F(ListLiveChannelTest, ListLiveChannelResultBranchTest)
+{
+    ListLiveChannelResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListLiveChannel>
+                        </ListLiveChannel>)";
+
+    ListLiveChannelResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListLiveChannelResult>
+                            
+                        </ListLiveChannelResult>)";
+
+    ListLiveChannelResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListLiveChannelResult>
+
+                            <LiveChannel>
+                                
+                            </LiveChannel>
+                            <LiveChannel>
+                                
+                            </LiveChannel>
+                        </ListLiveChannelResult>)";
+
+    ListLiveChannelResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListLiveChannelResult>
+                            <Prefix></Prefix>
+                            <Marker></Marker>
+                            <MaxKeys></MaxKeys>
+                            <IsTruncated></IsTruncated>
+                            <NextMarker></NextMarker>
+                            <LiveChannel>
+                                <Name></Name>
+                                <Description></Description>
+                                <Status></Status>
+                                <LastModified></LastModified>
+                                <PublishUrls>
+                                <Url></Url>
+                                </PublishUrls>
+                                <PlayUrls>
+                                    <Url></Url>
+                                </PlayUrls>
+                            </LiveChannel>
+                            <LiveChannel>
+                                <Name></Name>
+                                <Description></Description>
+                                <Status></Status>
+                                <LastModified></LastModified>
+                                <PublishUrls>
+                                    <Url></Url>
+                                </PublishUrls>
+                                <PlayUrls>
+                                <Url></Url>
+                                </PlayUrls>
+                            </LiveChannel>
+                        </ListLiveChannelResult>)";
+
+    ListLiveChannelResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    ListLiveChannelResult result5(xml);
+
+}
 }
 }

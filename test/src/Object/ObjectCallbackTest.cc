@@ -598,5 +598,17 @@ TEST_F(ObjectCallbackTest, PutPreSignedWithoutCallbackTest)
     EXPECT_EQ(outcome.result().ContentLength(), 1024LL);
 }
 
+TEST_F(ObjectCallbackTest, ObjectCallbackBuilderFunctionTest)
+{
+    std::string callbackUrl;
+    std::string callbackBody;
+    ObjectCallbackBuilder builder(callbackUrl, callbackBody);
+
+    builder.build();
+
+    ObjectCallbackVariableBuilder varBuilder;
+    varBuilder.addCallbackVariable("var1", "value1");
+    varBuilder.build();
+}
 }
 }

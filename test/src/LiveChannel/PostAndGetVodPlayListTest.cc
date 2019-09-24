@@ -233,5 +233,9 @@ TEST_F(PostAndGetVodPlayListTest, GetVodPlaylistResultTest)
     EXPECT_EQ(result2.PlaylistContent().empty(), false);
 }
 
+TEST_F(PostAndGetVodPlayListTest, GetVodPlaylistRequestFunctionTest)
+{
+    auto getOutcome = Client->GetVodPlaylist(GetVodPlaylistRequest("INVLAIDNAME", "test-channel", 1, 2));
+}
 }
 }

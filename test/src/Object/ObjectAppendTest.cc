@@ -232,4 +232,19 @@ TEST_F(ObjectAppendTest, AppendObjectResultTest)
     EXPECT_EQ(result.Length(), 0UL);
 }
 
+TEST_F(ObjectAppendTest, AppendObjectFuntionTest)
+{
+    std::string objName = std::string("test-cpp-sdk-objectappend");
+    std::string text = "hellowworld";
+    AppendObjectRequest appendRequest(BucketName, objName, std::make_shared<std::stringstream>(text));
+    appendRequest.setContentMd5("test");
+    appendRequest.setExpires("1");
+    appendRequest.setExpires(1);
+
+    ObjectMetaData meta;
+    meta.setContentType("test");
+    AppendObjectRequest appendRequest1(BucketName, objName, std::make_shared<std::stringstream>(text), meta);
+    Client->AppendObject(appendRequest1);
+
+}
 }}

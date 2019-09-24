@@ -188,6 +188,48 @@ TEST_F(BucketRefersSettingsTest, GetBucketRefererResult)
 
 }
 
+TEST_F(BucketRefersSettingsTest, GetBucketRefererResultBranchTest)
+{
+    GetBucketRefererResult result("test");
 
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <Referer>
+                    <AllowEmptyReferer>true</AllowEmptyReferer >
+                        <RefererList>
+                            <Referer> http://www.aliyun.com</Referer>
+                            <Referer> https://www.aliyun.com</Referer>
+                            <Referer> http://www.*.com</Referer>
+                            <Referer> https://www.?.aliyuncs.com</Referer>
+                        </RefererList>
+                    </Referer>)";
+    GetBucketRefererResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <RefererConfiguration>
+                    </RefererConfiguration>)";
+    GetBucketRefererResult result2(xml);
+
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <RefererConfiguration>
+                    <AllowEmptyReferer>true</AllowEmptyReferer >
+                        <RefererList>
+                        </RefererList>
+                    </RefererConfiguration>)";
+    GetBucketRefererResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <RefererConfiguration>
+                    <AllowEmptyReferer></AllowEmptyReferer >
+                        <RefererList>
+                            <Referer> </Referer>
+                            <Referer> </Referer>
+                        </RefererList>
+                    </RefererConfiguration>)";
+    GetBucketRefererResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketRefererResult result5(xml);
+}
 }
 }

@@ -429,5 +429,30 @@ TEST_F(BucketCorsSettingsTest, DeleteBucketCorsInvalidValidateTest)
     EXPECT_EQ(deloutcome.error().Code(), "ValidateError");
 }
 
+TEST_F(BucketCorsSettingsTest, GetBucketCorsResultBranchTest)
+{
+    GetBucketCorsResult result("test");
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CORS>
+                            <CORSRule>
+                              <AllowedOrigin></AllowedOrigin>
+                              <AllowedMethod></AllowedMethod>
+                              <AllowedHeader></AllowedHeader>
+                              <ExposeHeader></ExposeHeader>
+                              <MaxAgeSeconds></MaxAgeSeconds>
+                            </CORSRule>
+                            <CORSRule>
+                              <AllowedOrigin></AllowedOrigin>
+                              <AllowedMethod></AllowedMethod>
+                              <AllowedHeader></AllowedHeader>
+                              <ExposeHeader></ExposeHeader>
+                              <MaxAgeSeconds></MaxAgeSeconds>
+                            </CORSRule>
+                        </CORS>)";
+    GetBucketCorsResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketCorsResult result2(xml);
+}
 }
 }

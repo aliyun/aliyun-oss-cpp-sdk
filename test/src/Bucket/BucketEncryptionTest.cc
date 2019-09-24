@@ -137,5 +137,39 @@ namespace OSS {
         EXPECT_EQ(result.SSEAlgorithm(), SSEAlgorithm::KMS);
         EXPECT_EQ(result.KMSMasterKeyID(), "1234");
     }
+
+    TEST_F(BucketEncryptionTest, GetBucketEncryptionResultBranchTest)
+    {
+        GetBucketEncryptionResult result("test");
+        std::string xml = R"(<?xml version="1.0" ?>
+                        <ServerSideEncryption>
+
+                        </ServerSideEncryption>)";
+        GetBucketEncryptionResult result1(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <ServerSideEncryptionRule>
+                        </ServerSideEncryptionRule>)";
+        GetBucketEncryptionResult result2(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <ServerSideEncryptionRule>
+                            <ApplyServerSideEncryptionByDefault>
+                            </ApplyServerSideEncryptionByDefault>
+                        </ServerSideEncryptionRule>)";
+        GetBucketEncryptionResult result3(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <ServerSideEncryptionRule>
+                            <ApplyServerSideEncryptionByDefault>
+                                <SSEAlgorithm></SSEAlgorithm>
+                                <KMSMasterKeyID></KMSMasterKeyID>
+                            </ApplyServerSideEncryptionByDefault>
+                        </ServerSideEncryptionRule>)";
+        GetBucketEncryptionResult result4(xml);
+
+        xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+        GetBucketEncryptionResult result5(xml);
+    }
 }
 }

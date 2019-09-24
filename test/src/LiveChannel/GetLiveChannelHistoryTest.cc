@@ -141,5 +141,45 @@ TEST_F(GetLiveChannelHistoryTest, GetLiveChannelHistoryResultTest)
     EXPECT_EQ(result2.LiveRecordList().empty(), true);
 }
 
+TEST_F(GetLiveChannelHistoryTest, GetLiveChannelHistoryResultBranchTest)
+{
+    GetLiveChannelHistoryResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+							          <LiveChannel>
+							            <LiveRecord>
+								          <StartTime>2016-07-30T01:53:21.000Z</StartTime>
+								          <EndTime>2016-07-30T01:53:31.000Z</EndTime>
+								          <RemoteAddr>10.101.194.148:56861</RemoteAddr>
+							          </LiveRecord>
+							        </LiveChannel>)";
+    GetLiveChannelHistoryResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+							          <LiveChannelHistory>
+							        </LiveChannelHistory>)";
+    GetLiveChannelHistoryResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+							          <LiveChannelHistory>
+							            <LiveRecord>
+							          </LiveRecord>
+							        </LiveChannelHistory>)";
+    GetLiveChannelHistoryResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+							          <LiveChannelHistory>
+							            <LiveRecord>
+								          <StartTime></StartTime>
+								          <EndTime></EndTime>
+								          <RemoteAddr></RemoteAddr>
+							          </LiveRecord>
+							        </LiveChannelHistory>)";
+    GetLiveChannelHistoryResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetLiveChannelHistoryResult result5(xml);
+
+}
 }
 }

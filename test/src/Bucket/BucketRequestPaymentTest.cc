@@ -126,5 +126,30 @@ TEST_F(BucketRequestPaymentTest, GetBucketRequestPaymentInvalidValidateTest)
     EXPECT_EQ(getoutcome.isSuccess(), false);
     EXPECT_EQ(getoutcome.error().Code(), "ValidateError");
 }
+
+TEST_F(BucketRequestPaymentTest, BucketPaymentResultBranchTest)
+{
+    GetBucketPaymentResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <RequestPayment>
+                        <Payer>BucketOwner</Payer>
+                        </RequestPayment>)";
+    GetBucketPaymentResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <RequestPaymentConfiguration>
+                        </RequestPaymentConfiguration>)";
+    GetBucketPaymentResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <RequestPaymentConfiguration>
+                        <Payer></Payer>
+                        </RequestPaymentConfiguration>)";
+    GetBucketPaymentResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketPaymentResult result4(xml);
+}
 }
 }

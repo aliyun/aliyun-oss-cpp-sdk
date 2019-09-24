@@ -2424,5 +2424,15 @@ public:
         EXPECT_EQ(copyOutcome.isSuccess(), true);
     }
 
+    TEST_F(ResumableObjectTest, DownloadObjectRequestBranchTest)
+    {
+        DownloadObjectRequest request(BucketName, "test", "test");
+        request.setRange(1,1);
+        Client->ResumableDownloadObject(request);
+
+        OssResumableBaseRequest request1("test","test","test",1,0);
+    }
+
+
 }
 }
