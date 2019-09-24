@@ -21,6 +21,9 @@
 #include "../Utils.h"
 #include <fstream>
 #include "src/utils/FileSystemUtils.h"
+#include "src/utils/StreamBuf.h"
+#include "src/http/Url.h"
+#include "src/auth/HmacSha1Signer.h"
 
 namespace AlibabaCloud {
 namespace OSS {
@@ -696,6 +699,103 @@ TEST_F(UtilsFunctionTest, TwoHeaderCollectionInsertTest)
     EXPECT_EQ(headers1["key1"], "value1");
     EXPECT_EQ(headers1["key2"], "value2");
     EXPECT_EQ(headers1["key3"], "value3");
+}
+
+class StreamBuftest : public StreamBufProxy
+{
+public:
+    StreamBuftest(std::iostream& stream) :
+        StreamBufProxy(stream)
+    {
+    }
+
+    void test()
+    {
+        overflow();
+        pbackfail();
+        showmanyc();
+        underflow();
+        uflow();
+        char buf[5] = "test";
+        int len = 0;
+        xsgetn(buf, len);
+        setbuf(buf, len);
+        imbue(std::locale(""));
+    }
+};
+
+TEST_F(UtilsFunctionTest, StreamBufFunctionTest)
+{
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    *content << "StreamBufFunctionTest";
+    StreamBuftest buf(*content);
+    buf.test();
+}
+
+TEST_F(UtilsFunctionTest, UrlFunctionTest)
+{
+    Url url1;
+    Url url2;
+    url1 == url2;
+    url1 != url2;
+    url1.fragment();
+    url1.authority();
+    url1.setPort(1);
+    url1.setUserName("test");
+    url1.authority();
+    url1.fromString("#test");
+    std::string str;
+    url1.fromString(str);
+
+    url2.setFragment("test");
+    url2.isEmpty();
+
+    Url url3;
+    url3.isValid();
+    url3.setUserName("test");
+    url3.isValid();
+
+    url1.port();
+    url1.password();
+    url1.path();
+    url3.setAuthority(str);
+    url3.setAuthority("@test:test");
+    url3.setHost(str);
+    url3.setPassword("test");
+    url3.setUserInfo("test");
+    url3.setUserInfo(":test");
+    url3.setUserName("test");
+    url3.userName();
+
+    url2.toString();
+    url2.userInfo();
+    url2.setHost("test");
+    url2.setUserName("test");
+    url2.setPassword("test");
+    url2.toString();
+    url2.userInfo();
+}
+
+TEST_F(UtilsFunctionTest, SignerFunctionTest)
+{
+    HmacSha1Signer s;
+    s.name();
+    s.type();
+    std::string str;
+    s.generate(str, str);
+}
+
+TEST_F(UtilsFunctionTest, UtilBranchTest)
+{
+    Base64Encode(nullptr, 1);
+    ToUpper(nullptr);
+
+    ToSSEAlgorithm("AES256");
+    ToDataRedundancyType("ZRS");
+
+    ObjectMetaData meta;
+    meta.addUserHeader("test1","test");
+    meta.removeUserHeader("test");
 }
 
 }

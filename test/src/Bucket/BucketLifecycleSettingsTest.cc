@@ -576,5 +576,98 @@ TEST_F(BucketLifecycleSettingsTest, GetBucketLifecycleNegativeTest)
     EXPECT_EQ(outcome.error().Code(), "NoSuchBucket");
 }
 
+TEST_F(BucketLifecycleSettingsTest, GetBucketLifecycleResultBranchTest)
+{
+    GetBucketLifecycleResult result("test");
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <Lifecycle>
+
+                    </Lifecycle>)";
+    GetBucketLifecycleResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <LifecycleConfiguration>
+                      <Rule>
+                        <ID>36e24c61-227f-4ea9-aee2-bc5af12dbc90</ID>
+                        <Prefix>prefix1</Prefix>
+                        <Status>Disabled</Status>
+                        <Transition>
+                        </Transition>
+                        <Transition>
+                          <Days>180</Days>
+                          <StorageClass>Archive</StorageClass>
+                        </Transition>
+                        <Expiration>
+                        </Expiration>
+                        <AbortMultipartUpload>
+                        </AbortMultipartUpload>
+                      </Rule>
+                    </LifecycleConfiguration>)";
+    GetBucketLifecycleResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <LifecycleConfiguration>
+                      <Rule>
+                          <Days>180</Days>
+                          <StorageClass>Archive</StorageClass>
+                          <Days>240</Days>
+                          <Days>30</Days>
+                      </Rule>
+                    </LifecycleConfiguration>)";
+    GetBucketLifecycleResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <LifecycleConfiguration>
+                    <Rule>
+                        <ID></ID>
+                        <Prefix></Prefix>
+                        <Status></Status>
+                        <Transition>
+                        <CreatedBeforeDate></CreatedBeforeDate>
+                        <StorageClass></StorageClass>
+                        </Transition>
+                        <Expiration>
+                        <CreatedBeforeDate></CreatedBeforeDate>
+                          <Days></Days>
+                        </Expiration>
+                        <AbortMultipartUpload>
+                        <CreatedBeforeDate></CreatedBeforeDate>
+                        </AbortMultipartUpload>
+                        <Tag>
+                        </Tag>
+                        </Rule>
+                    </LifecycleConfiguration>)";
+    GetBucketLifecycleResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <LifecycleConfiguration>
+                    <Rule>
+                        <ID></ID>
+                        <Prefix></Prefix>
+                        <Status></Status>
+                        <Transition>
+                          <Days></Days>
+                        <CreatedBeforeDate></CreatedBeforeDate>
+                        <StorageClass></StorageClass>
+                        </Transition>
+                        <Expiration>
+                        <CreatedBeforeDate></CreatedBeforeDate>
+                        </Expiration>
+                        <AbortMultipartUpload>
+                          <Days></Days>
+                        <CreatedBeforeDate></CreatedBeforeDate>
+                        </AbortMultipartUpload>
+                        <Tag>
+                          <Key></Key>
+                          <Value></Value>
+                        </Tag>
+                        </Rule>
+                    </LifecycleConfiguration>)";
+    GetBucketLifecycleResult result5(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketLifecycleResult result6(xml);
+
+}
 }
 }

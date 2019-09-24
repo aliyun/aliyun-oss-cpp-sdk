@@ -182,5 +182,49 @@ TEST_F(BucketLoggingSettingsTest, GetBucketLoggingResult)
     EXPECT_EQ(result.TargetPrefix(), "mybucket-access_log/");
 }
 
+TEST_F(BucketLoggingSettingsTest, SetBucketLoggingRequestConstructionFunctiontest)
+{ 
+    SetBucketLoggingRequest request("test");
+}
+
+TEST_F(BucketLoggingSettingsTest, GetBucketLoggingResultBranchtest)
+{
+    GetBucketLoggingResult result("test");
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketLogging xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            <LoggingEnabled>
+                                <TargetBucket>mybucketlogs</TargetBucket>
+                                <TargetPrefix>mybucket-access_log/</TargetPrefix>
+                            </LoggingEnabled>
+                        </BucketLogging>)";
+    GetBucketLoggingResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketLoggingStatus xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            <LoggingEnabled>
+                            </LoggingEnabled>
+                        </BucketLoggingStatus>)";
+    GetBucketLoggingResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketLoggingStatus xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                                <TargetBucket>mybucketlogs</TargetBucket>
+                                <TargetPrefix>mybucket-access_log/</TargetPrefix>
+                        </BucketLoggingStatus>)";
+    GetBucketLoggingResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketLoggingResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketLogging xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            <LoggingEnabled>
+                                <TargetBucket></TargetBucket>
+                                <TargetPrefix></TargetPrefix>
+                            </LoggingEnabled>
+                        </BucketLogging>)";
+    GetBucketLoggingResult result5(xml);
+}
+
 }
 }

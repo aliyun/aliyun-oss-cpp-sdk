@@ -862,5 +862,37 @@ TEST_F(ObjectCopyTest, CopyObjectWithSpecialKeyNameTest)
     EXPECT_EQ(outcome.isSuccess(), true);
 }
 
+TEST_F(ObjectCopyTest, CopyObjectRequestBranchTest)
+{
+    ObjectMetaData meta;
+    meta.setContentType("test");
+
+    CopyObjectRequest request(BucketName1,"test", meta);
+    Client->CopyObject(request);
+
+    CopyObjectResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <CopyObject xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                     <LastModified>Fri, 24 Feb 2012 07:18:48 GMT</LastModified>
+                     <ETag>"5B3C1A2E053D763E1B002CC607C5A0FE"</ETag>
+                    </CopyObject>)";
+    CopyObjectResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <CopyObjectResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                    </CopyObjectResult>)";
+    CopyObjectResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <CopyObjectResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                     <LastModified></LastModified>
+                     <ETag></ETag>
+                    </CopyObjectResult>)";
+    CopyObjectResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    CopyObjectResult result4(xml);
+}
 }
 }

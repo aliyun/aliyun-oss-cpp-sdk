@@ -159,5 +159,91 @@ TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelStatusInvalidBucketTest)
     EXPECT_EQ(getStatOutcome.isSuccess(), false);
     EXPECT_EQ(getStatOutcome.error().Code(), "ValidateError");
 }
+
+TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelStatResultFunctionTest)
+{
+    GetLiveChannelStatResult result("test");
+    result.FrameRate();
+    result.SampleRate();
+}
+TEST_F(PutAndGetLiveChannelStatusTest, PutLiveChannelStatusRequestValidateFailFunctionTest)
+{
+    PutLiveChannelStatusRequest request("INVLAIDNAME", "test2");
+    auto putOutcome = Client->PutLiveChannelStatus(request);
+}
+TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelResultBranchTest)
+{
+    GetLiveChannelStatResult result("test");
+
+    std::string xml2 = R"(<?xml version="1.0" encoding="UTF-8"?>
+                            <LiveChannel>
+                                <Status>Live</Status>
+                                <ConnectedTime>2016-08-25T06:25:15.000Z</ConnectedTime>
+                                <RemoteAddr>10.1.2.3:47745</RemoteAddr>
+                            <Video>
+                                <Width>1280</Width>
+                                <Height>536</Height>
+                                <FrameRate>24</FrameRate>
+                                <Bandwidth>0</Bandwidth>
+                                <Codec>H264</Codec>
+                            </Video>
+                            <Audio>
+                                <Bandwidth>0</Bandwidth>
+                                <SampleRate>44100</SampleRate>
+                                <Codec>ADPCM</Codec>
+                            </Audio>
+                            </LiveChannel>)";
+    GetLiveChannelStatResult result2(xml2);
+
+    xml2 = R"(<?xml version="1.0" encoding="UTF-8"?>
+                            <LiveChannelStat>
+
+                                <Width>1280</Width>
+                                <Height>536</Height>
+                                <FrameRate>24</FrameRate>
+                                <Bandwidth>0</Bandwidth>
+                                <Codec>H264</Codec>
+                                <Bandwidth>0</Bandwidth>
+                                <SampleRate>44100</SampleRate>
+                                <Codec>ADPCM</Codec>
+                            </LiveChannelStat>)";
+    GetLiveChannelStatResult result3(xml2);
+
+    xml2 = R"(<?xml version="1.0" encoding="UTF-8"?>
+                            <LiveChannelStat>
+                            <Video>
+
+                            </Video>
+                            <Audio>
+
+                            </Audio>
+                            </LiveChannelStat>)";
+    GetLiveChannelStatResult result4(xml2);
+
+    xml2 = R"(<?xml version="1.0" encoding="UTF-8"?>
+                            <LiveChannelStat>
+                                <Status></Status>
+                                <ConnectedTime></ConnectedTime>
+                                <RemoteAddr></RemoteAddr>
+                            <Video>
+                                <Width></Width>
+                                <Height></Height>
+                                <FrameRate></FrameRate>
+                                <Bandwidth></Bandwidth>
+                                <Codec></Codec>
+                            </Video>
+                            <Audio>
+                                <Bandwidth></Bandwidth>
+                                <SampleRate></SampleRate>
+                                <Codec></Codec>
+                            </Audio>
+                            </LiveChannelStat>)";
+    GetLiveChannelStatResult result5(xml2);
+
+    xml2 = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetLiveChannelStatResult result6(xml2);
+
+}
+
 }
 }

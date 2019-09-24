@@ -101,5 +101,12 @@ TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlInvalidBucketTest)
     EXPECT_EQ(generateOutcome.isSuccess(), false);
     EXPECT_EQ(generateOutcome.error().Code(), "ValidateError");
 }
+
+TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignedUrlRequestBranchTest)
+{
+    std::string str;
+    GenerateRTMPSignedUrlRequest request("INVALIDNAME", "test", str, 0);
+    Client->GenerateRTMPSignedUrl(request);
+}
 }
 }

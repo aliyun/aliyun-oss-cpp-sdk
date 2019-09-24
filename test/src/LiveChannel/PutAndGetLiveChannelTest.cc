@@ -342,5 +342,93 @@ TEST_F(PutAndGetLiveChannelTest, LiveChannelRequestTest)
     auto getOutcome = Client->GetLiveChannelInfo(request);
 }
 
+TEST_F(PutAndGetLiveChannelTest, PutLiveChannelResultFunctionTest)
+{
+
+    PutLiveChannelResult result("test");
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CreateLiveChannel>
+                            <PublishUrls>
+                                <Url>rtmp://test-bucket.oss-cn-hangzhou.aliyuncs.com/live/test-channel</Url>
+                            </PublishUrls>
+                            <PlayUrls>
+                                <Url>http://test-bucket.oss-cn-hangzhou.aliyuncs.com/test-channel/playlist.m3u8</Url>
+                            </PlayUrls>
+                        </CreateLiveChannel>)";
+    PutLiveChannelResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CreateLiveChannelResult>
+                                <Url>rtmp://test-bucket.oss-cn-hangzhou.aliyuncs.com/live/test-channel</Url>
+                                <Url>http://test-bucket.oss-cn-hangzhou.aliyuncs.com/test-channel/playlist.m3u8</Url>
+                        </CreateLiveChannelResult>)";
+    PutLiveChannelResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CreateLiveChannelResult>
+                            <PublishUrls>
+                            </PublishUrls>
+                            <PlayUrls>
+                            </PlayUrls>
+                        </CreateLiveChannelResult>)";
+    PutLiveChannelResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CreateLiveChannel>
+                            <PublishUrls>
+                                <Url></Url>
+                            </PublishUrls>
+                            <PlayUrls>
+                                <Url></Url>
+                            </PlayUrls>
+                        </CreateLiveChannel>)";
+    PutLiveChannelResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    PutLiveChannelResult result5(xml);
+}
+
+TEST_F(PutAndGetLiveChannelTest, GetLiveChannelInfoResultBranchTest)
+{
+    GetLiveChannelInfoResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <LiveChannel>
+
+                        </LiveChannel>)";
+    GetLiveChannelInfoResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <LiveChannelConfiguration>
+
+                        </LiveChannelConfiguration>)";
+    GetLiveChannelInfoResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <LiveChannelConfiguration>
+
+                            <Target>
+
+                            </Target>
+
+                        </LiveChannelConfiguration>)";
+    GetLiveChannelInfoResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <LiveChannelConfiguration>
+                                <Description></Description>
+                                <Status></Status>
+                            <Target>
+                                <Type></Type>
+                                <FragDuration></FragDuration>
+                                <FragCount></FragCount>
+                                <PlaylistName></PlaylistName>
+                            </Target>
+                        </LiveChannelConfiguration>)";
+    GetLiveChannelInfoResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetLiveChannelInfoResult result5(xml);
+}
 }
 }
