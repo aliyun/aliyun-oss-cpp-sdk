@@ -214,5 +214,119 @@ namespace OSS
         EXPECT_EQ(result.QosInfo().IntranetQps(), -1);
         EXPECT_EQ(result.QosInfo().ExtranetQps(), -1);
     }
+
+    TEST_F(BucketQosInfoTest, GetUserQosInfoResultBranchTest)
+    {
+        GetUserQosInfoResult result("test");
+
+        std::string xml = R"(<?xml version="1.0" ?>
+                        <QoS>
+                                <Region>oss-cn-hangzhou</Region>
+                                <TotalUploadBandwidth>10</TotalUploadBandwidth>
+                                <IntranetUploadBandwidth>-1</IntranetUploadBandwidth>
+                                <ExtranetUploadBandwidth>-1</ExtranetUploadBandwidth>
+                                <TotalDownloadBandwidth>10</TotalDownloadBandwidth>
+                                <IntranetDownloadBandwidth>-1</IntranetDownloadBandwidth>
+                                <ExtranetDownloadBandwidth>-1</ExtranetDownloadBandwidth>
+                                <TotalQps>1000</TotalQps>
+                                <IntranetQps>-1</IntranetQps>
+                                <ExtranetQps>-1</ExtranetQps>
+                        </QoS>)";
+        GetUserQosInfoResult result1(xml);
+
+       xml = R"(<?xml version="1.0" ?>
+                        <QoSConfiguration>
+                        </QoSConfiguration>)";
+        GetUserQosInfoResult result2(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <QoSConfiguration>
+                                <Region></Region>
+                                <TotalUploadBandwidth></TotalUploadBandwidth>
+                                <IntranetUploadBandwidth></IntranetUploadBandwidth>
+                                <ExtranetUploadBandwidth></ExtranetUploadBandwidth>
+                                <TotalDownloadBandwidth></TotalDownloadBandwidth>
+                                <IntranetDownloadBandwidth></IntranetDownloadBandwidth>
+                                <ExtranetDownloadBandwidth></ExtranetDownloadBandwidth>
+                                <TotalQps></TotalQps>
+                                <IntranetQps></IntranetQps>
+                                <ExtranetQps></ExtranetQps>
+                        </QoSConfiguration>)";
+        GetUserQosInfoResult result3(xml);
+
+        xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+        GetUserQosInfoResult result10(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <QoSConfiguration>
+                                <Region>oss-cn-hangzhou</Region>
+                                <TotalUploadBandwidth>10</TotalUploadBandwidth>
+                                <IntranetUploadBandwidth>-1</IntranetUploadBandwidth>
+                                <ExtranetUploadBandwidth>-1</ExtranetUploadBandwidth>
+                                <TotalDownloadBandwidth>10</TotalDownloadBandwidth>
+                                <IntranetDownloadBandwidth>-1</IntranetDownloadBandwidth>
+                                <ExtranetDownloadBandwidth>-1</ExtranetDownloadBandwidth>
+                                <TotalQps>1000</TotalQps>
+                                <IntranetQps>-1</IntranetQps>
+                                <ExtranetQps>-1</ExtranetQps>
+                        </QoSConfiguration>)";
+        GetBucketQosInfoResult result4(xml);
+
+        xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+        GetBucketQosInfoResult result5(xml);
+
+        GetBucketQosInfoResult result6("test");
+
+        xml = R"(<?xml version="1.0" ?>
+                        <QoSConfiguration>
+                        </QoSConfiguration>)";
+        GetBucketQosInfoResult result7(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <QoS>
+                        </QoS>)";
+        GetBucketQosInfoResult result8(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <QoSConfiguration>
+                                <Region></Region>
+                                <TotalUploadBandwidth></TotalUploadBandwidth>
+                                <IntranetUploadBandwidth></IntranetUploadBandwidth>
+                                <ExtranetUploadBandwidth></ExtranetUploadBandwidth>
+                                <TotalDownloadBandwidth></TotalDownloadBandwidth>
+                                <IntranetDownloadBandwidth></IntranetDownloadBandwidth>
+                                <ExtranetDownloadBandwidth></ExtranetDownloadBandwidth>
+                                <TotalQps></TotalQps>
+                                <IntranetQps></IntranetQps>
+                                <ExtranetQps></ExtranetQps>
+                        </QoSConfiguration>)";
+        GetBucketQosInfoResult result9(xml);
+
+    }
+
+    TEST_F(BucketQosInfoTest, SetBucketQosInfoFailTest)
+    {
+        QosConfiguration qos;
+        SetBucketQosInfoRequest setrequest("INVALIDNAME", qos);
+
+        auto setoutcome = Client->SetBucketQosInfo(setrequest);
+        EXPECT_EQ(setoutcome.isSuccess(), false);
+
+        DeleteBucketQosInfoRequest delrequest("INVALIDNAME");
+        auto deloutcome = Client->DeleteBucketQosInfo(delrequest);
+        EXPECT_EQ(deloutcome.isSuccess(), false);
+
+        GetBucketQosInfoRequest getrequest("INVALIDNAME");
+        auto getoutcome = Client->GetBucketQosInfo(getrequest);
+        EXPECT_EQ(getoutcome.isSuccess(), false);
+    }
+
+    TEST_F(BucketQosInfoTest, UserQosInfoFailTest)
+    {
+        auto invalidClient = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, "Invalid", ClientConfiguration());
+        GetUserQosInfoRequest getrequest1;
+        auto getoutcome1 = invalidClient->GetUserQosInfo(getrequest1);
+        EXPECT_EQ(getoutcome1.isSuccess(), false);
+    }
 }
 }

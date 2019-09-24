@@ -76,6 +76,28 @@ TEST_F(Crc64Test, CalcCRCTest)
     EXPECT_EQ(crc2, crc2_pat);
 }
 
+TEST_F(Crc64Test, CalcCRCWithEndingFlagTest)
+{
+    std::string data1("123456789");
+    std::string data2("This is a test of the emergency broadcast system.");
+
+    //little
+    uint64_t crc1_pat = UINT64_C(0x995dc9bbdf1939fa);
+    uint64_t crc1 = CRC64::CalcCRC(0, (void *)(data1.c_str()), data1.size(), true);
+    EXPECT_EQ(crc1, crc1_pat);
+
+    uint64_t crc2_pat = UINT64_C(0x27db187fc15bbc72);
+    uint64_t crc2 = CRC64::CalcCRC(0, (void *)(data2.c_str()), data2.size(), true);
+    EXPECT_EQ(crc2, crc2_pat);
+
+    //big
+    const char *str1 = "12345678";
+    const char *str2 = "87654321";
+    crc1 = CRC64::CalcCRC(0, (void *)str1, 8, false);
+    crc2 = CRC64::CalcCRC(0, (void *)str2, 8, true);
+}
+
+
 TEST_F(Crc64Test, CombineCRCTest)
 {
     std::string data1("123456789");
@@ -417,7 +439,6 @@ TEST_F(Crc64Test, GetObjectByUrlCrc64DisablePositiveTest)
     EXPECT_EQ(outcome.isSuccess(), true);
     EXPECT_EQ(outcome.result().Metadata().CRC64(), crc);
 }
-
 
 }
 }

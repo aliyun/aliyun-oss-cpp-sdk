@@ -46,8 +46,10 @@ HttpMessage& HttpMessage::operator=(const HttpMessage &other)
 
 HttpMessage& HttpMessage::operator=(HttpMessage &&other)
 {
-    if (this != &other)
-        *this = std::move(other);
+    if (this != &other) {
+        body_ = std::move(other.body_);
+        headers_ = std::move(other.headers_);
+    }
     return *this;
 }
 

@@ -66,6 +66,8 @@ public:
 
     static std::string GetFileETag(const std::string file);
 
+    static uint64_t GetFileCRC64(const std::string file);
+
     static void LogPrintCallback(LogLevel level, const std::string &stream);
 
     static std::string Base64Decode(std::string const& encoded_string);

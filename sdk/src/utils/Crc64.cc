@@ -280,6 +280,11 @@ uint64_t CRC64::CalcCRC(uint64_t crc, void *buf, size_t len)
     return *(char *)&n ? crc64_little(crc, buf, len) : crc64_big(crc, buf, len);
 }
 
+uint64_t CRC64::CalcCRC(uint64_t crc, void *buf, size_t len, bool little)
+{
+    return little ? crc64_little(crc, buf, len) : crc64_big(crc, buf, len);
+}
+
 uint64_t CRC64::CombineCRC(uint64_t crc1, uint64_t crc2, uintmax_t len2)
 {
     return crc64_combine(crc1, crc2, len2);

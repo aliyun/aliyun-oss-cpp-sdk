@@ -26,6 +26,10 @@
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/Utils.h"
 #include "src/client/Client.h"
+#include "src/http/HttpMessage.h"
+#include "src/auth/SimpleCredentialsProvider.h"
+#include "src/OssClientImpl.h"
+
 
 #ifdef GetObject
 #undef GetObject
@@ -426,6 +430,11 @@ public:
     {
     }
 
+    void testfunction()
+    {
+        serviceName();
+        hasResponseError(nullptr);
+    }
 protected:
     std::shared_ptr<HttpRequest> buildHttpRequest(const std::string& endpoint, const ServiceRequest& msg, Http::Method method) const
     {
@@ -435,13 +444,24 @@ protected:
     }
 };
 
-TEST_F(HttpClientTest, ClientClassTest)
+TEST_F(HttpClientTest, ClientClassFunctionTest)
 {
     ClientConfiguration conf;
 
     Classtest client("oss", conf);
 
-    auto name = client.serviceName();
+    client.testfunction();
+}
+
+TEST_F(HttpClientTest, HttpMessageClassFunctionTest)
+{
+    HttpRequest req;
+    req.addHeader("testname", "testvalue");
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    *content << "test";
+    req.addBody(content);
+    HttpMessage message1(req);
+    HttpMessage message4(static_cast<HttpMessage&&>(message1));
 }
 }
 }

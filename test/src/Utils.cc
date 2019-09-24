@@ -33,6 +33,7 @@
 #include <regex>
 #include <iomanip>
 #include <src/utils/Utils.h>
+#include <src/utils/Crc64.h>
 #include <src/http/Url.h>
 #include <cstring>
 
@@ -414,6 +415,37 @@ std::string TestUtils::GetFileETag(const std::string file)
 {
     std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(file, std::ios::in | std::ios::binary);
     return ComputeContentETag(*content);
+}
+
+uint64_t TestUtils::GetFileCRC64(const std::string file)
+{
+    std::shared_ptr<std::iostream> stream = std::make_shared<std::fstream>(file, std::ios::in | std::ios::binary);
+
+    uint64_t crc64 = 0;
+
+    auto currentPos = stream->tellg();
+    if (currentPos == static_cast<std::streampos>(-1)) {
+        currentPos = 0;
+        stream->clear();
+    }
+    stream->seekg(0, stream->beg);
+
+    char streamBuffer[2048];
+    while (stream->good())
+    {
+        stream->read(streamBuffer, 2048);
+        auto bytesRead = stream->gcount();
+
+        if (bytesRead > 0)
+        {
+            crc64 = CRC64::CalcCRC(crc64, streamBuffer, bytesRead);
+        }
+    }
+
+    stream->clear();
+    stream->seekg(currentPos, stream->beg);
+
+    return crc64;
 }
 
 void TestUtils::LogPrintCallback(LogLevel level, const std::string &stream)

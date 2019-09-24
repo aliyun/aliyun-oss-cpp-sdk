@@ -1498,5 +1498,173 @@ TEST_F(ObjectBasicOperationTest, GetObjectResultTest)
     EXPECT_EQ(result.RequestId(), "");
 }
 
+TEST_F(ObjectBasicOperationTest, UtilsfunctionTest)
+{
+    auto md5 = ComputeContentMD5("test");
+    std::string invalidKey;
+    IsValidTagKey(invalidKey);
+    ToRequestPayer(invalidKey.c_str());
+
+    DeleteObjectsResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <Delete xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                    </Delete>)";
+    DeleteObjectsResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <DeleteResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                        <EncodingType></EncodingType>
+                        <Deleted>
+                        </Deleted>
+                        <Deleted>
+                           <Key></Key>
+                        </Deleted>
+                    </DeleteResult>)";
+    DeleteObjectsResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <DeleteResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                       
+                    </DeleteResult>)";
+    DeleteObjectsResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    DeleteObjectsResult result4(xml);
+
+}
+
+TEST_F(ObjectBasicOperationTest, ListObjectsResultBranchTest)
+{
+    ListObjectsResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListBucket xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                    </ListBucket>)";
+    ListObjectsResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                        
+                    </ListBucketResult>)";
+    ListObjectsResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                        <Contents>
+
+                        </Contents>
+                    </ListBucketResult>)";
+    ListObjectsResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                        <Name></Name>
+                        <Prefix></Prefix>
+                        <Marker></Marker>
+                        <MaxKeys></MaxKeys>
+                        <Delimiter></Delimiter>
+                        <IsTruncated></IsTruncated>
+                        <NextMarker></NextMarker>
+                        <EncodingType></EncodingType>
+                        <CommonPrefixes>
+                        <Prefix></Prefix>
+                        </CommonPrefixes>
+                        <Contents>
+                            <Key></Key>
+                            <LastModified></LastModified>
+                            <ETag></ETag>
+                            <Type></Type>
+                            <Size></Size>
+                            <StorageClass></StorageClass>
+                            <Owner>
+                                <ID></ID>
+                                <DisplayName></DisplayName>
+                            </Owner>
+                        </Contents>
+                        <Contents>
+                            <Key></Key>
+                            <LastModified></LastModified>
+                            <ETag></ETag>
+                            <Type></Type>
+                            <Size></Size>
+                            <StorageClass></StorageClass>
+                            <Owner>
+                                <ID></ID>
+                                <DisplayName></DisplayName>
+                            </Owner>
+                        </Contents>
+                        <Contents>
+                            <Key></Key>
+                            <LastModified></LastModified>
+                            <ETag></ETag>
+                            <Type></Type>
+                            <Size></Size>
+                            <StorageClass></StorageClass>
+                            <Owner>
+                                <ID></ID>
+                                <DisplayName></DisplayName>
+                            </Owner>
+                        </Contents>
+                        <Contents>
+                            <Key></Key>
+                            <LastModified></LastModified>
+                            <ETag></ETag>
+                            <Type></Type>
+                            <Size></Size>
+                            <StorageClass></StorageClass>
+                            <Owner>
+                                <ID></ID>
+                                <DisplayName></DisplayName>
+                            </Owner>
+                        </Contents>
+                    </ListBucketResult>)";
+    ListObjectsResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    ListObjectsResult result5(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                        <CommonPrefixes>
+                        </CommonPrefixes>
+                        <Contents>
+                            <Key></Key>
+                            <LastModified></LastModified>
+                            <ETag></ETag>
+                            <Type></Type>
+                            <Size></Size>
+                            <StorageClass></StorageClass>
+                            <Owner>
+                            </Owner>
+                        </Contents>
+                    </ListBucketResult>)";
+    ListObjectsResult result6(xml);
+
+}
+
+TEST_F(ObjectBasicOperationTest, PutObjectResultBranchTest)
+{
+    HeaderCollection header;
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    *content << "test";
+    PutObjectResult result(header, content);
+}
+
+TEST_F(ObjectBasicOperationTest, GetObjectWithOssDateHeaderTest)
+{
+    std::string key = TestUtils::GetObjectKey("GetObjectWithOssDateHeaderTest");
+    auto content = TestUtils::GetRandomStream(1024);
+
+    PutObjectRequest request(BucketName, key, content);
+    std::time_t t = std::time(nullptr);
+    request.MetaData().addHeader("x-oss-date", ToGmtTime(t));
+    auto pOutcome = Client->PutObject(request);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+}
+
 }
 }

@@ -159,5 +159,87 @@ namespace OSS
         EXPECT_EQ(listoutcome.result().Buckets().size(), 1U);
         EXPECT_EQ(listoutcome.result().Buckets()[0].Name(), BucketName);
     }
+
+    TEST_F(BucketTaggingTest, GetBucketTaggingResultBranchTest)
+    {
+        GetBucketTaggingResult result("test");
+
+        std::string xml = R"(<?xml version="1.0" ?>
+                        <Tagg>
+                            <TagSet>
+                            <Tag>
+                                <Key>project</Key>
+                                <Value>projectone</Value>
+                            </Tag>
+                            <Tag>
+                                <Key>user</Key>
+                                <Value>jsmith</Value>
+                            </Tag>
+                            </TagSet>
+                        </Tagg>)";
+        GetBucketTaggingResult result1(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <Tagging>
+                            <Tag>
+                                <Key>project</Key>
+                                <Value>projectone</Value>
+                            </Tag>
+                            <Tag>
+                                <Key>user</Key>
+                                <Value>jsmith</Value>
+                            </Tag>
+                        </Tagging>)";
+        GetBucketTaggingResult result2(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <Tagging>
+                            <TagSet>
+                            </TagSet>
+                        </Tagging>)";
+        GetBucketTaggingResult result3(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <Tagging>
+                            <TagSet>
+                            <Tag>
+                            </Tag>
+                            <Tag>
+
+                            </Tag>
+                            </TagSet>
+                        </Tagging>)";
+        GetBucketTaggingResult result4(xml);
+
+        xml = R"(<?xml version="1.0" ?>
+                        <Tagging>
+                            <TagSet>
+                            <Tag>
+                                <Key></Key>
+                                <Value></Value>
+                            </Tag>
+
+                            </TagSet>
+                        </Tagging>)";
+        GetBucketTaggingResult result5(xml);
+
+        xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+        GetBucketTaggingResult result6(xml);
+    }
+
+    TEST_F(BucketTaggingTest, SetBucketTaggingFailTest)
+    {
+        SetBucketTaggingRequest setrequest("INVALIDNAME");
+        auto setoutcome = Client->SetBucketTagging(setrequest);
+        EXPECT_EQ(setoutcome.isSuccess(), false);
+
+
+        DeleteBucketTaggingRequest delrequest("INVALIDNAME");
+        auto deloutcome = Client->DeleteBucketTagging(delrequest);
+        EXPECT_EQ(deloutcome.isSuccess(), false);
+
+        auto getoutcome = Client->GetBucketTagging(GetBucketTaggingRequest("INVALIDNAME"));
+        EXPECT_EQ(getoutcome.isSuccess(), false);
+    }
 }
 }

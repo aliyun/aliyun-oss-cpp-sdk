@@ -557,5 +557,196 @@ TEST_F(BucketBasicOperationTest, CreateBucketDataRedundancyTypeTest)
     Client->DeleteBucket(bucketName);
 }
 
+TEST_F(BucketBasicOperationTest, ObjectMetaDataFunctionTest)
+{
+    ObjectMetaData meta;
+    meta.addHeader("x-oss-object-type", "test");
+    meta.ObjectType();
+
+    meta.addUserHeader("value", "key");
+    meta.hasUserHeader("value");
+    meta.removeUserHeader("value");
+}
+
+TEST_F(BucketBasicOperationTest, GetBucketInfoResultBranchTest)
+{
+    GetBucketInfoResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <Bucket>
+                        </Bucket>)";
+    GetBucketInfoResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                        </BucketInfo>)";
+    GetBucketInfoResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                          <Bucket>
+
+                          </Bucket>
+                        </BucketInfo>)";
+    GetBucketInfoResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                          <Bucket>
+                            <CreationDate></CreationDate>
+                            <ExtranetEndpoint></ExtranetEndpoint>
+                            <IntranetEndpoint></IntranetEndpoint>
+                            <Location></Location>
+                            <Name></Name>
+                            <Owner>
+
+                            </Owner>
+                            <AccessControlList>
+
+                            </AccessControlList>
+                            <Comment></Comment>
+                            <DataRedundancyType>LRS</DataRedundancyType>
+                          </Bucket>
+                        </BucketInfo>)";
+    GetBucketInfoResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                          <Bucket>
+                            <CreationDate>2013-07-31T10:56:21.000Z</CreationDate>
+                            <ExtranetEndpoint>oss-cn-hangzhou.aliyuncs.com</ExtranetEndpoint>
+                            <IntranetEndpoint>oss-cn-hangzhou-internal.aliyuncs.com</IntranetEndpoint>
+                            <Location>oss-cn-hangzhou</Location>
+                            <Name>oss-example</Name>
+                            <StorageClass></StorageClass>
+                            <DataRedundancyType></DataRedundancyType>
+                            <Owner>
+                              <DisplayName></DisplayName>
+                              <ID></ID>
+                            </Owner>
+                            <AccessControlList>
+                              <Grant></Grant>
+                            </AccessControlList>
+                            <Comment>test</Comment>
+                            <DataRedundancyType>LRS</DataRedundancyType>
+                          </Bucket>
+                        </BucketInfo>)";
+    GetBucketInfoResult result10(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketInfoResult result13(xml);
+
+    GetBucketLocationResult result5("test");
+
+    std::string xml1 = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <Location xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">oss-cn-hangzhou</Location>)";
+    GetBucketLocationResult result6(xml1);
+
+    xml1 = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <LocationConstraint></LocationConstraint>)";
+    GetBucketLocationResult result11(xml1);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketLocationResult result14(xml1);
+
+    GetBucketStatResult result7("test");
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <Bucket>
+                          <Storage>1024123</Storage>
+                          <ObjectCount>1000</ObjectCount>
+                          <MultipartUploadCount>20</MultipartUploadCount>
+                        </Bucket>)";
+    GetBucketStatResult result8(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketStat>
+
+                        </BucketStat>)";
+    GetBucketStatResult result9(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketStat>
+                          <Storage></Storage>
+                          <ObjectCount></ObjectCount>
+                          <MultipartUploadCount></MultipartUploadCount>
+                        </BucketStat>)";
+    GetBucketStatResult result12(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketStatResult result15(xml);
+}
+
+TEST_F(BucketBasicOperationTest, ListBucketsResultBranchTest)
+{
+    ListBucketsResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListAllMyBuckets>
+                          
+                        </ListAllMyBuckets>)";
+    ListBucketsResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListAllMyBucketsResult>
+
+                        </ListAllMyBucketsResult>)";
+    ListBucketsResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListAllMyBucketsResult>
+                          <Owner>
+
+                          </Owner>
+                          <Buckets>
+                          </Buckets>
+                        </ListAllMyBucketsResult>)";
+    ListBucketsResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListAllMyBucketsResult>
+                          <Owner>
+                            <ID>1305433695277957</ID>
+                            <DisplayName>1305433695277957</DisplayName>
+                          </Owner>
+                          <Buckets>
+                            <Bucket>
+                              
+                            </Bucket>
+                          
+                          </Buckets>
+                        </ListAllMyBucketsResult>)";
+    ListBucketsResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListAllMyBucketsResult>
+                          <Owner>
+                            <ID></ID>
+                            <DisplayName></DisplayName>
+                          </Owner>
+                            <Prefix></Prefix>
+                            <Marker></Marker>
+                            <MaxKeys></MaxKeys>
+                            <IsTruncated></IsTruncated>
+                            <NextMarker></NextMarker>
+
+                          <Buckets>
+                            <Bucket>
+                            <CreationDate></CreationDate>
+                            <ExtranetEndpoint></ExtranetEndpoint>
+                            <IntranetEndpoint></IntranetEndpoint>
+                            <Location></Location>
+                            <Name></Name>
+                            <StorageClass></StorageClass>
+                            </Bucket>
+                          
+                          </Buckets>
+                        </ListAllMyBucketsResult>)";
+    ListBucketsResult result5(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    ListBucketsResult result6(xml);
+}
+
 }
 }
