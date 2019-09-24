@@ -178,5 +178,51 @@ TEST_F(BucketAclSettingsTest, OssBucketRequestSetBucketTest)
     EXPECT_EQ(aclOutcome.isSuccess(), true);
 }
 
+TEST_F(BucketAclSettingsTest, GetBucketAclResultBranchTest)
+{
+    GetBucketAclResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" ?>
+                        <AccessControl>
+                            <Owner>
+                            </Owner>
+                            <AccessControlList>
+                            </AccessControlList>
+                        </AccessControl>)";
+    GetBucketAclResult result1(xml);
+
+    xml = R"(<?xml version="1.0" ?>
+                        <AccessControlPolicy>
+                                <ID>00220120222</ID>
+                                <DisplayName>user_example</DisplayName>
+                                <Grant>public-read</Grant>
+                        </AccessControlPolicy>)";
+    GetBucketAclResult result2(xml);
+
+    xml = R"(<?xml version="1.0" ?>
+                        <AccessControlPolicy>
+                            <Owner>
+                            </Owner>
+                            <AccessControlList>
+                            </AccessControlList>
+                        </AccessControlPolicy>)";
+    GetBucketAclResult result4(xml);
+
+    xml = R"(<?xml version="1.0" ?>
+                        <AccessControlPolicy>
+                            <Owner>
+                                <ID></ID>
+                                <DisplayName></DisplayName>
+                            </Owner>
+                            <AccessControlList>
+                                <Grant></Grant>
+                            </AccessControlList>
+                        </AccessControlPolicy>)";
+    GetBucketAclResult result5(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketAclResult result6(xml);
+
+}
 }
 }

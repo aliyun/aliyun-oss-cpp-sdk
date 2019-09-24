@@ -167,6 +167,48 @@ TEST_F(ObjectAclTest, GetObjectAclResultTest)
     EXPECT_EQ(result.Acl(), CannedAccessControlList::PublicRead);
 }
 
+TEST_F(ObjectAclTest, GetObjectAclResultBranchTest)
+{
+    GetObjectAclResult result("test");
 
+    std::string xml = R"(<?xml version="1.0" ?>
+                    <AccessControl>
+                    </AccessControl>)";
+    GetObjectAclResult result1(xml);
+
+    xml = R"(<?xml version="1.0" ?>
+                    <AccessControlPolicy>
+                            <ID>00220120222</ID>
+                            <DisplayName>00220120222</DisplayName>
+                            <Grant>public-read</Grant>
+                    </AccessControlPolicy>)";
+    GetObjectAclResult result2(xml);
+
+    xml = R"(<?xml version="1.0" ?>
+                    <AccessControlPolicy>
+                        <Owner>
+
+                        </Owner>
+                        <AccessControlList>
+
+                        </AccessControlList>
+                    </AccessControlPolicy>)";
+    GetObjectAclResult result3(xml);
+
+    xml = R"(<?xml version="1.0" ?>
+                    <AccessControlPolicy>
+                        <Owner>
+                            <ID></ID>
+                            <DisplayName></DisplayName>
+                        </Owner>
+                        <AccessControlList>
+                            <Grant></Grant>
+                        </AccessControlList>
+                    </AccessControlPolicy>)";
+    GetObjectAclResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetObjectAclResult result5(xml);
+}
 }
 }

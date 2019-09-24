@@ -1708,5 +1708,207 @@ TEST_F(MultipartUploadTest, ListPartsNegativeTest)
     EXPECT_EQ(outcome.error().Code(), "NoSuchUpload");
 }
 
+TEST_F(MultipartUploadTest, UploadPartCopyRequestValidateNegativeTest)
+{
+    UploadPartCopyRequest request1("INVALIDNAME", "test1", BucketName, "test2");
+
+    auto uploadPartOutcome = Client->UploadPartCopy(request1);
+
+    
+    UploadPartCopyRequest request2(BucketName, "test1", "INVALIDNAME", "test2");
+
+   uploadPartOutcome = Client->UploadPartCopy(request2);
+
+   UploadPartCopyRequest request3(BucketName, "test1", BucketName, "/invalidkey");
+
+   uploadPartOutcome = Client->UploadPartCopy(request3);
+
+   CompleteMultipartUploadRequest request4(BucketName, "test1");
+   std::string str;
+   request4.setCallback(str, "test");
+
+   std::string text = "hellowworld";
+   HeaderCollection header;
+   CompleteMultipartUploadResult result(std::make_shared<std::stringstream>(text), header);
+
+   CompleteMultipartUploadResult result1("test");
+
+   std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CompleteMultipartUpload xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                        </CompleteMultipartUpload>)";
+   CompleteMultipartUploadResult result2(xml);
+
+   xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CompleteMultipartUploadResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                        </CompleteMultipartUploadResult>)";
+   CompleteMultipartUploadResult result3(xml);
+
+   xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+   CompleteMultipartUploadResult result4(xml);
+
+}
+
+TEST_F(MultipartUploadTest, InitiateMultipartUploadResultBranchTest)
+{
+    InitiateMultipartUploadResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <InitiateMultipartUpload xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            <Bucket>multipart_upload</Bucket>
+                            <Key>multipart.data</Key>
+                            <UploadId>0004B9894A22E5B1888A1E29F8236E2D</UploadId>
+                        </InitiateMultipartUpload>)";
+    InitiateMultipartUploadResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <InitiateMultipartUploadResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                        </InitiateMultipartUploadResult>)";
+    InitiateMultipartUploadResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <InitiateMultipartUploadResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            <Bucket></Bucket>
+                            <Key></Key>
+                            <UploadId></UploadId>
+                        </InitiateMultipartUploadResult>)";
+    InitiateMultipartUploadResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    InitiateMultipartUploadResult result4(xml);
+}
+
+TEST_F(MultipartUploadTest, ListMultipartUploadsResultBranchTest)
+{
+    ListMultipartUploadsResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListMultipartUploads xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                        </ListMultipartUploads>)";
+    ListMultipartUploadsResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListMultipartUploadsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            
+                        </ListMultipartUploadsResult>)";
+    ListMultipartUploadsResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListMultipartUploadsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+           
+                            <Upload>
+
+                            </Upload>
+
+                        </ListMultipartUploadsResult>)";
+    ListMultipartUploadsResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <ListMultipartUploadsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            <EncodingType></EncodingType>
+
+                            <Upload>
+
+                            </Upload>
+
+                        </ListMultipartUploadsResult>)";
+    ListMultipartUploadsResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    ListMultipartUploadsResult result5(xml);
+}
+
+TEST_F(MultipartUploadTest, ListPartsResultBranchTest)
+{
+    ListPartsResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <ListPart sxmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+            </ListParts>)";
+    ListPartsResult result1(xml);
+    
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <ListPartsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+               
+            </ListPartsResult>)";
+    ListPartsResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <ListPartsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                <Part>
+                </Part>
+            </ListPartsResult>)";
+    ListPartsResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <ListPartsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                <Bucket></Bucket>
+                <Key></Key>
+                <UploadId></UploadId>
+                <NextPartNumberMarker></NextPartNumberMarker>
+                <MaxParts></MaxParts>
+                <IsTruncated></IsTruncated>
+                <PartNumberMarker></PartNumberMarker>
+                <EncodingType></EncodingType>
+                <Part>
+                    <PartNumber></PartNumber>
+                    <LastModified></LastModified>
+                    <ETag></ETag>
+                    <Size></Size>
+                </Part>
+                <Part>
+                    <PartNumber></PartNumber>
+                    <LastModified></LastModified>
+                    <ETag></ETag>
+                    <Size></Size>
+                    <HashCrc64ecma></HashCrc64ecma>
+                </Part>
+                <Part>
+                    <PartNumber></PartNumber>
+                    <LastModified></LastModified>
+                    <ETag></ETag>
+                    <Size></Size>
+                </Part>
+            </ListPartsResult>)";
+    ListPartsResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    ListPartsResult result5(xml);
+}
+
+TEST_F(MultipartUploadTest, UploadPartCopyResultBranchTest)
+{
+    HeaderCollection header;
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    *content << "test";
+    UploadPartCopyResult  result1(content, header);
+
+    UploadPartCopyResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CopyPart xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                        </CopyPart>)";
+    UploadPartCopyResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CopyPartResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+
+                        </CopyPartResult>)";
+    UploadPartCopyResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <CopyPartResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+                            <LastModified></LastModified>
+                            <ETag></ETag>
+                        </CopyPartResult>)";
+    UploadPartCopyResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    UploadPartCopyResult result5(xml);
+}
 }
 }

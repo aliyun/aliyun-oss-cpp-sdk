@@ -1252,5 +1252,94 @@ TEST_F(ObjectTaggingTest, LifecycleWithUnsupportTagsTest)
     EXPECT_EQ(outcome.error().Code(), "MalformedXML");
 }
 
+TEST_F(ObjectTaggingTest, SetObjectTaggingRequestFunctionTest)
+{
+    SetObjectTaggingRequest request("INVALIDNAME", "test");
+
+    Tagging tagging;
+    tagging.addTag(Tag("key1", "value1"));
+    tagging.addTag(Tag("key2", "value2"));
+
+    request.setTagging(tagging);
+
+    auto outcome = Client->SetObjectTagging(request);
+
+    SetObjectTaggingRequest request2("test1", "test2");
+
+    Tag tag;
+    tagging.addTag(tag);
+    request2.setTagging(tagging);
+
+    outcome = Client->SetObjectTagging(request2);
+}
+
+TEST_F(ObjectTaggingTest, GetObjectTaggingResultBranchTest)
+{
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <Tagg>
+                <TagSet>
+                <Tag>
+                    <Key>a</Key>
+                    <Value>1</Value>
+                </Tag>
+                <Tag>
+                    <Key>b</Key>
+                    <Value>2</Value>
+                </Tag>
+                </TagSet>
+            </Tagg>)";
+
+    GetObjectTaggingResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <Tagging>
+                <Tag>
+                    <Key>a</Key>
+                    <Value>1</Value>
+                </Tag>
+                <Tag>
+                    <Key>b</Key>
+                    <Value>2</Value>
+                </Tag>
+            </Tagging>)";
+
+    GetObjectTaggingResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <Tagging>
+                <TagSet>
+
+                </TagSet>
+            </Tagging>)";
+
+    GetObjectTaggingResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <Tagging>
+                <TagSet>
+                <Tag>
+                </Tag>
+                </TagSet>
+            </Tagging>)";
+
+    GetObjectTaggingResult result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+            <Tagging>
+                <TagSet>
+                <Tag>
+                    <Key></Key>
+                    <Value></Value>
+                </Tag>
+                </TagSet>
+            </Tagging>)";
+
+    GetObjectTaggingResult result5(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetObjectTaggingResult result6(xml);
+
+}
+
 }
 }

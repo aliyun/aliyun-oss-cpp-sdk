@@ -20,6 +20,8 @@
 #include <alibabacloud/oss/OssClient.h>
 #include "../Config.h"
 #include "../Utils.h"
+#include "src/model/InputFormat.cc"
+
 
 namespace AlibabaCloud
 {
@@ -599,6 +601,67 @@ TEST_F(SelectObjectTest, InvalidObjectKeyTest)
     }
 }
 
+TEST_F(SelectObjectTest, CreateSelectObjectMetaRequestValidateTest)
+{
+    CreateSelectObjectMetaRequest request("INVALIDNAME", "SqlObjectWithCsvData");
+    auto metaOutcome = Client->CreateSelectObjectMeta(request);
+
+    unsigned char data[] = {
+    0x01, 0x80, 0x00, 0x08, 0x00, 0x00, 0x00, 0x25,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0xc8,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00 };
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>();
+    for (int i = 0; i < 40; i++) {
+        *content << data[i];
+    }
+    CreateSelectObjectMetaResult result("BucketName", "ObjectName", "RequestId", content);
+}
+
+TEST_F(SelectObjectTest, InputFormatFunctionTest)
+{
+    int64_t range1[2] = { 2,1 };
+    Range_Str("test",true, range1);
+
+    int64_t range2[2] = { -1,1 };
+    Range_Str("test", true, range2);
+
+    int64_t range3[2] = { 1,-1 };
+    Range_Str("test", true, range3);
+
+    CSVInputFormat input;
+    input.HeaderInfo();
+    input.RecordDelimiter();
+    input.FieldDelimiter();
+    input.QuoteChar();
+    input.CommentChar();
+
+    JSONInputFormat json(JsonType::DOCUMENT);
+    json.setParseJsonNumberAsString(true);
+    json.JsonInfo();
+    json.ParseJsonNumberAsString();
+}
+
+TEST_F(SelectObjectTest, CSVOutputFormatFunctionTest)
+{
+    CSVOutputFormat csvOutputFormat;
+    csvOutputFormat.setRecordDelimiter("test1");
+    csvOutputFormat.setFieldDelimiter("test2");
+    csvOutputFormat.FieldDelimiter();
+    csvOutputFormat.RecordDelimiter();
+
+    JSONOutputFormat format;
+    format.setRecordDelimiter("test1");
+    format.RecordDelimiter();
+}
+
+TEST_F(SelectObjectTest, CreateSelectObjectMetaRequestBranchTest)
+{
+    CreateSelectObjectMetaRequest request(BucketName,"test");
+    request.setOverWriteIfExists(false);
+    Client->CreateSelectObjectMeta(request);
+}
 
 }
 }

@@ -94,12 +94,42 @@ TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlUT)
 
 TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlInvalidBucketTest)
 {
-    std::string channelName = "not_exist";
-    GenerateRTMPSignedUrlRequest request("Invalid-bucket-test", channelName, "", 0);
-
+    GenerateRTMPSignedUrlRequest request("Invalid-bucket-test", "channel-name", "playlist.m3u8", 1000);
     auto generateOutcome = Client->GenerateRTMPSignedUrl(request);
     EXPECT_EQ(generateOutcome.isSuccess(), false);
     EXPECT_EQ(generateOutcome.error().Code(), "ValidateError");
+
+    //channel invalid
+    request.setBucket(BucketName);
+    request.setChannelName("");
+    request.setPlayList("playlist.m3u8");
+    request.setExpires(1000);
+    generateOutcome = Client->GenerateRTMPSignedUrl(request);
+    EXPECT_EQ(generateOutcome.isSuccess(), false);
+    EXPECT_EQ(generateOutcome.error().Code(), "ValidateError");
+
+    request.setBucket(BucketName);
+    request.setChannelName("chanelname");
+    request.setPlayList("");
+    request.setExpires(1000);
+    generateOutcome = Client->GenerateRTMPSignedUrl(request);
+    EXPECT_EQ(generateOutcome.isSuccess(), false);
+    EXPECT_EQ(generateOutcome.error().Code(), "ValidateError");
+
+    request.setBucket(BucketName);
+    request.setChannelName("chanelname");
+    request.setPlayList("playlist.m3u8");
+    request.setExpires(0);
+    generateOutcome = Client->GenerateRTMPSignedUrl(request);
+    EXPECT_EQ(generateOutcome.isSuccess(), false);
+    EXPECT_EQ(generateOutcome.error().Code(), "ValidateError");
+}
+
+TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignedUrlRequestBranchTest)
+{
+    std::string str;
+    GenerateRTMPSignedUrlRequest request("INVALIDNAME", "test", str, 0);
+    Client->GenerateRTMPSignedUrl(request);
 }
 }
 }

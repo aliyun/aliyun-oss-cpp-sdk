@@ -108,5 +108,29 @@ TEST_F(BucketStorageCapacityTest, GetBucketStorageCapacityResult)
     EXPECT_EQ(result.StorageCapacity(), 10240LL);
 }
 
+TEST_F(BucketStorageCapacityTest, GetBucketStorageCapacityResultBranchTest)
+{
+    GetBucketStorageCapacityResult result("test");
+
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketUser>
+                          <StorageCapacity>10240</StorageCapacity>
+                        </BucketUser>)";
+    GetBucketStorageCapacityResult result1(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketUserQos>
+                        </BucketUserQos>)";
+    GetBucketStorageCapacityResult result2(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketUserQos>
+                          <StorageCapacity></StorageCapacity>
+                        </BucketUserQos>)";
+    GetBucketStorageCapacityResult result3(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    GetBucketStorageCapacityResult result4(xml);
+}
 }
 }
