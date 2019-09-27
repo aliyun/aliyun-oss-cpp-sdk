@@ -80,7 +80,7 @@ void ObjectSample::PutObjectFromBuffer()
 
 void ObjectSample::PutObjectFromFile()
 {
-    std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(__FILE__, std::ios::in);
+    std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(__FILE__, std::ios::in | std::ios::binary);
     PutObjectRequest request(bucket_, "PutObjectFromFile", content);
     auto outcome = client->PutObject(request);
     if (outcome.isSuccess()) {

@@ -40,10 +40,13 @@ namespace OSS
     std::string UrlDecode(const std::string &src);
 
     std::string Base64Encode(const std::string &src);
+    std::string Base64Encode(const ByteBuffer& buffer);
     std::string Base64Encode(const char *src, int len);
     std::string Base64EncodeUrlSafe(const std::string &src);
     std::string Base64EncodeUrlSafe(const char *src, int len);
 
+    ByteBuffer Base64Decode(const char *src, int len);
+    ByteBuffer Base64Decode(const std::string &src);
 
     void StringReplace(std::string &src, const std::string &s1, const std::string &s2);
     std::string LeftTrim(const char* source);
@@ -97,5 +100,8 @@ namespace OSS
 
     DataRedundancyType ToDataRedundancyType(const char* name);
     const char* ToDataRedundancyTypeName(DataRedundancyType type);
+
+    std::map<std::string, std::string> JsonStringToMap(const std::string& jsonStr);
+    std::string MapToJsonString(const std::map<std::string, std::string>& map);
 }
 }

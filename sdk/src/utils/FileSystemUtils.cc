@@ -87,18 +87,32 @@ bool AlibabaCloud::OSS::RenameFile(const std::string &from, const std::string &t
 
 bool AlibabaCloud::OSS::GetPathLastModifyTime(const std::string & path, time_t &t)
 {
+    std::streamsize size;
+    return GetPathInfo(path, t, size);
+}
+
+bool AlibabaCloud::OSS::GetPathInfo(const std::string& path, time_t& t, std::streamsize& size)
+{
     struct oss_stat buf;
-	auto filename = path.c_str();
+    auto filename = path.c_str();
 #if defined(_WIN32) && _MSC_VER < 1900
-	std::string tmp;
-	if (!path.empty() && (path.rbegin()[0] == PATH_DELIMITER)) {
-		tmp = path.substr(0, path.size() - 1);
-		filename = tmp.c_str();
-	} 
+    std::string tmp;
+    if (!path.empty() && (path.rbegin()[0] == PATH_DELIMITER)) {
+        tmp = path.substr(0, path.size() - 1);
+        filename = tmp.c_str();
+    }
 #endif
-	if (oss_stat(filename, &buf) != 0)
+    if (oss_stat(filename, &buf) != 0)
         return false;
 
     t = buf.st_mtime;
+    size = static_cast<std::streamsize>(buf.st_size);
     return true;
+}
+
+bool AlibabaCloud::OSS::IsFileExist(const std::string& file)
+{
+    std::streamsize size;
+    time_t t;
+    return GetPathInfo(file, size, t);
 }

@@ -33,6 +33,7 @@
 #include <regex>
 #include <iomanip>
 #include <src/utils/Utils.h>
+#include <src/utils/Crc64.h>
 #include <src/http/Url.h>
 #include <cstring>
 
@@ -416,45 +417,69 @@ std::string TestUtils::GetFileETag(const std::string file)
     return ComputeContentETag(*content);
 }
 
+uint64_t TestUtils::GetFileCRC64(const std::string file)
+{
+    std::shared_ptr<std::iostream> stream = std::make_shared<std::fstream>(file, std::ios::in | std::ios::binary);
+
+    uint64_t crc64 = 0;
+
+    auto currentPos = stream->tellg();
+    if (currentPos == static_cast<std::streampos>(-1)) {
+        currentPos = 0;
+        stream->clear();
+    }
+    stream->seekg(0, stream->beg);
+
+    char streamBuffer[2048];
+    while (stream->good())
+    {
+        stream->read(streamBuffer, 2048);
+        auto bytesRead = stream->gcount();
+
+        if (bytesRead > 0)
+        {
+            crc64 = CRC64::CalcCRC(crc64, streamBuffer, bytesRead);
+        }
+    }
+
+    stream->clear();
+    stream->seekg(currentPos, stream->beg);
+
+    return crc64;
+}
+
 void TestUtils::LogPrintCallback(LogLevel level, const std::string &stream)
 {
     UNUSED_PARAM(level);
     std::cout << stream;
 }
 
-std::string TestUtils::Base64Decode(std::string const& data)
+bool TestUtils::IsByteBufferEQ(const char *src, const char *pat, int len)
 {
-    int in_len = static_cast<int>(data.size());
-    int i = 0;
-    int in_ = 0;
-    unsigned char part4[4];
-    std::string ret;
-
-    while (in_len-- && (data[in_] != '=')) {
-        unsigned char ch = data[in_++];
-        if ('A' <= ch && ch <= 'Z')  ch = ch - 'A';           // A - Z
-        else if ('a' <= ch && ch <= 'z') ch = ch - 'a' + 26;  // a - z
-        else if ('0' <= ch && ch <= '9') ch = ch - '0' + 52;  // 0 - 9
-        else if ('+' == ch) ch = 62;                          // +
-        else if ('/' == ch) ch = 63;                          // /
-        else if ('=' == ch) ch = 64;                          // =
-        else ch = 0xff;                                       // something wrong
-        part4[i++] = ch;
-        if (i == 4) {
-            ret += (part4[0] << 2) + ((part4[1] & 0x30) >> 4);
-            ret += ((part4[1] & 0xf) << 4) + ((part4[2] & 0x3c) >> 2);
-            ret += ((part4[2] & 0x3) << 6) + part4[3];
-            i = 0;
-        }
+    for (int i = 0; i < len; i++) {
+        if (src[i] != pat[i])
+            return false;
     }
+    return true;
+}
 
-    if (i) {
-        for (int j = i; j < 4; j++)
-            part4[j] = 0xFF;
-        ret += (part4[0] << 2) + ((part4[1] & 0x30) >> 4);
-        ret += ((part4[1] & 0xf) << 4) + ((part4[2] & 0x3c) >> 2);
-        ret += ((part4[2] & 0x3) << 6) + part4[3];
+bool TestUtils::IsByteBufferEQ(const unsigned char *src, const unsigned char *pat, int len)
+{
+    return TestUtils::IsByteBufferEQ(reinterpret_cast<const char*>(src),
+        reinterpret_cast<const char*>(pat), len);
+}
+
+bool TestUtils::IsByteBufferEQ(const ByteBuffer& src, const ByteBuffer& pat)
+{
+    return (src == pat);
+}
+
+
+ByteBuffer TestUtils::GetRandomByteBuffer(int length)
+{
+    ByteBuffer buff(length);
+    for (int i = 0; i < length; i++) {
+        buff[i] = static_cast<char>(rand()%256);
     }
-
-    return ret;
+    return buff;
 }

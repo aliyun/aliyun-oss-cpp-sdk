@@ -39,6 +39,7 @@ namespace OSS
         void setConetent(const std::shared_ptr<std::iostream>& content);
         void setContentLength(uint64_t length);
         void setTrafficLimit(uint64_t value);
+        int PartNumber() const;
     protected:
         virtual HeaderCollection specialHeaders() const;
         virtual ParameterCollection specialParameters() const;

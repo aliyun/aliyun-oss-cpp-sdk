@@ -153,16 +153,21 @@ const std::string& OssObjectRequest::Key() const
 }
 
 
-void OssObjectRequest::setRequestPayer(RequestPayer key)
+void OssObjectRequest::setRequestPayer(AlibabaCloud::OSS::RequestPayer key)
 {
     requestPayer_ = key;
+}
+
+AlibabaCloud::OSS::RequestPayer OssObjectRequest::RequestPayer() const
+{
+    return requestPayer_;
 }
 
 HeaderCollection OssObjectRequest::specialHeaders() const
 {
     auto headers = OssRequest::specialHeaders();
-    if (requestPayer_ == RequestPayer::Requester) {
-        headers["x-oss-request-payer"] = ToLower(ToRequestPayerName(RequestPayer::Requester));
+    if (requestPayer_ == AlibabaCloud::OSS::RequestPayer::Requester) {
+        headers["x-oss-request-payer"] = ToLower(ToRequestPayerName(AlibabaCloud::OSS::RequestPayer::Requester));
     }
     return headers;
 }

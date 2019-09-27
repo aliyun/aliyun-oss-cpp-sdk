@@ -31,6 +31,7 @@
 #include <alibabacloud/oss/Const.h>
 #include <alibabacloud/oss/http/HttpType.h>
 #include "../http/Url.h"
+#include "../external/json/json.h"
 
 using namespace AlibabaCloud::OSS;
 
@@ -102,6 +103,11 @@ std::string AlibabaCloud::OSS::Base64Encode(const std::string &src)
     return AlibabaCloud::OSS::Base64Encode(src.c_str(), static_cast<int>(src.size()));
 }
 
+std::string AlibabaCloud::OSS::Base64Encode(const ByteBuffer& buffer)
+{
+    return AlibabaCloud::OSS::Base64Encode(reinterpret_cast<const char*>(buffer.data()), static_cast<int>(buffer.size()));
+}
+
 std::string AlibabaCloud::OSS::Base64Encode(const char *src, int len)
 {
     if (!src || len == 0) {
@@ -160,6 +166,57 @@ std::string AlibabaCloud::OSS::Base64EncodeUrlSafe(const char *src, int len)
     });
     return out;
 }
+
+ByteBuffer AlibabaCloud::OSS::Base64Decode(const char *data, int len)
+{
+    int in_len = len;
+    int i = 0;
+    int in_ = 0;
+    unsigned char part4[4];
+
+    const int max_len = (len * 3 / 4);
+    ByteBuffer ret(max_len);
+    int idx = 0;
+
+    while (in_len-- && (data[in_] != '=')) {
+        unsigned char ch = data[in_++];
+        if ('A' <= ch && ch <= 'Z')  ch = ch - 'A';           // A - Z
+        else if ('a' <= ch && ch <= 'z') ch = ch - 'a' + 26;  // a - z
+        else if ('0' <= ch && ch <= '9') ch = ch - '0' + 52;  // 0 - 9
+        else if ('+' == ch) ch = 62;                          // +
+        else if ('/' == ch) ch = 63;                          // /
+        else if ('=' == ch) ch = 64;                          // =
+        else ch = 0xff;                                       // something wrong
+        part4[i++] = ch;
+        if (i == 4) {
+            ret[idx++] = (part4[0] << 2) + ((part4[1] & 0x30) >> 4);
+            ret[idx++] = ((part4[1] & 0xf) << 4) + ((part4[2] & 0x3c) >> 2);
+            ret[idx++] = ((part4[2] & 0x3) << 6) + part4[3];
+            i = 0;
+        }
+    }
+
+    if (i) {
+        for (int j = i; j < 4; j++)
+            part4[j] = 0xFF;
+        ret[idx++] = (part4[0] << 2) + ((part4[1] & 0x30) >> 4);
+        if (part4[2] != 0xFF) {
+            ret[idx++] = ((part4[1] & 0xf) << 4) + ((part4[2] & 0x3c) >> 2);
+            if (part4[3] != 0xFF) {
+                ret[idx++] = ((part4[2] & 0x3) << 6) + part4[3];
+            }
+        }
+    }
+
+    ret.resize(idx);
+    return ret;
+}
+
+ByteBuffer AlibabaCloud::OSS::Base64Decode(const std::string &src)
+{
+    return Base64Decode(src.c_str(), src.size());
+}
+
 
 std::string AlibabaCloud::OSS::ComputeContentMD5(const std::string& data) 
 {
@@ -890,3 +947,39 @@ const char* AlibabaCloud::OSS::ToDataRedundancyTypeName(DataRedundancyType type)
     static const char* typeName[] = { "NotSet", "LRS", "ZRS" };
     return typeName[static_cast<int>(type) - static_cast<int>(DataRedundancyType::NotSet)];
 }
+
+std::map<std::string, std::string> AlibabaCloud::OSS::JsonStringToMap(const std::string& jsonStr)
+{
+    std::map<std::string, std::string> valueMap;
+    Json::Value root;
+    Json::CharReaderBuilder rbuilder;
+    std::stringstream input(jsonStr);
+    std::string errMsg;
+
+    if (Json::parseFromStream(rbuilder, input, &root, &errMsg)) {
+
+        for (auto it = root.begin(); it != root.end(); ++it)
+        {
+            valueMap[it.key().asString()] = (*it).asString();
+        }
+    }
+
+    return valueMap;
+}
+
+std::string AlibabaCloud::OSS::MapToJsonString(const std::map<std::string, std::string>& map)
+{
+    if (map.empty()) {
+        return "";
+    }
+    Json::Value root;
+    for (const auto& it : map) {
+        root[it.first] = it.second;
+    }
+
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    return Json::writeString(builder, root);
+}
+
+

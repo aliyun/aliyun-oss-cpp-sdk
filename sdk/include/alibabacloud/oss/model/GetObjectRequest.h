@@ -46,6 +46,7 @@ namespace OSS
         void addResponseHeaders(RequestResponseHeader header, const std::string& value);
         void setTrafficLimit(uint64_t value);
 
+        std::pair<int64_t, int64_t> Range() const;
     protected:
         virtual HeaderCollection specialHeaders() const ;
         virtual ParameterCollection specialParameters() const;

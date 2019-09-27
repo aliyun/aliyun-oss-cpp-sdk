@@ -18,7 +18,6 @@
 #include <src/utils/Crc64.h>
 #include "../Config.h"
 #include "../Utils.h"
-#include <src/utils/Crc64.cc>
 
 namespace AlibabaCloud {
 namespace OSS {
@@ -419,12 +418,5 @@ TEST_F(Crc64Test, GetObjectByUrlCrc64DisablePositiveTest)
     EXPECT_EQ(outcome.result().Metadata().CRC64(), crc);
 }
 
-TEST_F(Crc64Test, Crc64FunctionTest)
-{
-    rev8(1234);
-    std::string data1("123456789");
-    crc64_big(0, (void*)(data1.c_str()), data1.size());
-    crc64_combine(1,1,0);
-}
 }
 }

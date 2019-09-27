@@ -1653,5 +1653,18 @@ TEST_F(ObjectBasicOperationTest, PutObjectResultBranchTest)
     *content << "test";
     PutObjectResult result(header, content);
 }
+
+TEST_F(ObjectBasicOperationTest, GetObjectWithOssDateHeaderTest)
+{
+    std::string key = TestUtils::GetObjectKey("GetObjectWithOssDateHeaderTest");
+    auto content = TestUtils::GetRandomStream(1024);
+
+    PutObjectRequest request(BucketName, key, content);
+    std::time_t t = std::time(nullptr);
+    request.MetaData().addHeader("x-oss-date", ToGmtTime(t));
+    auto pOutcome = Client->PutObject(request);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+}
+
 }
 }

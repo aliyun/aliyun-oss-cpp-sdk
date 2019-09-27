@@ -108,6 +108,19 @@ void GetObjectRequest::setTrafficLimit(uint64_t value)
 {
     trafficLimit_ = value;
 }
+
+std::pair<int64_t, int64_t> GetObjectRequest::Range() const
+{
+    int64_t begin = -1;
+    int64_t end = -1;
+    if (rangeIsSet_) {
+        begin = range_[0];
+        end = range_[1];
+    }
+
+    return std::pair<int64_t, int64_t>(begin, end);
+}
+
 int GetObjectRequest::validate() const
 {
     int ret = OssObjectRequest::validate();

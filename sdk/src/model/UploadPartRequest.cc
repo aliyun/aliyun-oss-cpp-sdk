@@ -65,6 +65,11 @@ void UploadPartRequest::setTrafficLimit(uint64_t value)
 {
     trafficLimit_ = value;
 }
+int UploadPartRequest::PartNumber() const
+{
+    return partNumber_;
+}
+
 std::shared_ptr<std::iostream> UploadPartRequest::Body() const
 {
     return content_;

@@ -154,6 +154,6 @@ namespace OSS
     using HeaderCollection = std::map<std::string, std::string, caseInsensitiveLess>;
     using ParameterCollection = std::map<std::string, std::string, caseSensitiveLess>;
     using IOStreamFactory = std::function< std::shared_ptr<std::iostream>(void)>;
-
+    using ByteBuffer = std::vector<unsigned char>;
 }
 }

@@ -319,8 +319,14 @@ namespace OSS
         GetBucketQosInfoRequest getrequest("INVALIDNAME");
         auto getoutcome = Client->GetBucketQosInfo(getrequest);
         EXPECT_EQ(getoutcome.isSuccess(), false);
+    }
 
-
+    TEST_F(BucketQosInfoTest, UserQosInfoFailTest)
+    {
+        auto invalidClient = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, "Invalid", ClientConfiguration());
+        GetUserQosInfoRequest getrequest1;
+        auto getoutcome1 = invalidClient->GetUserQosInfo(getrequest1);
+        EXPECT_EQ(getoutcome1.isSuccess(), false);
     }
 }
 }

@@ -38,6 +38,7 @@ namespace OSS
         const ObjectMetaData& Metadata()  const { return metaData_; }
         const std::shared_ptr<std::iostream>& Content() const { return content_; }
         void setContent(const std::shared_ptr<std::iostream>& content) { content_ = content; }
+        void setMetaData(const ObjectMetaData& meta) { metaData_ = meta; }
     private:
         std::string bucket_;
         std::string key_;

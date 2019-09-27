@@ -79,7 +79,7 @@ namespace OSS
                                 const ClientConfiguration& configuration); 
         OssClient(const std::string& endpoint, const Credentials& credentials, const ClientConfiguration& configuration);
         OssClient(const std::string& endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration& configuration);
-        ~OssClient();
+        virtual ~OssClient();
 
         /*Service*/
         ListBucketsOutcome ListBuckets() const;
@@ -255,7 +255,7 @@ namespace OSS
         /*Requests control*/
         void DisableRequest();
         void EnableRequest();
-    private:
+    protected:
         std::shared_ptr<OssClientImpl> client_;
     };
 }
