@@ -25,7 +25,7 @@ namespace OSS
     {
     public:
         CredentialsProvider() = default;
-        virtual ~CredentialsProvider() = default;
+        virtual ~CredentialsProvider();
         virtual Credentials getCredentials() = 0;
     private:
 

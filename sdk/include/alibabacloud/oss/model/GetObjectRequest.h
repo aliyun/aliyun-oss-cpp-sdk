@@ -45,7 +45,9 @@ namespace OSS
         void setProcess(const std::string& process);
         void addResponseHeaders(RequestResponseHeader header, const std::string& value);
         void setTrafficLimit(uint64_t value);
+        void setUserAgent(const std::string& ua);
 
+        std::pair<int64_t, int64_t> Range() const;
     protected:
         virtual HeaderCollection specialHeaders() const ;
         virtual ParameterCollection specialParameters() const;
@@ -60,6 +62,7 @@ namespace OSS
         std::string process_;
         std::map<std::string, std::string> responseHeaderParameters_;
         uint64_t trafficLimit_;
+        std::string userAgent_;
     };
 } 
 }

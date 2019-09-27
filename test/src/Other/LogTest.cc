@@ -20,8 +20,6 @@
 #include "../Utils.h"
 #include <alibabacloud/oss/OssClient.h>
 #include "src/utils/LogUtils.h"
-#include "src/utils/LogUtils.cc"
-#include "src/model/ModelError.cc"
 
 namespace AlibabaCloud {
 namespace OSS {
@@ -196,21 +194,6 @@ TEST_F(LogTest, EndofLineTest)
     EXPECT_EQ(LogString.c_str()[LogString.size() - 2], ']');
     std::cout << LogString;
     SetLogLevel(LogLevel::LogOff);
-}
-
-TEST_F(LogTest, InitLogInnerFunctionTest)
-{
-    char buf[25] = "OSS_SDK_LOG_LEVEL = info";
-    putenv(buf);
-    InitLogInner();
-    DefaultLogCallbackFunc(LogLevel::LogInfo,"test");
-}
-
-TEST_F(LogTest, ModelErrorFunctionTest)
-{
-    GetArgErrorMsg(ARG_ERROR_START-1);
-
-    GetModelErrorMsg(ARG_ERROR_START-1);
 }
 
 }

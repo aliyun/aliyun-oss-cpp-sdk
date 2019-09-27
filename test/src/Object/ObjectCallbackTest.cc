@@ -435,15 +435,13 @@ TEST_F(ObjectCallbackTest, ObjectCallbackBuilderTest)
     ObjectCallbackBuilder builder("192.168.1.100", "11111");
 
     std::stringstream ss;
-    std::string value;
     Json::CharReaderBuilder rbuilder;
     Json::Value readRoot;
     std::string errMessage;
 
     builder.setCallbackUrl("192.168.1.1");
     builder.setCallbackBody("123456");
-    value = TestUtils::Base64Decode(builder.build());
-    ss << value;
+    ss << Base64Decode(builder.build()).data();
     if (Json::parseFromStream(rbuilder, ss, &readRoot, &errMessage)) {
         EXPECT_EQ(readRoot["callbackUrl"].asString(), "192.168.1.1");
         EXPECT_EQ(readRoot["callbackHost"].asString(), "");
@@ -456,8 +454,7 @@ TEST_F(ObjectCallbackTest, ObjectCallbackBuilderTest)
 
     builder.setCallbackHost("demo.com");
     ss.str("");
-    value = TestUtils::Base64Decode(builder.build());
-    ss << value;
+    ss << Base64Decode(builder.build()).data();
     if (Json::parseFromStream(rbuilder, ss, &readRoot, &errMessage)) {
         EXPECT_EQ(readRoot["callbackUrl"].asString(), "192.168.1.1");
         EXPECT_EQ(readRoot["callbackHost"].asString(), "demo.com");
@@ -470,8 +467,7 @@ TEST_F(ObjectCallbackTest, ObjectCallbackBuilderTest)
 
     builder.setCallbackBodyType(ObjectCallbackBuilder::JSON);
     ss.str("");
-    value = TestUtils::Base64Decode(builder.build());
-    ss << value;
+    ss << Base64Decode(builder.build()).data();
     if (Json::parseFromStream(rbuilder, ss, &readRoot, &errMessage)) {
         EXPECT_EQ(readRoot["callbackUrl"].asString(), "192.168.1.1");
         EXPECT_EQ(readRoot["callbackHost"].asString(), "demo.com");
@@ -490,13 +486,11 @@ TEST_F(ObjectCallbackTest, ObjectCallbackVariableBuilderTest)
     builder.addCallbackVariable("x:var2", "value2");
 
     std::stringstream ss;
-    std::string value;
     Json::CharReaderBuilder rbuilder;
     Json::Value readRoot;
     std::string errMessage;
 
-    value = TestUtils::Base64Decode(builder.build());
-    ss << value;
+    ss << Base64Decode(builder.build()).data();
     if (Json::parseFromStream(rbuilder, ss, &readRoot, &errMessage)) {
         EXPECT_EQ(readRoot["x:var1"].asString(), "value1");
         EXPECT_EQ(readRoot["x:var2"].asString(), "value2");

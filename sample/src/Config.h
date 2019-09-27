@@ -12,5 +12,8 @@ public:
     static std::string ImageFileToUpload;
 	static std::string CallbackServer;
     static std::string CheckpointDir;
+    static std::string PublicKeyPath;
+    static std::string PrivateKeyPath;
+
 };
 

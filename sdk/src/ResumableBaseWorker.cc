@@ -29,15 +29,7 @@ ResumableBaseWorker::ResumableBaseWorker(uint64_t objectSize, uint64_t partSize)
 {
 }
 
-ResumableBaseWorker::ResumableBaseWorker(const std::string& filePath, uint64_t partSize) :
-    hasRecord_(false),
-    consumedSize_(0),
-    partSize_(partSize)
-{
-    std::fstream content(filePath, std::ios::in | std::ios::binary);
-    objectSize_ = GetIOStreamLength(content);
-    content.close();
-}
+
 
 int ResumableBaseWorker::validate(OssError& err)
 {

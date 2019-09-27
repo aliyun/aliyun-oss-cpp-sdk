@@ -26,6 +26,7 @@ file(GLOB test_multipartupload_src "src/MultipartUpload/*")
 file(GLOB test_resumable_src "src/Resumable/*")
 file(GLOB test_other_src "src/Other/*")
 file(GLOB test_livechannel_src "src/LiveChannel/*")
+file(GLOB test_encryption_src "src/Encryption/*")
 	
 add_executable(${PROJECT_NAME} 
 	${test_main_src}
@@ -38,7 +39,8 @@ add_executable(${PROJECT_NAME}
 	${test_multipartupload_src}
 	${test_resumable_src}
 	${test_other_src}
-	${test_livechannel_src})
+	${test_livechannel_src}
+	${test_encryption_src})
 
 target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include

@@ -29,6 +29,7 @@ namespace OSS
     {
     public:
         Bucket() = default;
+        ~Bucket();
         const std::string& Location() const { return location_; }
         const std::string& Name() const { return name_; }
         const std::string& CreationDate() const { return creationDate_; }

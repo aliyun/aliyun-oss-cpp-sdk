@@ -21,6 +21,7 @@ file(GLOB sample_bucket_src "src/bucket/*")
 file(GLOB sample_object_src "src/object/*")
 file(GLOB sample_presignedurl_src "src/presignedurl/*")
 file(GLOB sample_livechannel_src "src/LiveChannel/*")
+file(GLOB sample_encryption_src "src/encryption/*")
 
 
 add_executable(${PROJECT_NAME} 
@@ -29,7 +30,8 @@ add_executable(${PROJECT_NAME}
 	${sample_bucket_src}
 	${sample_object_src}
 	${sample_presignedurl_src}
-	${sample_livechannel_src})
+	${sample_livechannel_src}
+	${sample_encryption_src})
 
 target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include)

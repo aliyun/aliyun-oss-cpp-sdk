@@ -116,12 +116,20 @@ namespace OSS {
         EXPECT_EQ(infoOutcome.result().KMSMasterKeyID(), "");
     }
 
-    TEST_F(BucketEncryptionTest, SetBucketEncryptionNegativeTest)
+    TEST_F(BucketEncryptionTest, BucketEncryptionNegativeTest)
     {
         SetBucketEncryptionRequest setrequest(BucketName);
         setrequest.setSSEAlgorithm(SSEAlgorithm::NotSet);
         auto setoutcome = Client->SetBucketEncryption(setrequest);
         EXPECT_EQ(setoutcome.isSuccess(), false);
+
+        GetBucketEncryptionRequest getRequest("Invalid-bucket");
+        auto getOutcome = Client->GetBucketEncryption(getRequest);
+        EXPECT_EQ(getOutcome.isSuccess(), false);
+
+        DeleteBucketEncryptionRequest delRequest("Invalid-bucket");
+        auto delOutcome = Client->DeleteBucketEncryption(delRequest);
+        EXPECT_EQ(delOutcome.isSuccess(), false);
     }
 
     TEST_F(BucketEncryptionTest, GetBucketEncryptionResult)

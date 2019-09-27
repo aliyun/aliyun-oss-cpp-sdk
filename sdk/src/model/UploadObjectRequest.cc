@@ -30,20 +30,15 @@ UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::s
     OssResumableBaseRequest(bucket, key, checkpointDir, partSize, threadNum), 
     filePath_(filePath)
 {
-    objectSize_ = 0;
-
     time_t lastMtime;
-    if (!GetPathLastModifyTime(filePath_, lastMtime)) {
+    std::streamsize fileSize;
+    if (!GetPathInfo(filePath_, lastMtime, fileSize)) {
         //if fail, ignore the lastmodified time.
         lastMtime = 0;
+        fileSize = 0;
     }
     mtime_ = ToGmtTime(lastMtime);
-
-    std::fstream content(filePath_, std::ios::in | std::ios::binary);
-    if (content) {
-        objectSize_ = GetIOStreamLength(content);
-    }
-    content.close();
+    objectSize_ = static_cast<uint64_t>(fileSize);
 }
 
 UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key,
@@ -107,8 +102,7 @@ int UploadObjectRequest::validate() const
         return ARG_ERROR_UPLOAD_FILE_PATH_EMPTY;
     }
     else if (objectSize_ <= 0){
-        std::fstream content(filePath_, std::ios::in | std::ios::binary);
-        if (!content.is_open()) {
+        if (!filePath_.empty() && !IsFileExist(filePath_)) {
             return ARG_ERROR_OPEN_UPLOAD_FILE;
         }
     }

@@ -11,3 +11,5 @@ std::string Config::BigFileToUpload = "";
 std::string Config::ImageFileToUpload = "";
 std::string Config::CallbackServer = "";
 std::string Config::CheckpointDir = "";
+std::string Config::PublicKeyPath = "";
+std::string Config::PrivateKeyPath = "";
