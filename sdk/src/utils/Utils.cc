@@ -983,3 +983,17 @@ std::string AlibabaCloud::OSS::MapToJsonString(const std::map<std::string, std::
 }
 
 
+const char* AlibabaCloud::OSS::ToRedirectTypeName(RedirectType type)
+{
+    static const char* StatusName[] = { "Mirror", "External", "Internal", "AliCDN" };
+    return StatusName[static_cast<int>(type) - static_cast<int>(RedirectType::Mirror)];
+}
+
+RedirectType AlibabaCloud::OSS::ToRedirectType(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("mirror")) return RedirectType::Mirror;
+    else if (!statusName.compare("external")) return RedirectType::External;
+    else if (!statusName.compare("internal")) return RedirectType::Internal;
+    else return RedirectType::AliCDN;
+}

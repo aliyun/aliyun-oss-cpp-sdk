@@ -17,6 +17,8 @@
 #pragma once
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/OssRequest.h>
+#include <alibabacloud/oss/model/WebsiteRoutingRule.h>
+
 namespace AlibabaCloud
 {
 namespace OSS
@@ -35,6 +37,11 @@ namespace OSS
             errorDocument_ = document;
             errorDocumentIsSet_ = true;
         }
+        void  setWebsiteRoutingRuleList(WebsiteRoutingRuleList& data)
+        {
+            websiteRoutingRule_ = data;
+        }
+
     protected:
         virtual std::string payload() const;
         virtual ParameterCollection specialParameters() const;
@@ -44,6 +51,7 @@ namespace OSS
         bool indexDocumentIsSet_;
         std::string errorDocument_;
         bool errorDocumentIsSet_;
+        WebsiteRoutingRuleList websiteRoutingRule_;
     };
 } 
 }
