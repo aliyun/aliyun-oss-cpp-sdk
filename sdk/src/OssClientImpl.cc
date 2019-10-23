@@ -123,7 +123,9 @@ void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, 
     }
 
     //common headers
-    httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
+    if (!httpRequest->hasHeader(Http::USER_AGENT)) {
+        httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
+    }
 
     //Date
     if (httpRequest->hasHeader("x-oss-date")) {

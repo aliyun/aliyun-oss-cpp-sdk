@@ -47,6 +47,7 @@ namespace OSS
         void addMetaData(const ContentCryptoMaterial& content, ObjectMetaData& meta);
         void addMetaDataMultipart(const MultipartUploadCryptoContext& ctx, ObjectMetaData& meta);
         void readMetaData(ContentCryptoMaterial& content, const ObjectMetaData& meta);
+        void addUserAgent(ObjectMetaData& meta, const std::string& prefix);
 
         virtual void initEncryptionCipher(ContentCryptoMaterial& content) = 0;
         virtual void generateKeyIV(ContentCryptoMaterial& content) = 0;

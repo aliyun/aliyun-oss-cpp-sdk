@@ -32,7 +32,8 @@ GetObjectRequest::GetObjectRequest(const std::string &bucket, const std::string 
     OssObjectRequest(bucket, key),
     rangeIsSet_(false),
     process_(process),
-    trafficLimit_(0)
+    trafficLimit_(0),
+    userAgent_()
 {
     setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
 }
@@ -49,7 +50,8 @@ GetObjectRequest::GetObjectRequest(const std::string& bucket, const std::string&
     nonmatchingETags_(nonmatchingETags), 
     process_(""),
     responseHeaderParameters_(responseHeaderParameters_),
-    trafficLimit_(0)
+    trafficLimit_(0),
+    userAgent_()
 {
 }
 
@@ -107,6 +109,11 @@ void GetObjectRequest::addResponseHeaders(RequestResponseHeader header, const st
 void GetObjectRequest::setTrafficLimit(uint64_t value)
 {
     trafficLimit_ = value;
+}
+
+void GetObjectRequest::setUserAgent(const std::string& ua)
+{
+    userAgent_ = ua;
 }
 
 std::pair<int64_t, int64_t> GetObjectRequest::Range() const
@@ -181,6 +188,10 @@ HeaderCollection GetObjectRequest::specialHeaders() const
 
     if (trafficLimit_ != 0) {
         headers["x-oss-traffic-limit"] = std::to_string(trafficLimit_);
+    }
+
+    if (!userAgent_.empty()) {
+        headers[Http::USER_AGENT] = userAgent_;
     }
     return headers;
 }

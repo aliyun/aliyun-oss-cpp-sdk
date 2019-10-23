@@ -30,6 +30,14 @@ using namespace AlibabaCloud::OSS;
     } while (0)
 
 
+
+static std::string getUserAgent(const std::string& prefix)
+{
+    std::stringstream ss;
+    ss << prefix << "/OssEncryptionClient";
+    return ss.str();
+}
+
 std::shared_ptr<CryptoModule> CryptoModule::CreateCryptoModule(const std::shared_ptr<EncryptionMaterials>& encryptionMaterials,
     const CryptoConfiguration& cryptoConfig)
 {
@@ -60,7 +68,7 @@ PutObjectOutcome CryptoModule::PutObjectSecurely(const std::shared_ptr<OssClient
     auto ret = encryptionMaterials_->EncryptCEK(material);
     CHECK_FUNC_RET(PutObjectOutcome, EncryptCEK, ret);
     addMetaData(material, putRequest.MetaData());
-
+    addUserAgent(putRequest.MetaData(), client->configuration().userAgent);
     CryptoStreamBuf cryptoStream(*putRequest.Body(), cipher_, material.ContentKey(), material.ContentIV());
 
     return client->PutObject(putRequest);
@@ -97,6 +105,9 @@ GetObjectOutcome CryptoModule::GetObjectSecurely(const std::shared_ptr<OssClient
         getRequest.setRange(newBegin, range.second);
         iv = cipher_->IncCTRCounter(iv, static_cast<uint64_t>(blockOfNum));
     }
+
+    //ua
+    getRequest.setUserAgent(getUserAgent(client->configuration().userAgent));
 
     std::shared_ptr<CryptoStreamBuf> cryptoStream = nullptr;
     std::shared_ptr<std::iostream> userContent = nullptr;
@@ -138,6 +149,7 @@ InitiateMultipartUploadOutcome CryptoModule::InitiateMultipartUploadSecurely(con
     CHECK_FUNC_RET(InitiateMultipartUploadOutcome, EncryptCEK, ret);
     addMetaData(material, initRequest.MetaData());
     addMetaDataMultipart(ctx, initRequest.MetaData());
+    addUserAgent(initRequest.MetaData(), client->configuration().userAgent);
 
     auto outcome = client->InitiateMultipartUpload(initRequest);
     if (outcome.isSuccess()) {
@@ -170,6 +182,9 @@ PutObjectOutcome CryptoModule::UploadPartSecurely(const std::shared_ptr<OssClien
     addMetaDataMultipart(ctx, meta);
     uRequest.setMetaData(meta);
 #endif
+    //ua
+    uRequest.setUserAgent(getUserAgent(client->configuration().userAgent));
+
     auto fileOffset = ctx.PartSize() * static_cast<int64_t>(uRequest.PartNumber() - 1);
     auto blockNum = fileOffset / static_cast<int64_t>(cipher_->BlockSize());
     auto iv = cipher_->IncCTRCounter(ctx.ContentMaterial().ContentIV(), static_cast<uint64_t>(blockNum));
@@ -249,6 +264,13 @@ void CryptoModule::readMetaData(ContentCryptoMaterial& content, const ObjectMeta
     //x-oss-meta-client-side-encryption-matdesc 
     if (meta.hasUserHeader("client-side-encryption-matdesc")) {
         content.setDescription(JsonStringToMap(meta.UserMetaData().at("client-side-encryption-matdesc")));
+    }
+}
+
+void CryptoModule::addUserAgent(ObjectMetaData& meta, const std::string& prefix)
+{
+    if (!meta.hasHeader(Http::USER_AGENT)) {
+        meta.addHeader(Http::USER_AGENT, getUserAgent(prefix));
     }
 }
 

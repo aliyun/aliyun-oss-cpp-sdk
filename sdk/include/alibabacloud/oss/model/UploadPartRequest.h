@@ -39,6 +39,7 @@ namespace OSS
         void setConetent(const std::shared_ptr<std::iostream>& content);
         void setContentLength(uint64_t length);
         void setTrafficLimit(uint64_t value);
+        void setUserAgent(const std::string& ua);
         int PartNumber() const;
     protected:
         virtual HeaderCollection specialHeaders() const;
@@ -51,6 +52,7 @@ namespace OSS
         uint64_t contentLength_;
         bool contentLengthIsSet_;
         uint64_t trafficLimit_;
+        std::string userAgent_;
     };
 } 
 }
