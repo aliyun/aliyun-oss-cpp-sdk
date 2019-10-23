@@ -97,6 +97,9 @@ namespace OSS
     RequestPayer ToRequestPayer(const char* name);
     const char* ToSSEAlgorithmName(SSEAlgorithm sse);
     SSEAlgorithm ToSSEAlgorithm(const char* name);
+	
+    const char* ToRedirectTypeName(RedirectType status);
+    RedirectType ToRedirectType(const char* name);
 
     DataRedundancyType ToDataRedundancyType(const char* name);
     const char* ToDataRedundancyTypeName(DataRedundancyType type);

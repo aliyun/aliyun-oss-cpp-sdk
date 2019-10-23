@@ -817,6 +817,9 @@ TEST_F(UtilsFunctionTest, UtilBranchTest)
     ToUpper(nullptr);
 
     ToSSEAlgorithm("AES256");
+    ToRedirectType("External");
+    ToRedirectType("Internal");
+    ToRedirectType("AliCDN");
     ToDataRedundancyType("ZRS");
 
     ObjectMetaData meta;

@@ -30,6 +30,7 @@ using namespace AlibabaCloud::OSS;
     } while (0)
 
 
+
 static std::string getUserAgent(const std::string& prefix)
 {
     std::stringstream ss;

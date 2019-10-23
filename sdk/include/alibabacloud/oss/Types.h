@@ -104,6 +104,14 @@ namespace OSS
         KMS,
         AES256
     };
+	
+    enum class RedirectType
+    {
+        Mirror = 0,
+        External,
+        Internal,
+        AliCDN
+    };
 
     enum class DataRedundancyType
     {
