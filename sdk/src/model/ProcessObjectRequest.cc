@@ -39,7 +39,7 @@ void ProcessObjectRequest::setProcess(const std::string &process)
 
 ParameterCollection ProcessObjectRequest::specialParameters() const
 {
-    ParameterCollection parameters;
+    auto parameters = OssObjectRequest::specialParameters();
     parameters["x-oss-process"];
     return parameters;
 }

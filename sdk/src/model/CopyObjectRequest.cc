@@ -22,23 +22,25 @@
 using namespace AlibabaCloud::OSS;
 
 CopyObjectRequest::CopyObjectRequest(const std::string &bucket, const std::string &key):
-    OssObjectRequest(bucket, key)
+    OssObjectRequest(bucket, key),
+    sourceBucket_(),
+    sourceKey_()
 {
 }
 
 CopyObjectRequest::CopyObjectRequest(const std::string &bucket, const std::string &key,
     const ObjectMetaData &metaData):
     OssObjectRequest(bucket, key),
+    sourceBucket_(),
+    sourceKey_(),
     metaData_(metaData)
 {
 }
 
-void CopyObjectRequest::setCopySource(const std::string& srcBucket,const std::string& srcObject)
+void CopyObjectRequest::setCopySource(const std::string& srcBucket,const std::string& srcKey)
 {
-    std::stringstream ssDesc;
-    ssDesc << "/" << srcBucket << "/" << UrlEncode(srcObject);
-    std::string value = ssDesc.str();
-    metaData_.addHeader("x-oss-copy-source", value);
+    sourceBucket_ = srcBucket;
+    sourceKey_ = srcKey;
 }
 
 void CopyObjectRequest::setSourceIfMatchETag(const std::string& value)
@@ -94,9 +96,20 @@ HeaderCollection CopyObjectRequest::specialHeaders() const
         headers[Http::CONTENT_TYPE] = LookupMimeType(Key());
     }
 
+    std::string source;
+    source.append("/").append(sourceBucket_).append("/").append(UrlEncode(sourceKey_));
+    if (!versionId_.empty()) {
+        source.append("?versionId=").append(versionId_);
+    }
+    headers["x-oss-copy-source"] = source;
+
     auto baseHeaders = OssObjectRequest::specialHeaders();
     headers.insert(baseHeaders.begin(), baseHeaders.end());
 
     return headers;
 }
 
+ParameterCollection CopyObjectRequest::specialParameters() const
+{
+    return ParameterCollection();
+}

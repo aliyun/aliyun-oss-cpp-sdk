@@ -58,7 +58,7 @@ std::string SetObjectTaggingRequest::payload() const
 
 ParameterCollection SetObjectTaggingRequest::specialParameters() const
 {
-    ParameterCollection parameters;
+    auto parameters = OssObjectRequest::specialParameters();
     parameters["tagging"] = "";
     return parameters;
 }

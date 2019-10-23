@@ -43,7 +43,7 @@ namespace OSS
         const std::string& Comment() const { return comment_; }
         AlibabaCloud::OSS::SSEAlgorithm SSEAlgorithm() { return sseAlgorithm_; }
         const std::string& KMSMasterKeyID() { return kmsMasterKeyID_; }
-
+        AlibabaCloud::OSS::VersioningStatus VersioningStatus() { return versioningStatus_; }
     private:
         std::string location_;
         std::string name_;
@@ -57,6 +57,7 @@ namespace OSS
         std::string comment_;
         AlibabaCloud::OSS::SSEAlgorithm sseAlgorithm_;
         std::string kmsMasterKeyID_;
+        AlibabaCloud::OSS::VersioningStatus versioningStatus_;
     };
 } 
 }

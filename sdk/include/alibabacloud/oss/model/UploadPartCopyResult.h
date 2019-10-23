@@ -25,7 +25,7 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT UploadPartCopyResult :public OssResult
+    class ALIBABACLOUD_OSS_EXPORT UploadPartCopyResult :public OssObjectResult
     {
     public:
         UploadPartCopyResult();
@@ -35,11 +35,12 @@ namespace OSS
         UploadPartCopyResult& operator=(const std::string& data);
         const std::string& LastModified() const;
         const std::string& ETag() const;
+        const std::string& SourceVersionId() { return sourceVersionId_; }
+
      private:
-        std::string sourceRange_;
         std::string lastModified_;
         std::string eTag_;
-        HeaderCollection headers;
+        std::string sourceVersionId_;
     };
 }
 }

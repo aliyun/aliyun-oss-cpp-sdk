@@ -78,7 +78,7 @@ TEST_F(ObjectEncodingTypeTest, DeleteObjectsWithHiddenCharacters)
     newKey2.push_back(0x1c); newKey2.push_back(0x1a); newKey2.append(".2.cd");
 
     std::string newKey3 = key;
-    key.append(".3.cd");
+    newKey3.append(".3.cd");
 
     std::string src = TestUtils::GetRandomString(1024);
 
@@ -113,7 +113,7 @@ TEST_F(ObjectEncodingTypeTest, DeleteObjectsWithHiddenCharactersUseUrlEncoding)
     newKey2.push_back(0x1c); newKey2.push_back(0x1a); newKey2.append(".2.cd");
 
     std::string newKey3 = key;
-    key.append(".3.cd");
+    newKey3.append(".3.cd");
 
     std::string src = TestUtils::GetRandomString(1024);
 
@@ -129,15 +129,75 @@ TEST_F(ObjectEncodingTypeTest, DeleteObjectsWithHiddenCharactersUseUrlEncoding)
     outcome = Client->PutObject(BucketName, newKey3, content);
     EXPECT_EQ(outcome.isSuccess(), true);
 
+    auto lsOutcome = Client->ListObjects(BucketName, key);
+    EXPECT_EQ(lsOutcome.isSuccess(), true);
+    EXPECT_EQ(lsOutcome.result().ObjectSummarys().size(), 3UL);
+
     DeletedKeyList keyList;
     keyList.push_back(newKey1);
     keyList.push_back(newKey2);
     keyList.push_back(newKey3);
     DeleteObjectsRequest request(BucketName);
-    //request.setEncodingType("url");
+    request.setEncodingType("url");
     request.setKeyList(keyList);
     auto dOutcome = Client->DeleteObjects(request);
     EXPECT_EQ(dOutcome.isSuccess(), true);
+
+    std::list<std::string> patList;
+    patList.push_back(newKey1);
+    patList.push_back(newKey2);
+    patList.push_back(newKey3);
+    EXPECT_EQ(dOutcome.result().keyList(), patList);
+
+    lsOutcome = Client->ListObjects(BucketName, key);
+    EXPECT_EQ(lsOutcome.isSuccess(), true);
+    EXPECT_EQ(lsOutcome.result().ObjectSummarys().size(), 0UL);
+}
+
+TEST_F(ObjectEncodingTypeTest, DeleteObjectsWithEscapeCharacters)
+{
+    std::string keyPrefix = TestUtils::GetObjectKey("DeleteObjectsWithEscapeCharacters");
+    char entities[] = { '\"', '&', '\'', '<', '>' };
+
+    std::vector<std::string> keys;
+
+    for (size_t i = 0; i < sizeof(entities) / sizeof(entities[0]); i++) {
+        std::string key = keyPrefix;
+        key.append("-").append(std::to_string(i));
+        key.push_back(entities[i]);
+        key.append(".dat");
+        keys.push_back(key);
+        auto outcome = Client->PutObject(BucketName, key, std::make_shared<std::stringstream>("just for test."));
+        EXPECT_EQ(outcome.isSuccess(), true);
+    }
+    {
+    std::string key = keyPrefix;
+    key.append("-").append(std::to_string(9));
+    key.append("\"&\'<>-10.dat");
+    keys.push_back(key);
+    auto outcome = Client->PutObject(BucketName, key, std::make_shared<std::stringstream>("just for test."));
+    EXPECT_EQ(outcome.isSuccess(), true);
+    }
+
+    EXPECT_EQ(keys.size(), 6UL);
+
+    auto lsOutcome = Client->ListObjects(BucketName, keyPrefix);
+    EXPECT_EQ(lsOutcome.isSuccess(), true);
+    EXPECT_EQ(lsOutcome.result().ObjectSummarys().size(), keys.size());
+
+    DeletedKeyList keyList;
+    std::list<std::string> patList;
+    for (const auto& key : keys) {
+        keyList.push_back(key);
+        patList.push_back(key);
+    }
+    auto dOutcome = Client->DeleteObjects(BucketName, keyList);
+    EXPECT_EQ(dOutcome.isSuccess(), true);
+    EXPECT_EQ(dOutcome.result().keyList(), patList);
+
+    lsOutcome = Client->ListObjects(BucketName, keyPrefix);
+    EXPECT_EQ(lsOutcome.isSuccess(), true);
+    EXPECT_EQ(lsOutcome.result().ObjectSummarys().size(), 0UL);
 }
 
 }

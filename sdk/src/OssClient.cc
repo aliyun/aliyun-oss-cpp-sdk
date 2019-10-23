@@ -140,6 +140,23 @@ ListObjectOutcome OssClient::ListObjects(const ListObjectsRequest &request) cons
     return client_->ListObjects(request);
 }
 
+ListObjectVersionsOutcome OssClient::ListObjectVersions(const std::string &bucket) const
+{
+    return client_->ListObjectVersions(ListObjectVersionsRequest(bucket));
+}
+
+ListObjectVersionsOutcome OssClient::ListObjectVersions(const std::string &bucket, const std::string &prefix) const
+{
+    ListObjectVersionsRequest request(bucket);
+    request.setPrefix(prefix);
+    return client_->ListObjectVersions(request);
+}
+
+ListObjectVersionsOutcome OssClient::ListObjectVersions(const ListObjectVersionsRequest& request) const
+{
+    return client_->ListObjectVersions(request);
+}
+
 VoidOutcome OssClient::SetBucketAcl(const std::string &bucket, CannedAccessControlList acl) const
 {
     return client_->SetBucketAcl(SetBucketAclRequest(bucket, acl));
@@ -244,6 +261,11 @@ VoidOutcome OssClient::SetBucketQosInfo(const SetBucketQosInfoRequest& request) 
 VoidOutcome OssClient::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
 {
     return client_->DeleteBucketPolicy(request);
+}
+
+VoidOutcome OssClient::SetBucketVersioning(const SetBucketVersioningRequest& request) const
+{
+    return client_->SetBucketVersioning(request);
 }
 
 VoidOutcome OssClient::DeleteBucket(const std::string &bucket) const
@@ -440,6 +462,11 @@ GetUserQosInfoOutcome OssClient::GetUserQosInfo(const GetUserQosInfoRequest& req
     return client_->GetUserQosInfo(request);
 }
 
+GetBucketVersioningOutcome OssClient::GetBucketVersioning(const GetBucketVersioningRequest& request) const
+{
+    return client_->GetBucketVersioning(request);
+}
+
 GetObjectOutcome OssClient::GetObject(const std::string &bucket, const std::string &key) const
 {
     return client_->GetObject(GetObjectRequest(bucket, key));
@@ -491,12 +518,12 @@ PutObjectOutcome OssClient::PutObject(const PutObjectRequest &request) const
     return client_->PutObject(request);
 }
 
-VoidOutcome OssClient::DeleteObject(const std::string &bucket, const std::string &key) const
+DeleteObjectOutcome OssClient::DeleteObject(const std::string &bucket, const std::string &key) const
 {
     return client_->DeleteObject(DeleteObjectRequest(bucket, key));
 }
 
-VoidOutcome OssClient::DeleteObject(const DeleteObjectRequest &request) const
+DeleteObjectOutcome OssClient::DeleteObject(const DeleteObjectRequest &request) const
 {
     return client_->DeleteObject(request);
 }
@@ -511,6 +538,18 @@ DeleteObjecstOutcome OssClient::DeleteObjects(const std::string bucket, const De
 DeleteObjecstOutcome OssClient::DeleteObjects(const DeleteObjectsRequest &request) const
 {
     return client_->DeleteObjects(request);
+}
+
+DeleteObjecVersionstOutcome OssClient::DeleteObjectVersions(const std::string bucket, const ObjectIdentifierList &objectList) const
+{
+    DeleteObjectVersionsRequest request(bucket);
+    request.setObjects(objectList);
+    return client_->DeleteObjectVersions(request);
+}
+
+DeleteObjecVersionstOutcome OssClient::DeleteObjectVersions(const DeleteObjectVersionsRequest &request) const
+{
+    return client_->DeleteObjectVersions(request);
 }
 
 ObjectMetaDataOutcome OssClient::HeadObject(const std::string &bucket, const std::string &key) const
@@ -556,15 +595,14 @@ GetSymlinkOutcome OssClient::GetSymlink(const GetSymlinkRequest &request) const
 GetObjectOutcome OssClient::ProcessObject(const ProcessObjectRequest &request) const
 {
     return client_->ProcessObject(request);
-
 }
 
-VoidOutcome OssClient::RestoreObject(const std::string &bucket, const std::string &key) const
+RestoreObjectOutcome OssClient::RestoreObject(const std::string &bucket, const std::string &key) const
 {
     return client_->RestoreObject(RestoreObjectRequest(bucket, key));
 }
 
-VoidOutcome OssClient::RestoreObject(const RestoreObjectRequest &request) const
+RestoreObjectOutcome OssClient::RestoreObject(const RestoreObjectRequest &request) const
 {
     return client_->RestoreObject(request);
 }
@@ -574,7 +612,7 @@ CreateSymlinkOutcome OssClient::CreateSymlink(const CreateSymlinkRequest &reques
     return client_->CreateSymlink(request);
 }
 
-VoidOutcome OssClient::SetObjectAcl(const SetObjectAclRequest &request) const
+SetObjectAclOutcome OssClient::SetObjectAcl(const SetObjectAclRequest &request) const
 {
     return client_->SetObjectAcl(request);
 }

@@ -51,9 +51,9 @@ HeaderCollection SetObjectAclRequest::specialHeaders() const
 
 ParameterCollection SetObjectAclRequest::specialParameters() const
 {
-    ParameterCollection paramters;
-    paramters["acl"] = "";
-    return paramters;
+    auto parameters = OssObjectRequest::specialParameters();
+    parameters["acl"] = "";
+    return parameters;
 }
 
 

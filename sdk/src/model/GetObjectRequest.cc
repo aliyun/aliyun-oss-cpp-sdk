@@ -174,7 +174,7 @@ HeaderCollection GetObjectRequest::specialHeaders() const
 
 ParameterCollection GetObjectRequest::specialParameters() const
 {
-    ParameterCollection parameters;
+    auto parameters = OssObjectRequest::specialParameters();
     for (auto const& param : responseHeaderParameters_) {
         parameters[param.first] = param.second;
     }

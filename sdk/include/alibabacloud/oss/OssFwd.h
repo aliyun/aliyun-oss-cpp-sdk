@@ -66,6 +66,7 @@
 #include <alibabacloud/oss/model/PutObjectRequest.h>
 #include <alibabacloud/oss/model/PutObjectResult.h>
 #include <alibabacloud/oss/model/DeleteObjectRequest.h>
+#include <alibabacloud/oss/model/DeleteObjectResult.h>
 #include <alibabacloud/oss/model/DeleteObjectsRequest.h>
 #include <alibabacloud/oss/model/DeleteObjectsResult.h>
 #include <alibabacloud/oss/model/HeadObjectRequest.h>
@@ -82,9 +83,11 @@
 #include <alibabacloud/oss/model/GetSymlinkRequest.h>
 #include <alibabacloud/oss/model/GetSymlinkResult.h>
 #include <alibabacloud/oss/model/RestoreObjectRequest.h>
+#include <alibabacloud/oss/model/RestoreObjectResult.h>
 #include <alibabacloud/oss/model/CreateSymlinkRequest.h>
 #include <alibabacloud/oss/model/CreateSymlinkResult.h>
 #include <alibabacloud/oss/model/SetObjectAclRequest.h>
+#include <alibabacloud/oss/model/SetObjectAclResult.h>
 #include <alibabacloud/oss/model/ProcessObjectRequest.h>
 #include <alibabacloud/oss/model/InitiateMultipartUploadRequest.h>
 #include <alibabacloud/oss/model/InitiateMultipartUploadResult.h>
@@ -148,6 +151,13 @@
 #include <alibabacloud/oss/model/GetBucketQosInfoResult.h>
 #include <alibabacloud/oss/model/GetUserQosInfoRequest.h>
 #include <alibabacloud/oss/model/GetUserQosInfoResult.h>
+#include <alibabacloud/oss/model/SetBucketVersioningRequest.h>
+#include <alibabacloud/oss/model/GetBucketVersioningRequest.h>
+#include <alibabacloud/oss/model/GetBucketVersioningResult.h>
+#include <alibabacloud/oss/model/ListObjectVersionsRequest.h>
+#include <alibabacloud/oss/model/ListObjectVersionsResult.h>
+#include <alibabacloud/oss/model/DeleteObjectVersionsRequest.h>
+#include <alibabacloud/oss/model/DeleteObjectVersionsResult.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -161,6 +171,7 @@ namespace OSS
     using ListBucketsOutcome = Outcome<OssError, ListBucketsResult>;
     using CreateBucketOutcome = Outcome<OssError, Bucket>;
     using ListObjectOutcome = Outcome<OssError, ListObjectsResult>;
+    using ListObjectVersionsOutcome = Outcome<OssError, ListObjectVersionsResult>;
 
     using GetBucketAclOutcome = Outcome<OssError, GetBucketAclResult>;
     using GetBucketLocationOutcome = Outcome<OssError, GetBucketLocationResult>;
@@ -178,15 +189,20 @@ namespace OSS
     using GetBucketTaggingOutcome = Outcome<OssError, GetBucketTaggingResult>;
     using GetBucketQosInfoOutcome = Outcome<OssError, GetBucketQosInfoResult>;
     using GetUserQosInfoOutcome = Outcome<OssError, GetUserQosInfoResult>;
+    using GetBucketVersioningOutcome = Outcome<OssError, GetBucketVersioningResult>;
 
     using GetObjectOutcome = Outcome<OssError, GetObjectResult>;
     using PutObjectOutcome = Outcome<OssError, PutObjectResult>;
+    using DeleteObjectOutcome = Outcome<OssError, DeleteObjectResult>;
     using DeleteObjecstOutcome = Outcome<OssError, DeleteObjectsResult>;
+    using DeleteObjecVersionstOutcome = Outcome<OssError, DeleteObjectVersionsResult>;
     using ObjectMetaDataOutcome = Outcome<OssError, ObjectMetaData>;
 
     using GetObjectAclOutcome = Outcome<OssError, GetObjectAclResult>;
+    using SetObjectAclOutcome = Outcome<OssError, SetObjectAclResult>;
     using AppendObjectOutcome = Outcome<OssError, AppendObjectResult>;
     using CopyObjectOutcome = Outcome<OssError, CopyObjectResult>;
+    using RestoreObjectOutcome = Outcome<OssError, RestoreObjectResult>;
     using GetSymlinkOutcome = Outcome<OssError, GetSymlinkResult>;
     using CreateSymlinkOutcome = Outcome<OssError, CreateSymlinkResult>;
     using CreateSelectObjectMetaOutcome = Outcome<OssError, CreateSelectObjectMetaResult>;

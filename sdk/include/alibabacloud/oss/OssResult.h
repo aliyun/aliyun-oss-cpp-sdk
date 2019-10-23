@@ -17,6 +17,7 @@
 #pragma once
 
 #include <alibabacloud/oss/Export.h>
+#include <alibabacloud/oss/Types.h>
 #include <string>
 #include <vector>
 
@@ -30,7 +31,8 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT OssResult
     {
     public:
-        OssResult():parseDone_(false) {}
+        OssResult();
+        OssResult(const HeaderCollection& value);
         virtual ~OssResult() {};
         const std::string& RequestId() const {return requestId_;}
     protected:
@@ -38,6 +40,17 @@ namespace OSS
         bool ParseDone() { return parseDone_; };
         bool parseDone_;
         std::string requestId_;
+    };
+
+    class ALIBABACLOUD_OSS_EXPORT OssObjectResult : public OssResult
+    {
+    public:
+        OssObjectResult();
+        OssObjectResult(const HeaderCollection& value);
+        virtual ~OssObjectResult() {};
+        const std::string& VersionId() const { return versionId_; }
+    protected:
+        std::string versionId_;
     };
 }
 }

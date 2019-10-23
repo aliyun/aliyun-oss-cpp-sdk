@@ -24,7 +24,7 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT GetObjectResult :public OssResult
+    class ALIBABACLOUD_OSS_EXPORT GetObjectResult :public OssObjectResult
     {
     public:
         GetObjectResult();

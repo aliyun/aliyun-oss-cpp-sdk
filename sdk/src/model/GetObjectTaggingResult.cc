@@ -22,7 +22,7 @@ using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
 
 GetObjectTaggingResult::GetObjectTaggingResult() :
-    OssResult()
+    OssObjectResult()
 {
 }
 
@@ -34,6 +34,15 @@ GetObjectTaggingResult::GetObjectTaggingResult(const std::string& result):
 
 GetObjectTaggingResult::GetObjectTaggingResult(const std::shared_ptr<std::iostream>& result):
     GetObjectTaggingResult()
+{
+    std::istreambuf_iterator<char> isb(*result.get()), end;
+    std::string str(isb, end);
+    *this = str;
+}
+
+GetObjectTaggingResult::GetObjectTaggingResult(const HeaderCollection& headers, 
+    const std::shared_ptr<std::iostream>& result):
+    OssObjectResult(headers)
 {
     std::istreambuf_iterator<char> isb(*result.get()), end;
     std::string str(isb, end);

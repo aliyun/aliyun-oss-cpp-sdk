@@ -20,7 +20,7 @@ using namespace AlibabaCloud::OSS;
 
 ParameterCollection GetObjectMetaRequest::specialParameters() const
 {
-    ParameterCollection parameter;
-    parameter["objectMeta"] = "";
-    return parameter;
+    auto parameters = OssObjectRequest::specialParameters();
+    parameters["objectMeta"] = "";
+    return parameters;
 }

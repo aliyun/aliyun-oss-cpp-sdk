@@ -15,18 +15,28 @@
  */
 
 #include <alibabacloud/oss/model/CreateSymlinkResult.h>
+#include <alibabacloud/oss/http/HttpType.h>
 #include "../utils/Utils.h"
 
 using namespace AlibabaCloud::OSS;
 
 CreateSymlinkResult::CreateSymlinkResult():
-    OssResult()
+    OssObjectResult()
 {
 }
 
 CreateSymlinkResult::CreateSymlinkResult(const std::string& etag):
-    OssResult(),
+    OssObjectResult(),
     etag_(TrimQuotes(etag.c_str()))
 {
 }
+
+CreateSymlinkResult::CreateSymlinkResult(const HeaderCollection& headers):
+    OssObjectResult(headers)
+{
+    if (headers.find(Http::ETAG) != headers.end()) {
+        etag_ = TrimQuotes(headers.at(Http::ETAG).c_str());
+    }
+}
+
 

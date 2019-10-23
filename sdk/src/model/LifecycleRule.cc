@@ -20,8 +20,7 @@
 using namespace AlibabaCloud::OSS;
 
 LifeCycleExpiration::LifeCycleExpiration() :
-    days_(0),
-    createdBeforeDate_()
+    LifeCycleExpiration(0)
 {
 }
 
@@ -65,9 +64,16 @@ void LifeCycleTransition::setStorageClass(AlibabaCloud::OSS::StorageClass storag
     storageClass_ = storageClass;
 }
 
+LifecycleRule::LifecycleRule() :
+    expiredObjectDeleteMarker_(false)
+{
+}
+
 bool LifecycleRule::hasExpiration() const
 {
-    return (expiration_.Days() > 0 || !expiration_.CreatedBeforeDate().empty());
+    return (expiration_.Days() > 0 || 
+        !expiration_.CreatedBeforeDate().empty() ||
+        expiredObjectDeleteMarker_);
 }
 
 bool LifecycleRule::hasTransitionList() const
@@ -78,6 +84,16 @@ bool LifecycleRule::hasTransitionList() const
 bool LifecycleRule::hasAbortMultipartUpload() const
 {
     return (abortMultipartUpload_.Days() > 0 || !abortMultipartUpload_.CreatedBeforeDate().empty());
+}
+
+bool LifecycleRule::hasNoncurrentVersionExpiration() const
+{
+    return (noncurrentVersionExpiration_.Days() > 0);
+}
+
+bool LifecycleRule::hasNoncurrentVersionTransitionList() const
+{
+    return !noncurrentVersionTransitionList_.empty();
 }
 
 bool LifecycleRule::operator==(const LifecycleRule& right) const
@@ -131,6 +147,33 @@ bool LifecycleRule::operator==(const LifecycleRule& right) const
         }
         firstTag++;
         RightfirstTag++;
+    }
+
+    if (expiredObjectDeleteMarker_ != right.expiredObjectDeleteMarker_) {
+        return false;
+    }
+
+    if (noncurrentVersionExpiration_.Days() != right.noncurrentVersionExpiration_.Days() ||
+        noncurrentVersionExpiration_.CreatedBeforeDate() != right.noncurrentVersionExpiration_.CreatedBeforeDate()) {
+        return false;
+    }
+
+    if (noncurrentVersionTransitionList_.size() != right.noncurrentVersionTransitionList_.size()) {
+        return false;
+    }
+
+    first = noncurrentVersionTransitionList_.begin();
+    Rightfirst = right.noncurrentVersionTransitionList_.begin();
+
+    for (; first != noncurrentVersionTransitionList_.end(); ) {
+
+        if (first->Expiration().Days() != Rightfirst->Expiration().Days() ||
+            first->Expiration().CreatedBeforeDate() != Rightfirst->Expiration().CreatedBeforeDate() ||
+            first->StorageClass() != Rightfirst->StorageClass()) {
+            return false;
+        }
+        first++;
+        Rightfirst++;
     }
 
     return true;

@@ -112,6 +112,13 @@ namespace OSS
         ZRS
     };
 
+    enum class VersioningStatus
+    {
+        NotSet,
+        Enabled,
+        Suspended
+    };
+
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 
     struct  ALIBABACLOUD_OSS_EXPORT caseSensitiveLess

@@ -39,6 +39,7 @@ namespace OSS
         const std::string& ETag() const;
         const std::string& ContentMd5() const;
         const std::string& ObjectType() const;
+        const std::string& VersionId() const;
         uint64_t CRC64() const;
         void setExpirationTime(const std::string& value);
         void setContentLength(int64_t value);

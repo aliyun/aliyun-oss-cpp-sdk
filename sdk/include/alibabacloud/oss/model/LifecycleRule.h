@@ -60,7 +60,7 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT LifecycleRule
     {
     public:
-        LifecycleRule() = default;
+        LifecycleRule();
         const std::string& ID() const { return id_; }
         const std::string& Prefix() const { return prefix_; }
         RuleStatus Status() const {  return status_;}
@@ -70,7 +70,10 @@ namespace OSS
         LifeCycleExpiration& Expiration() { return expiration_; }
         LifeCycleTransitionList& TransitionList() { return transitionList_; }
         LifeCycleExpiration& AbortMultipartUpload() { return abortMultipartUpload_; }
+
         const TagSet& Tags() const { return tagSet_; }
+        TagSet& Tags() { return tagSet_; }
+
         void setID(const std::string& id) { id_ = id; }
         void setPrefix(const std::string& prefix) { prefix_ = prefix; }
         void setStatus(RuleStatus status) { status_ = status; }
@@ -84,6 +87,19 @@ namespace OSS
         bool hasTransitionList() const;
         bool hasAbortMultipartUpload() const;
         bool operator==(const LifecycleRule& right) const;
+
+        bool ExpiredObjectDeleteMarker() const { return expiredObjectDeleteMarker_; };
+        const LifeCycleExpiration& NoncurrentVersionExpiration() const { return noncurrentVersionExpiration_; }
+        const LifeCycleTransitionList& NoncurrentVersionTransitionList() const { return noncurrentVersionTransitionList_; }
+        LifeCycleExpiration& NoncurrentVersionExpiration() { return noncurrentVersionExpiration_; }
+        LifeCycleTransitionList& NoncurrentVersionTransitionList() { return noncurrentVersionTransitionList_; }
+        void setExpiredObjectDeleteMarker(bool value) { expiredObjectDeleteMarker_ = value; };
+        void setNoncurrentVersionExpiration(const LifeCycleExpiration& expiration) { noncurrentVersionExpiration_ = expiration; }
+        void addNoncurrentVersionTransition(const LifeCycleTransition&transition) { noncurrentVersionTransitionList_.push_back(transition); }
+        void setNoncurrentVersionTransitionList(const LifeCycleTransitionList& transitionList) { noncurrentVersionTransitionList_ = transitionList; }
+        bool hasNoncurrentVersionExpiration() const;
+        bool hasNoncurrentVersionTransitionList() const;
+
     private:
         std::string id_;
         std::string prefix_;
@@ -92,6 +108,10 @@ namespace OSS
         LifeCycleTransitionList transitionList_;
         LifeCycleExpiration abortMultipartUpload_;
         TagSet tagSet_;
+
+        bool expiredObjectDeleteMarker_;
+        LifeCycleExpiration noncurrentVersionExpiration_;
+        LifeCycleTransitionList noncurrentVersionTransitionList_;
     };
     using LifecycleRuleList = std::vector<LifecycleRule>;
 } 

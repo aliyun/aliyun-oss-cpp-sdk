@@ -151,6 +151,7 @@ void UploadPartCopyRequest::setTrafficLimit(uint64_t value)
 {
     trafficLimit_ = value;
 }
+
 ParameterCollection UploadPartCopyRequest::specialParameters() const
 {
     ParameterCollection parameters;
@@ -164,6 +165,9 @@ HeaderCollection UploadPartCopyRequest::specialHeaders() const
     auto headers = OssObjectRequest::specialHeaders();
     std::string source;
     source.append("/").append(sourceBucket_).append("/").append(UrlEncode(sourceKey_));
+    if (!versionId_.empty()) {
+        source.append("?versionId=").append(versionId_);
+    }
     headers["x-oss-copy-source"] = source;
 
     if (sourceRangeIsSet_) {

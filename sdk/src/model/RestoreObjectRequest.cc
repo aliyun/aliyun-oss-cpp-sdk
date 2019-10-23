@@ -25,8 +25,8 @@ RestoreObjectRequest::RestoreObjectRequest(const std::string &bucket, const std:
     
 ParameterCollection RestoreObjectRequest::specialParameters() const
 {
-    ParameterCollection paramters;
-    paramters["restore"]="";
-    return paramters;
+    auto parameters = OssObjectRequest::specialParameters();
+    parameters["restore"]="";
+    return parameters;
 }
 

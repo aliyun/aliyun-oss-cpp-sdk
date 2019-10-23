@@ -23,7 +23,7 @@ using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
 
 CopyObjectResult::CopyObjectResult() :
-    OssResult()
+    OssObjectResult()
 {
 }
 
@@ -36,6 +36,18 @@ CopyObjectResult::CopyObjectResult(const std::string& data):
 CopyObjectResult::CopyObjectResult(const std::shared_ptr<std::iostream>& data):
     CopyObjectResult()
 {
+    std::istreambuf_iterator<char> isb(*data.get()), end;
+    std::string str(isb, end);
+    *this = str;
+}
+
+CopyObjectResult::CopyObjectResult(const HeaderCollection& headers, const std::shared_ptr<std::iostream>& data):
+    OssObjectResult(headers)
+{
+    if (headers.find("x-oss-copy-source-version-id") != headers.end()) {
+        sourceVersionId_ = headers.at("x-oss-copy-source-version-id");
+    }
+
     std::istreambuf_iterator<char> isb(*data.get()), end;
     std::string str(isb, end);
     *this = str;

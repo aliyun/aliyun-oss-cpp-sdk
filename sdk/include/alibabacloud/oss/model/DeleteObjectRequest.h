@@ -29,6 +29,12 @@ namespace OSS
             OssObjectRequest(bucket, key)
         {
         }
+
+        DeleteObjectRequest(const std::string& bucket, const std::string& key, const std::string& versionId) :
+            OssObjectRequest(bucket, key)
+        {
+            versionId_ = versionId;
+        }
     };
 } 
 }

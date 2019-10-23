@@ -25,7 +25,7 @@ DeleteObjectTaggingRequest::DeleteObjectTaggingRequest(const std::string& bucket
 
 ParameterCollection DeleteObjectTaggingRequest::specialParameters() const
 {
-    ParameterCollection parameters;
+    auto parameters = OssObjectRequest::specialParameters();
     parameters["tagging"] = "";
     return parameters;
 }

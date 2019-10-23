@@ -49,8 +49,11 @@ std::string SetBucketLifecycleRequest::payload() const
             if (rule.Expiration().Days() > 0) {
             ss << "      <Days>" << std::to_string(rule.Expiration().Days()) << "</Days>" << std::endl;
             } 
-            else {
+            else if (!rule.Expiration().CreatedBeforeDate().empty()){
             ss << "      <CreatedBeforeDate>" << rule.Expiration().CreatedBeforeDate() << "</CreatedBeforeDate>" << std::endl;
+            }
+            if (rule.ExpiredObjectDeleteMarker()) {
+            ss << "      <ExpiredObjectDeleteMarker>true</ExpiredObjectDeleteMarker>" << std::endl;
             }
             ss << "    </Expiration>" << std::endl;
         }
@@ -76,6 +79,21 @@ std::string SetBucketLifecycleRequest::payload() const
             ss << "      <CreatedBeforeDate>" << rule.AbortMultipartUpload().CreatedBeforeDate() << "</CreatedBeforeDate>" << std::endl;
             }
             ss << "    </AbortMultipartUpload>" << std::endl;
+        }
+        if (rule.hasNoncurrentVersionExpiration())
+        {
+            ss << "    <NoncurrentVersionExpiration>" << std::endl;
+            ss << "      <NoncurrentDays>" << std::to_string(rule.NoncurrentVersionExpiration().Days()) << "</NoncurrentDays>" << std::endl;
+            ss << "    </NoncurrentVersionExpiration>" << std::endl;
+        }
+        for (auto const & transition : rule.NoncurrentVersionTransitionList())
+        {
+            ss << "    <NoncurrentVersionTransition>" << std::endl;
+            if (transition.Expiration().Days() > 0) {
+            ss << "      <NoncurrentDays>" << std::to_string(transition.Expiration().Days()) << "</NoncurrentDays>" << std::endl;
+            }
+            ss << "      <StorageClass>" << ToStorageClassName(transition.StorageClass()) << "</StorageClass>" << std::endl;
+            ss << "    </NoncurrentVersionTransition>" << std::endl;
         }
         ss << "  </Rule>" << std::endl;
     }
@@ -109,7 +127,9 @@ int SetBucketLifecycleRequest::validate() const
         //no config rule 
         if (!rule.hasAbortMultipartUpload() &&
             !rule.hasExpiration() &&
-            !rule.hasTransitionList()) {
+            !rule.hasTransitionList() &&
+            !rule.hasNoncurrentVersionExpiration() &&
+            !rule.hasNoncurrentVersionTransitionList()) {
             return ARG_ERROR_LIFECYCLE_RULE_CONFIG_EMPTY;
         }
 

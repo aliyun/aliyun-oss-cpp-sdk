@@ -24,21 +24,26 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT CopyObjectResult : public OssResult
+    class ALIBABACLOUD_OSS_EXPORT CopyObjectResult : public OssObjectResult
     {
     public:
         CopyObjectResult();
         CopyObjectResult(const std::string& data);
         CopyObjectResult(const std::shared_ptr<std::iostream>& data);
+        CopyObjectResult(const HeaderCollection& headers, const std::shared_ptr<std::iostream>& data);
         CopyObjectResult& operator=(const std::string& data);
         const std::string& ETag() const { return etag_; }
         const std::string& LastModified() const { return lastModified_; }
+        const std::string& SourceVersionId() { return sourceVersionId_; }
 
         void setEtag(const std::string& etag) { etag_ = etag; }
         void setLastModified(const std::string& lastModified) { lastModified_ = lastModified; }
+        void setVersionId(const std::string& versionId) { versionId_ = versionId; }
+        void setRequestId(const std::string& requestId) { requestId_ = requestId; }
      private:
         std::string etag_;
         std::string lastModified_;
+        std::string sourceVersionId_;
     };
 } 
 }

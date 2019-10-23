@@ -161,6 +161,44 @@ std::string AlibabaCloud::OSS::Base64EncodeUrlSafe(const char *src, int len)
     return out;
 }
 
+std::string AlibabaCloud::OSS::XmlEscape(const std::string& value)
+{
+    struct Entity {
+        const char* pattern;
+        char value;
+    };
+
+    static const Entity entities[] = {
+        { "&quot;", '\"' },
+        { "&amp;",  '&'  },
+        { "&apos;", '\'' },
+        { "&lt;",	'<'  },
+        { "&gt;",	'>'  }
+    };
+
+    if (value.empty()) {
+        return value;
+    }
+
+    std::stringstream ss;
+    for (size_t i = 0; i < value.size(); i++) {
+        bool flag = false;
+        for (size_t j = 0; j < (sizeof(entities)/sizeof(entities[0])); j++) {
+            if (value[i] == entities[j].value) {
+                flag = true;
+                ss << entities[j].pattern;
+                break;
+            }
+        }
+
+        if (!flag) {
+            ss << value[i];
+        }
+    }
+
+    return ss.str();
+}
+
 std::string AlibabaCloud::OSS::ComputeContentMD5(const std::string& data) 
 {
     return ComputeContentMD5(data.c_str(), data.size());
@@ -890,3 +928,18 @@ const char* AlibabaCloud::OSS::ToDataRedundancyTypeName(DataRedundancyType type)
     static const char* typeName[] = { "NotSet", "LRS", "ZRS" };
     return typeName[static_cast<int>(type) - static_cast<int>(DataRedundancyType::NotSet)];
 }
+
+const char * AlibabaCloud::OSS::ToVersioningStatusName(VersioningStatus status)
+{
+    static const char *StatusName[] = { "NotSet", "Enabled", "Suspended" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(VersioningStatus::NotSet)];
+}
+
+VersioningStatus AlibabaCloud::OSS::ToVersioningStatusType(const char *name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("enabled")) return VersioningStatus::Enabled;
+    else if (!statusName.compare("suspended")) return VersioningStatus::Suspended;
+    else return VersioningStatus::NotSet;
+}
+

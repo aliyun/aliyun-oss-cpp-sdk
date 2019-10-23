@@ -158,6 +158,16 @@ void OssObjectRequest::setRequestPayer(RequestPayer key)
     requestPayer_ = key;
 }
 
+void OssObjectRequest::setVersionId(const std::string& versionId)
+{
+    versionId_ = versionId;
+}
+
+const std::string& OssObjectRequest::VersionId() const
+{
+    return versionId_;
+}
+
 HeaderCollection OssObjectRequest::specialHeaders() const
 {
     auto headers = OssRequest::specialHeaders();
@@ -165,6 +175,15 @@ HeaderCollection OssObjectRequest::specialHeaders() const
         headers["x-oss-request-payer"] = ToLower(ToRequestPayerName(RequestPayer::Requester));
     }
     return headers;
+}
+
+ParameterCollection OssObjectRequest::specialParameters() const
+{
+    auto parameters = OssRequest::specialParameters();
+    if (!versionId_.empty()) {
+        parameters["versionId"] = versionId_;
+    }
+    return parameters;
 }
 
 int OssResumableBaseRequest::validate() const
@@ -273,6 +292,16 @@ void OssResumableBaseRequest::setTrafficLimit(uint64_t value)
 uint64_t OssResumableBaseRequest::TrafficLimit() const
 {
     return trafficLimit_;
+}
+
+void OssResumableBaseRequest::setVersionId(const std::string& versionId)
+{
+    versionId_ = versionId;
+}
+
+const std::string& OssResumableBaseRequest::VersionId() const
+{
+    return versionId_;
 }
 
 void LiveChannelRequest::setBucket(const std::string &bucket)

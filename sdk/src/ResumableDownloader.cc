@@ -88,6 +88,9 @@ GetObjectOutcome ResumableDownloader::Download()
                 if (request_.TrafficLimit() != 0) {
                     getObjectReq.setTrafficLimit(request_.TrafficLimit());
                 }
+                if (!request_.VersionId().empty()) {
+                    getObjectReq.setVersionId(request_.VersionId());
+                }
                 auto outcome = client_->GetObject(getObjectReq);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && part.partNumber == 2) {
@@ -177,6 +180,9 @@ GetObjectOutcome ResumableDownloader::Download()
         HeadObjectRequest hRequest(request_.Bucket(), request_.Key());
         if (request_.RequestPayer() == RequestPayer::Requester) {
             hRequest.setRequestPayer(request_.RequestPayer());
+        }
+        if (!request_.VersionId().empty()) {
+            hRequest.setVersionId(request_.VersionId());
         }
         auto hOutcome = client_->HeadObject(hRequest);
         if (!hOutcome.isSuccess()) {
@@ -366,6 +372,9 @@ const std::string ResumableDownloader::getRecordPath()
     if (!checkpointDir.empty()) {
         std::stringstream ss;
         ss << "oss://" << request_.Bucket() << "/" << request_.Key();
+        if (!request_.VersionId().empty()) {
+            ss << "?versionId=" << request_.VersionId();
+        }
         auto srcPath = ss.str();
         auto destPath = request_.FilePath();
 

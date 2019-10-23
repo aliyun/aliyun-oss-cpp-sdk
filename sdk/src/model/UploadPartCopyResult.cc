@@ -25,30 +25,28 @@ using namespace tinyxml2;
 static const std::string EMPTY;
 
 UploadPartCopyResult::UploadPartCopyResult() :
-    OssResult()
+    OssObjectResult()
 {
 }
 
-UploadPartCopyResult::UploadPartCopyResult(
-    const std::string& result):
+UploadPartCopyResult::UploadPartCopyResult(const std::string& result):
     UploadPartCopyResult()
 {
     *this = result;
     
 }
 
-UploadPartCopyResult::UploadPartCopyResult(
-    const std::shared_ptr<std::iostream>& result,
-    const HeaderCollection &header):
-    UploadPartCopyResult()
+UploadPartCopyResult::UploadPartCopyResult(const std::shared_ptr<std::iostream>& result,
+    const HeaderCollection &headers):
+    OssObjectResult(headers)
 {
-    headers = header;
+    if (headers.find("x-oss-copy-source-version-id") != headers.end()) {
+        sourceVersionId_ = headers.at("x-oss-copy-source-version-id");
+    }
+
     std::istreambuf_iterator<char> isb(*result.get()), end;
     std::string str(isb, end);
     *this = str;
-    if (header.find("x-oss-request-id") != header.end()) {
-        requestId_ = header.at("x-oss-request-id");
-    }
 }
 
 UploadPartCopyResult& UploadPartCopyResult::operator =(
