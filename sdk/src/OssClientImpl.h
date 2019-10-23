@@ -57,6 +57,7 @@ namespace OSS
         VoidOutcome SetBucketEncryption(const SetBucketEncryptionRequest& request) const;
         VoidOutcome SetBucketTagging(const SetBucketTaggingRequest& request) const;
         VoidOutcome SetBucketQosInfo(const SetBucketQosInfoRequest& request) const;
+        VoidOutcome SetBucketVersioning(const SetBucketVersioningRequest& request) const;
 
         VoidOutcome DeleteBucket(const DeleteBucketRequest &request) const;
         VoidOutcome DeleteBucketLogging(const DeleteBucketLoggingRequest& request) const;
@@ -69,6 +70,7 @@ namespace OSS
         VoidOutcome DeleteBucketQosInfo(const DeleteBucketQosInfoRequest& request) const;
 
         ListObjectOutcome ListObjects(const ListObjectsRequest &request) const;
+        ListObjectVersionsOutcome ListObjectVersions(const ListObjectVersionsRequest &request) const;
 
         GetBucketAclOutcome GetBucketAcl(const GetBucketAclRequest &request) const;
         GetBucketLocationOutcome GetBucketLocation(const GetBucketLocationRequest &request) const;
@@ -86,12 +88,14 @@ namespace OSS
         GetBucketTaggingOutcome GetBucketTagging(const GetBucketTaggingRequest& request) const;
         GetBucketQosInfoOutcome GetBucketQosInfo(const GetBucketQosInfoRequest& request) const;
         GetUserQosInfoOutcome GetUserQosInfo(const GetUserQosInfoRequest& request) const;
+        GetBucketVersioningOutcome GetBucketVersioning(const GetBucketVersioningRequest& request) const;
 
         /*Object*/
         GetObjectOutcome GetObject(const GetObjectRequest &request) const;
         PutObjectOutcome PutObject(const PutObjectRequest &request) const;
-        VoidOutcome DeleteObject(const DeleteObjectRequest &request) const;
+        DeleteObjectOutcome DeleteObject(const DeleteObjectRequest &request) const;
         DeleteObjecstOutcome DeleteObjects(const DeleteObjectsRequest &request) const;
+        DeleteObjecVersionstOutcome DeleteObjectVersions(const DeleteObjectVersionsRequest& request) const;
         ObjectMetaDataOutcome HeadObject(const HeadObjectRequest &request) const;
         ObjectMetaDataOutcome GetObjectMeta(const GetObjectMetaRequest &request) const;
 
@@ -99,9 +103,9 @@ namespace OSS
         AppendObjectOutcome AppendObject(const AppendObjectRequest &request) const;
         CopyObjectOutcome CopyObject(const CopyObjectRequest &request) const;
         GetSymlinkOutcome GetSymlink(const GetSymlinkRequest &request) const;
-        VoidOutcome RestoreObject(const RestoreObjectRequest &request) const;
+        RestoreObjectOutcome RestoreObject(const RestoreObjectRequest &request) const;
         CreateSymlinkOutcome CreateSymlink(const CreateSymlinkRequest &request) const;
-        VoidOutcome SetObjectAcl(const SetObjectAclRequest &request) const;
+        SetObjectAclOutcome SetObjectAcl(const SetObjectAclRequest &request) const;
         GetObjectOutcome ProcessObject(const ProcessObjectRequest &request) const;
 
         GetObjectOutcome SelectObject(const SelectObjectRequest &request) const;

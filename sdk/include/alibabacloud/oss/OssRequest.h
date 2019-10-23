@@ -67,7 +67,8 @@ namespace OSS
     public:
         OssObjectRequest(const std::string& bucket, const std::string& key) :
             OssRequest(bucket, key),
-            requestPayer_(RequestPayer::NotSet)
+            requestPayer_(RequestPayer::NotSet),
+            versionId_()
         {}
         void setBucket(const std::string& bucket);
         const std::string& Bucket() const;
@@ -76,10 +77,15 @@ namespace OSS
         const std::string& Key() const;
 
         void setRequestPayer(RequestPayer value);
+
+        void setVersionId(const std::string& versionId);
+        const std::string& VersionId() const;
     protected:
         virtual int validate() const;
         virtual HeaderCollection specialHeaders() const;
+        virtual ParameterCollection specialParameters() const;
         RequestPayer requestPayer_;
+        std::string versionId_;
     };
 
     class ALIBABACLOUD_OSS_EXPORT OssResumableBaseRequest : public OssRequest
@@ -91,7 +97,8 @@ namespace OSS
             partSize_(partSize),
             checkpointDir_(checkpointDir),
             requestPayer_(AlibabaCloud::OSS::RequestPayer::NotSet),
-            trafficLimit_(0)
+            trafficLimit_(0),
+            versionId_()
         {
             threadNum_ = threadNum == 0 ? 1 : threadNum;
         }
@@ -123,6 +130,9 @@ namespace OSS
         void setTrafficLimit(uint64_t value);
         uint64_t TrafficLimit() const;
 
+        void setVersionId(const std::string& versionId);
+        const std::string& VersionId() const;
+
     protected:
         friend class OssClientImpl;
         virtual int validate() const;
@@ -136,6 +146,7 @@ namespace OSS
         std::string mtime_;
         AlibabaCloud::OSS::RequestPayer requestPayer_;
         uint64_t trafficLimit_;
+        std::string versionId_;
     };
 
     class ALIBABACLOUD_OSS_EXPORT LiveChannelRequest : public OssRequest

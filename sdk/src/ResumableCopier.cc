@@ -77,6 +77,9 @@ CopyObjectOutcome ResumableCopier::Copy()
                 if (request_.TrafficLimit() != 0) {
                     uploadPartCopyReq.setTrafficLimit(request_.TrafficLimit());
                 }
+                if (!request_.VersionId().empty()) {
+                    uploadPartCopyReq.setVersionId(request_.VersionId());
+                }
                 auto outcome = client_->UploadPartCopy(uploadPartCopyReq);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && (part.PartNumber() == 2 || part.PartNumber() == 4)) {
@@ -156,11 +159,16 @@ CopyObjectOutcome ResumableCopier::Copy()
     if (request_.RequestPayer() == RequestPayer::Requester) {
         hRequest.setRequestPayer(request_.RequestPayer());
     }
+    if (!compOutcome.result().VersionId().empty()) {
+        hRequest.setVersionId(compOutcome.result().VersionId());
+    }
     auto hOutcome = client_->HeadObject(HeadObjectRequest(hRequest));
     if (hOutcome.isSuccess()) {
         result.setLastModified(hOutcome.result().LastModified());
     }
     result.setEtag(compOutcome.result().ETag());
+    result.setRequestId(compOutcome.result().RequestId());
+    result.setVersionId(compOutcome.result().VersionId());
     return CopyObjectOutcome(result);
 }
 
@@ -174,6 +182,9 @@ int ResumableCopier::prepare(OssError& err)
         HeadObjectRequest hRequest(request_.SrcBucket(), request_.SrcKey());
         if (request_.RequestPayer() == RequestPayer::Requester) {
             hRequest.setRequestPayer(request_.RequestPayer());
+        }
+        if (!request_.VersionId().empty()) {
+            hRequest.setVersionId(request_.VersionId());
         }
         auto headObjectOutcome = client_->HeadObject(hRequest);
         if (!headObjectOutcome.isSuccess()) {
@@ -295,6 +306,9 @@ const std::string ResumableCopier::getRecordPath()
     if (!checkpointDir.empty()) {
         std::stringstream ss;
         ss << "oss://" << request_.SrcBucket() << "/" << request_.SrcKey();
+        if (!request_.VersionId().empty()) {
+            ss << "?versionId=" << request_.VersionId();
+        }
         auto srcPath = ss.str();
         ss.str("");
         ss << "oss://" << request_.Bucket() << "/" << request_.Key();

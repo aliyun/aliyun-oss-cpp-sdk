@@ -44,7 +44,10 @@ namespace OSS
 
     protected:
         virtual HeaderCollection specialHeaders() const ;
+        virtual ParameterCollection specialParameters() const;
     private:
+        std::string sourceBucket_;
+        std::string sourceKey_;
         ObjectMetaData metaData_;
     };
 }

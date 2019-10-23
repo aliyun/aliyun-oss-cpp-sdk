@@ -488,6 +488,7 @@ VoidOutcome OssClientImpl::SetBucketTagging(const SetBucketTaggingRequest& reque
         return VoidOutcome(outcome.error());
     }
 }
+
 VoidOutcome OssClientImpl::SetBucketQosInfo(const SetBucketQosInfoRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
@@ -500,6 +501,20 @@ VoidOutcome OssClientImpl::SetBucketQosInfo(const SetBucketQosInfoRequest& reque
         return VoidOutcome(outcome.error());
     }
 }
+
+VoidOutcome OssClientImpl::SetBucketVersioning(const SetBucketVersioningRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Put);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
 VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
@@ -628,6 +643,20 @@ ListObjectOutcome OssClientImpl::ListObjects(const ListObjectsRequest &request) 
     }
     else {
         return ListObjectOutcome(outcome.error());
+    }
+}
+
+ListObjectVersionsOutcome OssClientImpl::ListObjectVersions(const ListObjectVersionsRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        ListObjectVersionsResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? ListObjectVersionsOutcome(std::move(result)) :
+            ListObjectVersionsOutcome(OssError("ParseXMLError", "Parsing ListObjectVersions result fail."));
+    }
+    else {
+        return ListObjectVersionsOutcome(outcome.error());
     }
 }
 
@@ -854,6 +883,20 @@ GetUserQosInfoOutcome OssClientImpl::GetUserQosInfo(const GetUserQosInfoRequest&
     }
 }
 
+GetBucketVersioningOutcome OssClientImpl::GetBucketVersioning(const GetBucketVersioningRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetBucketVersioningResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetBucketVersioningOutcome(std::move(result)) :
+            GetBucketVersioningOutcome(OssError("ParseXMLError", "Parsing GetBucketVersioning result fail."));
+    }
+    else {
+        return GetBucketVersioningOutcome(outcome.error());
+    }
+}
+
 #undef GetObject
 GetObjectOutcome OssClientImpl::GetObject(const GetObjectRequest &request) const
 {
@@ -879,16 +922,14 @@ PutObjectOutcome OssClientImpl::PutObject(const PutObjectRequest &request) const
     }
 }
 
-VoidOutcome OssClientImpl::DeleteObject(const DeleteObjectRequest &request) const
+DeleteObjectOutcome OssClientImpl::DeleteObject(const DeleteObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
     if (outcome.isSuccess()) {
-        VoidResult result;
-        result.requestId_ = outcome.result().RequestId();
-        return VoidOutcome(result);
+        return DeleteObjectOutcome(DeleteObjectResult(outcome.result().headerCollection()));
     }
     else {
-        return VoidOutcome(outcome.error());
+        return DeleteObjectOutcome(outcome.error());
     }
 }
 
@@ -899,10 +940,24 @@ DeleteObjecstOutcome OssClientImpl::DeleteObjects(const DeleteObjectsRequest &re
         DeleteObjectsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
         return result.ParseDone() ? DeleteObjecstOutcome(std::move(result)) :
-            DeleteObjecstOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+            DeleteObjecstOutcome(OssError("ParseXMLError", "Parsing DeleteObjects result fail."));
     }
     else {
         return DeleteObjecstOutcome(outcome.error());
+    }
+}
+
+DeleteObjecVersionstOutcome OssClientImpl::DeleteObjectVersions(const DeleteObjectVersionsRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        DeleteObjectVersionsResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? DeleteObjecVersionstOutcome(std::move(result)) :
+            DeleteObjecVersionstOutcome(OssError("ParseXMLError", "Parsing DeleteObjectVersions result fail."));
+    }
+    else {
+        return DeleteObjecVersionstOutcome(outcome.error());
     }
 }
 
@@ -917,7 +972,6 @@ ObjectMetaDataOutcome OssClientImpl::HeadObject(const HeadObjectRequest &request
         return ObjectMetaDataOutcome(outcome.error());
     }
 }
-
 
 ObjectMetaDataOutcome OssClientImpl::GetObjectMeta(const GetObjectMetaRequest &request) const
 {
@@ -935,10 +989,9 @@ GetObjectAclOutcome OssClientImpl::GetObjectAcl(const GetObjectAclRequest &reque
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
     if (outcome.isSuccess()) {
-        GetObjectAclResult result(outcome.result().payload());
-        result.requestId_ = outcome.result().RequestId();
+        GetObjectAclResult result(outcome.result().headerCollection(), outcome.result().payload());
         return result.ParseDone() ? GetObjectAclOutcome(std::move(result)) :
-            GetObjectAclOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+            GetObjectAclOutcome(OssError("ParseXMLError", "Parsing GetObjectAcl result fail."));
     }
     else {
         return GetObjectAclOutcome(outcome.error());
@@ -949,9 +1002,7 @@ AppendObjectOutcome OssClientImpl::AppendObject(const AppendObjectRequest &reque
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
     if (outcome.isSuccess()) {
-        const HeaderCollection& header = outcome.result().headerCollection();
-		AppendObjectResult result(header);
-        result.requestId_ = outcome.result().RequestId();
+		AppendObjectResult result(outcome.result().headerCollection());
         return result.ParseDone() ? AppendObjectOutcome(std::move(result)) :
             AppendObjectOutcome(OssError("ParseXMLError", "no position or no crc64"));
     }
@@ -964,9 +1015,7 @@ CopyObjectOutcome OssClientImpl::CopyObject(const CopyObjectRequest &request) co
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
     if (outcome.isSuccess()) {
-        CopyObjectResult result(outcome.result().payload());
-        result.requestId_ = outcome.result().RequestId();
-        return CopyObjectOutcome(std::move(result));
+        return CopyObjectOutcome(CopyObjectResult(outcome.result().headerCollection(), outcome.result().payload()));
     }
     else {
         return CopyObjectOutcome(outcome.error());
@@ -977,27 +1026,21 @@ GetSymlinkOutcome OssClientImpl::GetSymlink(const GetSymlinkRequest &request) co
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
     if (outcome.isSuccess()) {
-        const HeaderCollection& header = outcome.result().headerCollection();
-        GetSymlinkResult result(header.at("x-oss-symlink-target")
-                                  ,header.at(Http::ETAG));
-        result.requestId_ = outcome.result().RequestId();
-        return GetSymlinkOutcome(std::move(result));
+        return GetSymlinkOutcome(GetSymlinkResult(outcome.result().headerCollection()));
     }
     else {
         return GetSymlinkOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::RestoreObject(const RestoreObjectRequest &request) const
+RestoreObjectOutcome OssClientImpl::RestoreObject(const RestoreObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
     if (outcome.isSuccess()) {
-		VoidResult result;
-		result.requestId_ = outcome.result().RequestId();
-        return VoidOutcome(std::move(result));
+        return RestoreObjectOutcome(RestoreObjectResult(outcome.result().headerCollection()));
     }
     else {
-        return VoidOutcome(outcome.error());
+        return RestoreObjectOutcome(outcome.error());
     }
 }
 
@@ -1005,26 +1048,21 @@ CreateSymlinkOutcome OssClientImpl::CreateSymlink(const CreateSymlinkRequest &re
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
     if (outcome.isSuccess()) {
-        const HeaderCollection& header = outcome.result().headerCollection();
-        CreateSymlinkResult result(header.at(Http::ETAG));
-        result.requestId_ = outcome.result().RequestId();
-        return CreateSymlinkOutcome(std::move(result));
+        return CreateSymlinkOutcome(CreateSymlinkResult(outcome.result().headerCollection()));
     }
     else {
         return CreateSymlinkOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetObjectAcl(const SetObjectAclRequest &request) const
+SetObjectAclOutcome OssClientImpl::SetObjectAcl(const SetObjectAclRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
     if (outcome.isSuccess()) {
-		VoidResult result;
-		result.requestId_ = outcome.result().RequestId();
-        return VoidOutcome(std::move(result));
+        return SetObjectAclOutcome(SetObjectAclResult(outcome.result().headerCollection()));
     }
     else {
-        return VoidOutcome(outcome.error());
+        return SetObjectAclOutcome(outcome.error());
     }
 }
 
@@ -1074,9 +1112,7 @@ SetObjectTaggingOutcome OssClientImpl::SetObjectTagging(const SetObjectTaggingRe
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
     if (outcome.isSuccess()) {
-        SetObjectTaggingResult result;
-        result.requestId_ = outcome.result().RequestId();
-        return SetObjectTaggingOutcome(std::move(result));
+        return SetObjectTaggingOutcome(SetObjectTaggingResult(outcome.result().headerCollection()));
     }
     else {
         return SetObjectTaggingOutcome(outcome.error());
@@ -1087,9 +1123,7 @@ DeleteObjectTaggingOutcome OssClientImpl::DeleteObjectTagging(const DeleteObject
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
     if (outcome.isSuccess()) {
-        DeleteObjectTaggingResult result;
-        result.requestId_ = outcome.result().RequestId();
-        return DeleteObjectTaggingOutcome(std::move(result));
+        return DeleteObjectTaggingOutcome(DeleteObjectTaggingResult(outcome.result().headerCollection()));
     }
     else {
         return DeleteObjectTaggingOutcome(outcome.error());
@@ -1100,8 +1134,7 @@ GetObjectTaggingOutcome OssClientImpl::GetObjectTagging(const GetObjectTaggingRe
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
     if (outcome.isSuccess()) {
-        GetObjectTaggingResult result(outcome.result().payload());
-        result.requestId_ = outcome.result().RequestId();
+        GetObjectTaggingResult result(outcome.result().headerCollection(), outcome.result().payload());
         return result.ParseDone() ? GetObjectTaggingOutcome(std::move(result)) :
             GetObjectTaggingOutcome(OssError("ParseXMLError", "Parsing ObjectTagging result fail."));
     }
@@ -1315,6 +1348,9 @@ CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectReques
     if (request.RequestPayer() == RequestPayer::Requester) {
         getObjectMetaReq.setRequestPayer(request.RequestPayer());
     }
+    if (!request.VersionId().empty()) {
+        getObjectMetaReq.setVersionId(request.VersionId());
+    }
     auto outcome = GetObjectMeta(getObjectMetaReq);
     if (!outcome.isSuccess()) {
         return CopyObjectOutcome(outcome.error());
@@ -1323,11 +1359,15 @@ CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectReques
     auto objectSize = outcome.result().ContentLength();
     if (objectSize < (int64_t)request.PartSize()) {
         auto copyObjectReq = CopyObjectRequest(request.Bucket(), request.Key(), request.MetaData());
+        copyObjectReq.setCopySource(request.SrcBucket(), request.SrcKey());
         if (request.RequestPayer() == RequestPayer::Requester) {
             copyObjectReq.setRequestPayer(request.RequestPayer());
         }
         if (request.TrafficLimit() != 0) {
             copyObjectReq.setTrafficLimit(request.TrafficLimit());
+        }
+        if (!request.VersionId().empty()) {
+            copyObjectReq.setVersionId(request.VersionId());
         }
         return CopyObject(copyObjectReq);
     }
@@ -1348,6 +1388,9 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
     if (request.RequestPayer() == RequestPayer::Requester) {
         getObjectMetaReq.setRequestPayer(request.RequestPayer());
     }
+    if (!request.VersionId().empty()) {
+        getObjectMetaReq.setVersionId(request.VersionId());
+    }
     auto outcome = GetObjectMeta(getObjectMetaReq);
     if (!outcome.isSuccess()) {
         return GetObjectOutcome(outcome.error());
@@ -1367,6 +1410,9 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
         }
         if (request.TrafficLimit() != 0) {
             getObjectReq.setTrafficLimit(request.TrafficLimit());
+        }
+        if (!request.VersionId().empty()) {
+            getObjectReq.setVersionId(request.VersionId());
         }
         getObjectReq.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(request.FilePath(), std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary); });
         auto outcome = this->GetObject(getObjectReq);

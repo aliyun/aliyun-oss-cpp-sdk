@@ -23,12 +23,13 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT GetObjectTaggingResult : public OssResult
+    class ALIBABACLOUD_OSS_EXPORT GetObjectTaggingResult : public OssObjectResult
     {
     public:
         GetObjectTaggingResult();
         GetObjectTaggingResult(const std::string& data);
         GetObjectTaggingResult(const std::shared_ptr<std::iostream>& data);
+        GetObjectTaggingResult(const HeaderCollection& headers, const std::shared_ptr<std::iostream>& data);
         GetObjectTaggingResult& operator=(const std::string& data);
         const AlibabaCloud::OSS::Tagging& Tagging() const { return tagging_; };
     private:

@@ -25,8 +25,8 @@ GetObjectTaggingRequest::GetObjectTaggingRequest(const std::string &bucket, cons
 
 ParameterCollection GetObjectTaggingRequest::specialParameters() const
 {
-    ParameterCollection paramters;
-    paramters["tagging"] = "";
-    return paramters;
+    auto parameters = OssObjectRequest::specialParameters();
+    parameters["tagging"] = "";
+    return parameters;
 }
 

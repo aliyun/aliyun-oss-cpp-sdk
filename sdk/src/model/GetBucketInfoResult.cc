@@ -25,7 +25,8 @@ using namespace tinyxml2;
 GetBucketInfoResult::GetBucketInfoResult() :
     OssResult(),
     dataRedundancyType_(AlibabaCloud::OSS::DataRedundancyType::NotSet),
-    sseAlgorithm_(AlibabaCloud::OSS::SSEAlgorithm::NotSet)
+    sseAlgorithm_(AlibabaCloud::OSS::SSEAlgorithm::NotSet),
+    versioningStatus_(AlibabaCloud::OSS::VersioningStatus::NotSet)
 {
 }
 
@@ -106,6 +107,9 @@ GetBucketInfoResult& GetBucketInfoResult::operator =(const std::string& result)
                     sub_node = node->FirstChildElement("KMSMasterKeyID");
                     if (sub_node && sub_node->GetText()) kmsMasterKeyID_ = sub_node->GetText();
                 }
+
+                node = bucket_node->FirstChildElement("Versioning");
+                if (node && node->GetText()) versioningStatus_ = ToVersioningStatusType(node->GetText());
             }
             //TODO check the result and the parse flag;
             parseDone_ = true;

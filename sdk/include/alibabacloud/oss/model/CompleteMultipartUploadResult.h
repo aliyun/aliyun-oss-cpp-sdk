@@ -25,7 +25,7 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT CompleteMultipartUploadResult: public OssResult
+    class ALIBABACLOUD_OSS_EXPORT CompleteMultipartUploadResult: public OssObjectResult
     {
     public:
         CompleteMultipartUploadResult();

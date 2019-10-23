@@ -72,6 +72,11 @@ void GeneratePresignedUrlRequest::setTrafficLimit(uint64_t value)
     parameters_["x-oss-traffic-limit"] = std::to_string(value);
 }
 
+void GeneratePresignedUrlRequest::setVersionId(const std::string& versionId)
+{
+    parameters_["versionId"] = versionId;
+}
+
 void GeneratePresignedUrlRequest::addResponseHeaders(RequestResponseHeader header, const std::string &value)
 {
     static const char *ResponseHeader[] = {

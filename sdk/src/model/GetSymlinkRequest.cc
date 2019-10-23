@@ -25,9 +25,9 @@ GetSymlinkRequest::GetSymlinkRequest(const std::string &bucket, const std::strin
 
 ParameterCollection GetSymlinkRequest::specialParameters() const
 {
-    ParameterCollection paramters;
-    paramters["symlink"] = "";
-    return paramters;
+    auto parameters = OssObjectRequest::specialParameters();
+    parameters["symlink"] = "";
+    return parameters;
 }
 
 

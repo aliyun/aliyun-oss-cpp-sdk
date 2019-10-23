@@ -667,7 +667,365 @@ TEST_F(BucketLifecycleSettingsTest, GetBucketLifecycleResultBranchTest)
 
     xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
     GetBucketLifecycleResult result6(xml);
-
 }
+
+TEST_F(BucketLifecycleSettingsTest, GetBucketLifecycleResultWithVersioningTest)
+{
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                    <LifecycleConfiguration>
+                      <Rule>
+                        <ID>36e24c61-227f-4ea9-aee2-bc5af12dbc90</ID>
+                        <Prefix>prefix1</Prefix>
+                        <Status>Disabled</Status>
+                        <Transition>
+                          <Days>60</Days>
+                          <StorageClass>IA</StorageClass>
+                        </Transition>
+                        <Transition>
+                          <Days>180</Days>
+                          <StorageClass>Archive</StorageClass>
+                        </Transition>
+                        <Expiration>
+                          <Days>240</Days>
+                        </Expiration>
+                        <AbortMultipartUpload>
+                          <Days>30</Days>
+                        </AbortMultipartUpload>
+                      </Rule>
+                      <Rule>
+                        <ID>6a7f02d9-97f0-4a58-8a55-f3fe604e2cd5</ID>
+                        <Prefix>prefix2</Prefix>
+                        <Status>Disabled</Status>
+                        <Transition>
+                          <CreatedBeforeDate>2018-05-05T00:00:00.000Z</CreatedBeforeDate>
+                          <StorageClass>IA</StorageClass>
+                        </Transition>
+                        <Transition>
+                          <CreatedBeforeDate>2018-08-05T00:00:00.000Z</CreatedBeforeDate>
+                          <StorageClass>Archive</StorageClass>
+                        </Transition>
+                        <Expiration>
+                          <CreatedBeforeDate>2018-10-05T00:00:00.000Z</CreatedBeforeDate>
+                        </Expiration>
+                        <AbortMultipartUpload>
+                          <CreatedBeforeDate>2018-11-05T00:00:00.000Z</CreatedBeforeDate>
+                        </AbortMultipartUpload>
+                      </Rule>
+                      <Rule>
+                        <ID>delete example</ID>
+                        <Prefix>logs/</Prefix>
+                        <Status>Enabled</Status>
+                        <Expiration>
+                          <ExpiredObjectDeleteMarker>true</ExpiredObjectDeleteMarker>
+                        </Expiration>
+                        <NoncurrentVersionExpiration>
+                          <NoncurrentDays>5</NoncurrentDays>
+                        </NoncurrentVersionExpiration>
+                        <AbortMultipartUpload>
+                          <Days>1</Days>
+                        </AbortMultipartUpload>
+                      </Rule>
+                      <Rule>
+                        <ID>transit example</ID>
+                        <Prefix>data/</Prefix>
+                        <Status>Enabled</Status>
+                        <Transition>
+                          <Days>30</Days>
+                          <StorageClass>IA</StorageClass>
+                        </Transition>
+                        <Transition>
+                          <Days>130</Days>
+                          <StorageClass>Archive</StorageClass>
+                        </Transition>
+                        <NoncurrentVersionTransition>
+                          <NoncurrentDays>10</NoncurrentDays>
+                          <StorageClass>IA</StorageClass>
+                        </NoncurrentVersionTransition>
+                        <NoncurrentVersionTransition>
+                          <NoncurrentDays>20</NoncurrentDays>
+                          <StorageClass>Archive</StorageClass>
+                        </NoncurrentVersionTransition>
+                      </Rule>
+                    </LifecycleConfiguration>)";
+    GetBucketLifecycleResult result(xml);
+    EXPECT_EQ(result.LifecycleRules().size(), 4UL);
+    //rule 36e24c61-227f-4ea9-aee2-bc5af12dbc90
+    EXPECT_EQ(result.LifecycleRules().begin()->ID(), "36e24c61-227f-4ea9-aee2-bc5af12dbc90");
+    EXPECT_EQ(result.LifecycleRules().begin()->Prefix(), "prefix1");
+    EXPECT_EQ(result.LifecycleRules().begin()->Status(), RuleStatus::Disabled);
+    EXPECT_EQ(result.LifecycleRules().begin()->TransitionList().size(), 2UL);
+    EXPECT_EQ(result.LifecycleRules().begin()->TransitionList().begin()->StorageClass(), StorageClass::IA);
+    EXPECT_EQ(result.LifecycleRules().begin()->TransitionList().begin()->Expiration().Days(), 60U);
+    EXPECT_EQ(result.LifecycleRules().begin()->Expiration().Days(), 240U);
+    EXPECT_EQ(result.LifecycleRules().begin()->ExpiredObjectDeleteMarker(), false);
+    EXPECT_EQ(result.LifecycleRules().begin()->AbortMultipartUpload().Days(), 30U);
+
+    //rule delete example
+    EXPECT_EQ(result.LifecycleRules().at(2).ID(), "delete example");
+    EXPECT_EQ(result.LifecycleRules().at(2).Prefix(), "logs/");
+    EXPECT_EQ(result.LifecycleRules().at(2).Status(), RuleStatus::Enabled);
+    EXPECT_EQ(result.LifecycleRules().at(2).TransitionList().size(), 0UL);
+    EXPECT_EQ(result.LifecycleRules().at(2).Expiration().Days(), 0U);
+    EXPECT_EQ(result.LifecycleRules().at(2).ExpiredObjectDeleteMarker(), true);
+    EXPECT_EQ(result.LifecycleRules().at(2).NoncurrentVersionExpiration().Days(), 5U);
+    EXPECT_EQ(result.LifecycleRules().at(2).AbortMultipartUpload().Days(), 1U);
+    EXPECT_EQ(result.LifecycleRules().at(2).hasAbortMultipartUpload(), true);
+    EXPECT_EQ(result.LifecycleRules().at(2).hasTransitionList(), false);
+    EXPECT_EQ(result.LifecycleRules().at(2).hasNoncurrentVersionTransitionList(), false);
+
+    //rule transit example
+    EXPECT_EQ(result.LifecycleRules().at(3).ID(), "transit example");
+    EXPECT_EQ(result.LifecycleRules().at(3).Prefix(), "data/");
+    EXPECT_EQ(result.LifecycleRules().at(3).Status(), RuleStatus::Enabled);
+    EXPECT_EQ(result.LifecycleRules().at(3).TransitionList().size(), 2UL);
+    EXPECT_EQ(result.LifecycleRules().at(3).TransitionList().at(0).StorageClass(), StorageClass::IA);
+    EXPECT_EQ(result.LifecycleRules().at(3).TransitionList().at(0).Expiration().Days(), 30U);
+    EXPECT_EQ(result.LifecycleRules().at(3).TransitionList().at(1).StorageClass(), StorageClass::Archive);
+    EXPECT_EQ(result.LifecycleRules().at(3).TransitionList().at(1).Expiration().Days(), 130U);
+    EXPECT_EQ(result.LifecycleRules().at(3).NoncurrentVersionTransitionList().size(), 2U);
+    EXPECT_EQ(result.LifecycleRules().at(3).NoncurrentVersionTransitionList().at(0).StorageClass(), StorageClass::IA);
+    EXPECT_EQ(result.LifecycleRules().at(3).NoncurrentVersionTransitionList().at(0).Expiration().Days(), 10U);
+    EXPECT_EQ(result.LifecycleRules().at(3).NoncurrentVersionTransitionList().at(1).StorageClass(), StorageClass::Archive);
+    EXPECT_EQ(result.LifecycleRules().at(3).NoncurrentVersionTransitionList().at(1).Expiration().Days(), 20U);
+    EXPECT_EQ(result.LifecycleRules().at(3).hasAbortMultipartUpload(), false);
+    EXPECT_EQ(result.LifecycleRules().at(3).hasExpiration(), false);
+}
+
+TEST_F(BucketLifecycleSettingsTest, LifecycleRuleWithVersioningTest)
+{
+    auto rule1 = LifecycleRule();
+    auto rule2 = LifecycleRule();
+    EXPECT_EQ(rule1 == rule2, true);
+
+    //ExpiredObjectDeleteMarker
+    rule1 = LifecycleRule();
+    rule1.setExpiredObjectDeleteMarker(true);
+    rule2 = LifecycleRule();
+    rule2.setExpiredObjectDeleteMarker(true);
+    EXPECT_EQ(rule1 == rule2, true);
+
+    rule1 = LifecycleRule();
+    rule2 = LifecycleRule();
+    rule2.setExpiredObjectDeleteMarker(true);
+    EXPECT_EQ(rule1 == rule2, false);
+
+    //NoncurrentVersionExpiration
+    rule1 = LifecycleRule();
+    rule1.setNoncurrentVersionExpiration(LifeCycleExpiration(30U));
+    rule2 = LifecycleRule();
+    rule2.setNoncurrentVersionExpiration(LifeCycleExpiration(30U));
+    EXPECT_EQ(rule1 == rule2, true);
+
+    rule1 = LifecycleRule();
+    rule1.setNoncurrentVersionExpiration(LifeCycleExpiration(10U));
+    rule2 = LifecycleRule();
+    rule2.setNoncurrentVersionExpiration(LifeCycleExpiration(30U));
+    EXPECT_EQ(rule1 == rule2, false);
+
+    rule1 = LifecycleRule();
+    rule2 = LifecycleRule();
+    rule2.setNoncurrentVersionExpiration(LifeCycleExpiration(30U));
+    EXPECT_EQ(rule1 == rule2, false);
+
+    //NoncurrentVersionTransition
+    rule1 = LifecycleRule();
+    rule1.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(10U), StorageClass::IA));
+    rule2 = LifecycleRule();
+    rule2.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(10U), StorageClass::IA));
+    EXPECT_EQ(rule1 == rule2, true);
+
+    rule1 = LifecycleRule();
+    rule2 = LifecycleRule();
+    rule2.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(10U), StorageClass::IA));
+    EXPECT_EQ(rule1 == rule2, false);
+
+    rule1 = LifecycleRule();
+    rule1.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(20U), StorageClass::IA));
+    rule2 = LifecycleRule();
+    rule2.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(10U), StorageClass::IA));
+    EXPECT_EQ(rule1 == rule2, false);
+
+    rule1 = LifecycleRule();
+    rule1.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(20U), StorageClass::IA));
+    rule2 = LifecycleRule();
+    rule2.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(20U), StorageClass::Archive));
+    EXPECT_EQ(rule1 == rule2, false);
+
+    rule1 = LifecycleRule();
+    rule1.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration("2018-05-05T00:00:00.000Z"), StorageClass::IA));
+    rule2 = LifecycleRule();
+    rule2.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration("2018-05-06T00:00:00.000Z"), StorageClass::IA));
+    EXPECT_EQ(rule1 == rule2, false);
+
+    //LifecycleRule() get & set test
+    auto rule = LifecycleRule();
+    LifeCycleExpiration expiration;
+    expiration.setDays(30U);
+    rule.setNoncurrentVersionExpiration(expiration);
+    EXPECT_EQ(rule.NoncurrentVersionExpiration().Days(), expiration.Days());
+    EXPECT_EQ(rule.NoncurrentVersionExpiration().CreatedBeforeDate(), expiration.CreatedBeforeDate());
+
+    rule.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(20U), StorageClass::IA));
+    rule.addNoncurrentVersionTransition(LifeCycleTransition(LifeCycleExpiration(200U), StorageClass::Archive));
+
+    EXPECT_EQ(rule.hasNoncurrentVersionTransitionList(), true);
+    EXPECT_EQ(rule.NoncurrentVersionTransitionList().size(), 2UL);
+    EXPECT_EQ(rule.NoncurrentVersionTransitionList().at(0).StorageClass(), StorageClass::IA);
+    EXPECT_EQ(rule.NoncurrentVersionTransitionList().at(1).StorageClass(), StorageClass::Archive);
+}
+
+TEST_F(BucketLifecycleSettingsTest, SetAndGetLifecycleRuleWithVersioningTest)
+{
+    auto bucketName = BucketName;
+    bucketName.append("-lc-version");
+
+    std::string endpoint = "http://oss-ap-south-1.aliyuncs.com";
+
+    auto client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+
+    auto cOutcome = client->CreateBucket(bucketName);
+    EXPECT_EQ(cOutcome.isSuccess(), true);
+
+    auto bsOutcome = client->SetBucketVersioning(SetBucketVersioningRequest(bucketName, VersioningStatus::Enabled));
+    EXPECT_EQ(bsOutcome.isSuccess(), true);
+
+    auto bfOutcome = client->GetBucketInfo(bucketName);
+    EXPECT_EQ(bfOutcome.isSuccess(), true);
+    EXPECT_EQ(bfOutcome.result().VersioningStatus(), VersioningStatus::Enabled);
+
+    if (bfOutcome.result().VersioningStatus() != VersioningStatus::Enabled)
+        return;
+
+    SetBucketLifecycleRequest request(bucketName);
+
+    //rule 1
+    auto rule1 = LifecycleRule();
+    rule1.setID("StandardExpireRule-101");
+    rule1.setPrefix("standard/");
+    rule1.setStatus(RuleStatus::Enabled);
+    rule1.Expiration().setDays(400);
+    rule1.AbortMultipartUpload().setCreatedBeforeDate(TestUtils::GetUTCString(400, true));
+
+    auto transition = LifeCycleTransition();
+    transition.Expiration().setDays(180);
+    transition.setStorageClass(StorageClass::IA);
+    rule1.addTransition(transition);
+
+    transition.Expiration().setDays(365);
+    transition.setStorageClass(StorageClass::Archive);
+    rule1.addTransition(transition);
+
+    request.addLifecycleRule(rule1);
+
+    //rule 2
+    auto rule2 = LifecycleRule();
+    rule2.setID("transit example");
+    rule2.setPrefix("test");
+    rule2.setStatus(RuleStatus::Enabled);
+    rule2.Expiration().setDays(100);
+    rule2.AbortMultipartUpload().setCreatedBeforeDate(TestUtils::GetUTCString(400, true));
+
+    transition = LifeCycleTransition();
+    transition.Expiration().setDays(180);
+    transition.setStorageClass(StorageClass::IA);
+    rule2.addNoncurrentVersionTransition(transition);
+
+    transition.Expiration().setDays(365);
+    transition.setStorageClass(StorageClass::Archive);
+    rule2.addNoncurrentVersionTransition(transition);
+
+    request.addLifecycleRule(rule2);
+
+    //rule 3
+    auto rule3 = LifecycleRule();
+    rule3.setID("delete example");
+    rule3.setPrefix("log/");
+    rule3.setStatus(RuleStatus::Enabled);
+    rule3.setExpiredObjectDeleteMarker(true);
+    rule3.AbortMultipartUpload().setCreatedBeforeDate(TestUtils::GetUTCString(300, true));
+
+    rule3.NoncurrentVersionExpiration().setDays(200U);
+    request.addLifecycleRule(rule3);
+
+
+    auto sOutcome = client->SetBucketLifecycle(request);
+    EXPECT_EQ(sOutcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(5);
+
+    auto gOutcome = client->GetBucketLifecycle(bucketName);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().size(), 3UL);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().at(0), rule1);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().at(1), rule2);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().at(2), rule3);
+
+    auto dOutcome = client->DeleteBucketLifecycle(bucketName);
+    EXPECT_EQ(dOutcome.isSuccess(), true);
+
+    //Only ExpiredObjectDeleteMarker
+    auto rule4 = LifecycleRule();
+    rule4.setID("only delete marker");
+    rule4.setPrefix("log/");
+    rule4.setStatus(RuleStatus::Enabled);
+    rule4.setExpiredObjectDeleteMarker(true);
+
+    request.clearLifecycleRules();
+    request.addLifecycleRule(rule4);
+    sOutcome = client->SetBucketLifecycle(request);
+    EXPECT_EQ(sOutcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(5);
+    gOutcome = client->GetBucketLifecycle(bucketName);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().size(), 1UL);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().at(0), rule4);
+
+    //Only NoncurrentVersionTransition
+    auto rule5 = LifecycleRule();
+    rule5.setID("only transit");
+    rule5.setPrefix("test");
+    rule5.setStatus(RuleStatus::Enabled);
+
+    transition = LifeCycleTransition();
+    transition.Expiration().setDays(180);
+    transition.setStorageClass(StorageClass::IA);
+    rule5.addNoncurrentVersionTransition(transition);
+    transition.Expiration().setDays(365);
+    transition.setStorageClass(StorageClass::Archive);
+    rule5.addNoncurrentVersionTransition(transition);
+
+    request.clearLifecycleRules();
+    request.addLifecycleRule(rule5);
+    sOutcome = client->SetBucketLifecycle(request);
+    EXPECT_EQ(sOutcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(5);
+    gOutcome = client->GetBucketLifecycle(bucketName);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().size(), 1UL);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().at(0), rule5);
+
+    //Only NoncurrentVersionExpiration
+    auto rule6 = LifecycleRule();
+    rule6.setID("only expiration");
+    rule6.setPrefix("log/");
+    rule6.setStatus(RuleStatus::Enabled);
+    rule6.setNoncurrentVersionExpiration(LifeCycleExpiration(30U));
+
+    request.clearLifecycleRules();
+    request.addLifecycleRule(rule6);
+    sOutcome = client->SetBucketLifecycle(request);
+    EXPECT_EQ(sOutcome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(5);
+    gOutcome = client->GetBucketLifecycle(bucketName);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().size(), 1UL);
+    EXPECT_EQ(gOutcome.result().LifecycleRules().at(0), rule6);
+
+    client->DeleteBucket(bucketName);
+}
+
 }
 }

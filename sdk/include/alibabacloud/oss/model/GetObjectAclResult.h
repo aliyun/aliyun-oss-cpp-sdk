@@ -25,12 +25,13 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT GetObjectAclResult : public OssResult
+    class ALIBABACLOUD_OSS_EXPORT GetObjectAclResult : public OssObjectResult
     {
     public:
         GetObjectAclResult();
         GetObjectAclResult(const std::string& data);
         GetObjectAclResult(const std::shared_ptr<std::iostream>& data);
+        GetObjectAclResult(const HeaderCollection& headers, const std::shared_ptr<std::iostream>& data);
         GetObjectAclResult& operator=(const std::string& data);
         const AlibabaCloud::OSS::Owner& Owner() { return owner_; }
         CannedAccessControlList Acl()const  { return acl_; }

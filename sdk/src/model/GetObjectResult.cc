@@ -22,7 +22,7 @@
 using namespace AlibabaCloud::OSS;
 
 GetObjectResult::GetObjectResult() :
-    OssResult()
+    OssObjectResult()
 {
 }
 
@@ -31,12 +31,12 @@ GetObjectResult::GetObjectResult(
     const std::string &key,
     const std::shared_ptr<std::iostream> &content,
     const HeaderCollection &headers):
+    OssObjectResult(headers),
     bucket_(bucket),
     key_(key),
     content_(content)
 {
     metaData_  = headers;
-    requestId_ = metaData_.HttpMetaData()["x-oss-request-id"];
     std::string etag = metaData_.HttpMetaData()[Http::ETAG];
     metaData_.HttpMetaData()[Http::ETAG] = TrimQuotes(etag.c_str());
 }
@@ -49,4 +49,5 @@ GetObjectResult::GetObjectResult(
 {
     metaData_ = metaData;
     requestId_ = metaData_.HttpMetaData()["x-oss-request-id"];
+    versionId_ = metaData_.HttpMetaData()["x-oss-version-id"]; 
 }

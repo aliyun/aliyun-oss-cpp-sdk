@@ -87,7 +87,7 @@ TEST_F(ObjectRestoreTest, SetAndGetObjectRestoreSuccessTest)
     EXPECT_EQ(putOutcome.isSuccess(), true);
 
     //second:restore object
-    VoidOutcome restoreOutCome =  Client->RestoreObject(BucketNameRestore, objName);
+    auto restoreOutCome =  Client->RestoreObject(BucketNameRestore, objName);
     EXPECT_EQ(restoreOutCome.isSuccess(), true);
 
     // third:wait restore success

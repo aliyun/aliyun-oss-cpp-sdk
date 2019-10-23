@@ -24,11 +24,12 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT CreateSymlinkResult : public OssResult
+    class ALIBABACLOUD_OSS_EXPORT CreateSymlinkResult : public OssObjectResult
     {
     public:
         CreateSymlinkResult();
         CreateSymlinkResult(const std::string& etag);
+        CreateSymlinkResult(const HeaderCollection& headers);
         const std::string& ETag() const { return etag_; }
     private:
         std::string etag_;

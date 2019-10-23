@@ -23,7 +23,7 @@ using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
 
 GetObjectAclResult::GetObjectAclResult() :
-    OssResult()
+    OssObjectResult()
 {
 }
 
@@ -35,6 +35,14 @@ GetObjectAclResult::GetObjectAclResult(const std::string& result):
 
 GetObjectAclResult::GetObjectAclResult(const std::shared_ptr<std::iostream>& result):
     GetObjectAclResult()
+{
+    std::istreambuf_iterator<char> isb(*result.get()), end;
+    std::string str(isb, end);
+    *this = str;
+}
+
+GetObjectAclResult::GetObjectAclResult(const HeaderCollection& headers, const std::shared_ptr<std::iostream>& result) :
+    OssObjectResult(headers)
 {
     std::istreambuf_iterator<char> isb(*result.get()), end;
     std::string str(isb, end);

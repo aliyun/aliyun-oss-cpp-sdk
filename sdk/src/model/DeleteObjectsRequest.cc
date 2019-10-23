@@ -77,15 +77,13 @@ void DeleteObjectsRequest::setRequestPayer(RequestPayer value)
 
 std::string DeleteObjectsRequest::payload() const
 {
-    bool useUrlEncode = !ToLower(encodingType_.c_str()).compare(0, 3, "url", 3);
-
     std::stringstream ss;
     ss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
     ss << "<Delete>" << std::endl;
     ss << "  <Quiet>" << (quiet_ ? "true":"false") << "</Quiet>" << std::endl;
     for (auto const &key : keyList_) {
     ss << "  <Object>" << std::endl << ""; 
-    ss << "    <Key>" << (useUrlEncode ? UrlEncode(key) : key) << "</Key>" << std::endl;
+    ss << "    <Key>" << XmlEscape(key) << "</Key>" << std::endl;
     ss << "  </Object>" << std::endl;
     }
     ss << "</Delete>" << std::endl;

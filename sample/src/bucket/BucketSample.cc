@@ -554,6 +554,33 @@ void BucketSample::CleanAndDeleteBucket(const std::string &bucket)
     if (!client->DoesBucketExist(bucket))
         return;
 
+    //versioning
+    auto infoOutcome = client->GetBucketInfo(bucket);
+    if (infoOutcome.isSuccess() && infoOutcome.result().VersioningStatus() != VersioningStatus::NotSet) {
+        //list objects by ListObjectVersions  and delete object with versionId
+        ListObjectVersionsRequest request(bucket);
+        bool IsTruncated = false;
+        do {
+            auto outcome = client->ListObjectVersions(request);
+            if (outcome.isSuccess()) {
+                for (auto const &marker : outcome.result().DeleteMarkerSummarys()) {
+                    client->DeleteObject(DeleteObjectRequest(bucket, marker.Key(), marker.VersionId()));
+                }
+
+                for (auto const &obj : outcome.result().ObjectVersionSummarys()) {
+                    client->DeleteObject(DeleteObjectRequest(bucket, obj.Key(), obj.VersionId()));
+                }
+            }
+            else {
+                break;
+            }
+            request.setKeyMarker(outcome.result().NextKeyMarker());
+            request.setVersionIdMarker(outcome.result().NextVersionIdMarker());
+
+            IsTruncated = outcome.result().IsTruncated();
+        } while (IsTruncated);
+    }
+
     //abort in progress multipart uploading
     auto listOutcome = client->ListMultipartUploads(ListMultipartUploadsRequest(bucket));
     if (listOutcome.isSuccess()) {

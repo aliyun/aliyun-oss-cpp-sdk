@@ -93,6 +93,9 @@ namespace OSS
         ListObjectOutcome ListObjects(const std::string& bucket) const;
         ListObjectOutcome ListObjects(const std::string& bucket, const std::string& prefix) const;
         ListObjectOutcome ListObjects(const ListObjectsRequest& request) const;
+        ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket) const;
+        ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket, const std::string& prefix) const;
+        ListObjectVersionsOutcome ListObjectVersions(const ListObjectVersionsRequest& request) const;
 
         VoidOutcome SetBucketAcl(const std::string& bucket, CannedAccessControlList acl) const;
         VoidOutcome SetBucketAcl(const SetBucketAclRequest& request) const;
@@ -113,6 +116,7 @@ namespace OSS
         VoidOutcome SetBucketEncryption(const SetBucketEncryptionRequest& request) const;
         VoidOutcome SetBucketTagging(const SetBucketTaggingRequest& request) const;
         VoidOutcome SetBucketQosInfo(const SetBucketQosInfoRequest& request) const;
+        VoidOutcome SetBucketVersioning(const SetBucketVersioningRequest& request) const;
 
         VoidOutcome DeleteBucket(const std::string& bucket) const;
         VoidOutcome DeleteBucket(const DeleteBucketRequest& request) const;
@@ -155,6 +159,7 @@ namespace OSS
         GetBucketTaggingOutcome GetBucketTagging(const GetBucketTaggingRequest& request) const;
         GetBucketQosInfoOutcome GetBucketQosInfo(const GetBucketQosInfoRequest& request) const;
         GetUserQosInfoOutcome GetUserQosInfo(const GetUserQosInfoRequest& request) const;
+        GetBucketVersioningOutcome GetBucketVersioning(const GetBucketVersioningRequest& request) const;
 
         /*Object*/
         GetObjectOutcome GetObject(const std::string& bucket, const std::string& key) const;
@@ -166,19 +171,21 @@ namespace OSS
         PutObjectOutcome PutObject(const std::string& bucket, const std::string& key, const std::shared_ptr<std::iostream>& content, const ObjectMetaData& meta) const;
         PutObjectOutcome PutObject(const std::string& bucket, const std::string& key, const std::string& fileToUpload, const ObjectMetaData& meta) const;
         PutObjectOutcome PutObject(const PutObjectRequest& request) const;
-        VoidOutcome DeleteObject(const std::string& bucket, const std::string& key) const;
-        VoidOutcome DeleteObject(const DeleteObjectRequest& request) const;
+        DeleteObjectOutcome DeleteObject(const std::string& bucket, const std::string& key) const;
+        DeleteObjectOutcome DeleteObject(const DeleteObjectRequest& request) const;
         DeleteObjecstOutcome DeleteObjects(const std::string bucket, const DeletedKeyList &keyList) const;
         DeleteObjecstOutcome DeleteObjects(const DeleteObjectsRequest& request) const;
+        DeleteObjecVersionstOutcome DeleteObjectVersions(const std::string bucket, const ObjectIdentifierList &objectList) const;
+        DeleteObjecVersionstOutcome DeleteObjectVersions(const DeleteObjectVersionsRequest& request) const;
         ObjectMetaDataOutcome HeadObject(const std::string& bucket, const std::string& key) const;
         ObjectMetaDataOutcome HeadObject(const HeadObjectRequest& request) const;
         ObjectMetaDataOutcome GetObjectMeta(const std::string& bucket, const std::string& key) const;
         ObjectMetaDataOutcome GetObjectMeta(const GetObjectMetaRequest& request) const;
         AppendObjectOutcome AppendObject(const AppendObjectRequest& request) const;
         CopyObjectOutcome CopyObject(const CopyObjectRequest& request) const;
-        VoidOutcome RestoreObject(const std::string& bucket, const std::string& key) const;
-        VoidOutcome RestoreObject(const RestoreObjectRequest& request) const;
-        VoidOutcome SetObjectAcl(const SetObjectAclRequest& request) const;
+        RestoreObjectOutcome RestoreObject(const std::string& bucket, const std::string& key) const;
+        RestoreObjectOutcome RestoreObject(const RestoreObjectRequest& request) const;
+        SetObjectAclOutcome SetObjectAcl(const SetObjectAclRequest& request) const;
         GetObjectAclOutcome GetObjectAcl(const GetObjectAclRequest& request) const;
         CreateSymlinkOutcome CreateSymlink(const CreateSymlinkRequest& request) const;
         GetSymlinkOutcome GetSymlink(const GetSymlinkRequest& request) const;

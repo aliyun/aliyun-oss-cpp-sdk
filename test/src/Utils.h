@@ -37,6 +37,7 @@ public:
     static bool ObjectExists(const OssClient& client, const std::string& bucketName, const std::string& keyName);
     static void CleanBucket(const OssClient &client, const std::string &bucketName);
     static void CleanBucketsByPrefix(const OssClient &client, const std::string &prefix);
+    static void CleanBucketVersioning(const OssClient &client, const std::string &bucketName);
 
     static PutObjectOutcome UploadObject(const OssClient& client, const std::string &bucketName,
         const std::string& keyName, const std::string& filename, const ObjectMetaData& metadata);

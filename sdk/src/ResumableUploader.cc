@@ -179,6 +179,9 @@ PutObjectOutcome ResumableUploader::Upload()
     headers[Http::ETAG] = outcome.result().ETag();
     headers["x-oss-hash-crc64ecma"] = std::to_string(outcome.result().CRC64());
     headers["x-oss-request-id"] = outcome.result().RequestId();
+    if (!outcome.result().VersionId().empty()) {
+        headers["x-oss-version-id"] = outcome.result().VersionId();
+    }
     return PutObjectOutcome(PutObjectResult(headers, outcome.result().Content()));
 }
 

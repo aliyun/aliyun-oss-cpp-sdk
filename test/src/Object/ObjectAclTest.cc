@@ -126,7 +126,7 @@ TEST_F(ObjectAclTest, SetAndGetObjectAclSuccessTest)
     // set to void
 	TestUtils::WaitForCacheExpire(2);
     SetObjectAclRequest aclRequest1(BucketName, objName);
-	VoidOutcome setOutcom = Client->SetObjectAcl(aclRequest1);
+	auto setOutcom = Client->SetObjectAcl(aclRequest1);
 	EXPECT_EQ(setOutcom.isSuccess(), false);
     TestUtils::WaitForCacheExpire(5);
 

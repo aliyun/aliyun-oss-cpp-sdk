@@ -44,7 +44,8 @@ namespace OSS
     std::string Base64EncodeUrlSafe(const std::string &src);
     std::string Base64EncodeUrlSafe(const char *src, int len);
 
-
+    std::string XmlEscape(const std::string& value);
+    
     void StringReplace(std::string &src, const std::string &s1, const std::string &s2);
     std::string LeftTrim(const char* source);
     std::string RightTrim(const char* source);
@@ -97,5 +98,8 @@ namespace OSS
 
     DataRedundancyType ToDataRedundancyType(const char* name);
     const char* ToDataRedundancyTypeName(DataRedundancyType type);
+
+    const char * ToVersioningStatusName(VersioningStatus status);
+    VersioningStatus ToVersioningStatusType(const char *name);
 }
 }

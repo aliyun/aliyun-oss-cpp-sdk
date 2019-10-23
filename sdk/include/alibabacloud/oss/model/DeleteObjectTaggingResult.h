@@ -22,10 +22,11 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ALIBABACLOUD_OSS_EXPORT DeleteObjectTaggingResult : public OssResult
+    class ALIBABACLOUD_OSS_EXPORT DeleteObjectTaggingResult : public OssObjectResult
     {
     public:
-        DeleteObjectTaggingResult() {}
+        DeleteObjectTaggingResult():OssObjectResult(){}
+        DeleteObjectTaggingResult(const HeaderCollection& headers) : OssObjectResult(headers) {}
     };
 } 
 }

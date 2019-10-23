@@ -74,6 +74,11 @@ GetBucketLifecycleResult& GetBucketLifecycleResult::operator =(const std::string
                     if (subNode && subNode->GetText()) {
                         rule.Expiration().setCreatedBeforeDate(subNode->GetText());
                     }
+                    //ExpiredObjectDeleteMarker
+                    subNode = node->FirstChildElement("ExpiredObjectDeleteMarker");
+                    if (subNode && subNode->GetText()) {
+                        rule.setExpiredObjectDeleteMarker(!std::strncmp("true", subNode->GetText(), 4));
+                    }
                 }
 
                 node = rule_node->FirstChildElement("Transition");
@@ -128,6 +133,33 @@ GetBucketLifecycleResult& GetBucketLifecycleResult::operator =(const std::string
                         tag.setValue(subNode->GetText());
                     }
                     rule.addTag(tag);
+                }
+
+                node = rule_node->FirstChildElement("NoncurrentVersionExpiration");
+                if (node) {
+                    XMLElement *subNode;
+                    //Days
+                    subNode = node->FirstChildElement("NoncurrentDays");
+                    if (subNode && subNode->GetText()) {
+                        rule.NoncurrentVersionExpiration().setDays(std::stoi(subNode->GetText(), nullptr, 10));
+                    }
+                }
+
+                node = rule_node->FirstChildElement("NoncurrentVersionTransition");
+                for (; node; node = node->NextSiblingElement("NoncurrentVersionTransition")) {
+                    LifeCycleTransition transiton;
+                    XMLElement *subNode;
+                    //Days
+                    subNode = node->FirstChildElement("NoncurrentDays");
+                    if (subNode && subNode->GetText()) {
+                        transiton.Expiration().setDays(std::stoi(subNode->GetText(), nullptr, 10));
+                    }
+                    //StorageClass
+                    subNode = node->FirstChildElement("StorageClass");
+                    if (subNode && subNode->GetText()) {
+                        transiton.setStorageClass(ToStorageClassType(subNode->GetText()));
+                    }
+                    rule.addNoncurrentVersionTransition(transiton);
                 }
 
                 lifecycleRuleList_.emplace_back(std::move(rule));

@@ -24,7 +24,7 @@ using namespace tinyxml2;
 
 
 CompleteMultipartUploadResult::CompleteMultipartUploadResult() :
-    OssResult(),
+    OssObjectResult(),
     crc64_(0),
     content_(nullptr)
 {
@@ -38,7 +38,9 @@ CompleteMultipartUploadResult::CompleteMultipartUploadResult(const std::string& 
 
 CompleteMultipartUploadResult::CompleteMultipartUploadResult(const std::shared_ptr<std::iostream>& result,
     const HeaderCollection& headers) :
-    CompleteMultipartUploadResult()
+    OssObjectResult(headers),
+    crc64_(0),
+    content_(nullptr)
 {
     std::string contentType;
     if (headers.find(Http::CONTENT_TYPE) != headers.end()) {

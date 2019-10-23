@@ -131,6 +131,14 @@ const std::string &ObjectMetaData::ObjectType() const
     return gEmpty;
 }
 
+const std::string& ObjectMetaData::VersionId() const
+{
+    if (metaData_.find("x-oss-version-id") != metaData_.end()) {
+        return metaData_.at("x-oss-version-id");
+    }
+    return gEmpty;
+}
+
 void ObjectMetaData::setExpirationTime(const std::string &value)
 {
     metaData_[Http::EXPIRES] = value;

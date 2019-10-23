@@ -193,6 +193,41 @@ void TestUtils::CleanBucketsByPrefix(const OssClient &client, const std::string 
     } while (IsTruncated);
 }
 
+void TestUtils::CleanBucketVersioning(const OssClient &client, const std::string &bucketName)
+{
+    if (!client.DoesBucketExist(bucketName))
+        return;
+
+    auto bfOutcome = client.GetBucketInfo(bucketName);
+    if (bfOutcome.isSuccess() && bfOutcome.result().VersioningStatus() != VersioningStatus::NotSet) {
+        //list objects by ListObjectVersions  and delete object with versionId
+        ListObjectVersionsRequest request(bucketName);
+        request.setEncodingType("url");
+        bool IsTruncated = false;
+        do {
+            auto outcome = client.ListObjectVersions(request);
+            if (outcome.isSuccess()) {
+                for (auto const &marker : outcome.result().DeleteMarkerSummarys()) {
+                    client.DeleteObject(DeleteObjectRequest(bucketName, marker.Key(), marker.VersionId()));
+                }
+
+                for (auto const &obj : outcome.result().ObjectVersionSummarys()) {
+                    client.DeleteObject(DeleteObjectRequest(bucketName, obj.Key(), obj.VersionId()));
+                }
+            }
+            else {
+                break;
+            }
+            request.setKeyMarker(outcome.result().NextKeyMarker());
+            request.setVersionIdMarker(outcome.result().NextVersionIdMarker());
+
+            IsTruncated = outcome.result().IsTruncated();
+        } while (IsTruncated);
+    }
+
+    CleanBucket(client, bucketName);
+}
+
 PutObjectOutcome TestUtils::UploadObject(const OssClient& client, const std::string &bucketName,
     const std::string& keyName, const std::string &filename, const ObjectMetaData &metadata)
 {
