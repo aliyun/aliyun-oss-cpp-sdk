@@ -29,18 +29,24 @@ namespace OSS
     {
     public:
         ResumableBaseWorker(uint64_t objectSize, uint64_t partSize);
-        ResumableBaseWorker(const std::string& filePath, uint64_t partSize);
 
     protected:
         int validate(OssError& err);
         void determinePartSize();
-        virtual const std::string getRecordPath() = 0;
+        virtual void genRecordPath() = 0;
         virtual int loadRecord() = 0;
         virtual int prepare(OssError& err) = 0;
         virtual int validateRecord() = 0;
-        
+
+        virtual bool hasRecordPath();
+        virtual void removeRecordFile();
+
+        std::string  toString(const std::wstring& str);
+        std::wstring toWString(const std::string& str);
+
         bool hasRecord_;
         std::string recordPath_;
+        std::wstring recordPathW_;
         std::mutex lock_;
         uint64_t objectSize_;
         uint64_t consumedSize_;

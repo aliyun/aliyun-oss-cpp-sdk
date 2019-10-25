@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
+#include <string>
+#include <codecvt>
+#include <algorithm>
+
 #include <alibabacloud/oss/Const.h>
 #include "ResumableBaseWorker.h"
 #include "utils/FileSystemUtils.h"
+#include "utils/Utils.h"
 
 using namespace AlibabaCloud::OSS;
 
@@ -29,28 +34,19 @@ ResumableBaseWorker::ResumableBaseWorker(uint64_t objectSize, uint64_t partSize)
 {
 }
 
-ResumableBaseWorker::ResumableBaseWorker(const std::string& filePath, uint64_t partSize) :
-    hasRecord_(false),
-    consumedSize_(0),
-    partSize_(partSize)
-{
-    std::fstream content(filePath, std::ios::in | std::ios::binary);
-    objectSize_ = GetIOStreamLength(content);
-    content.close();
-}
-
 int ResumableBaseWorker::validate(OssError& err)
 {
-    recordPath_ = getRecordPath();
-    if (!recordPath_.empty()) {
+    genRecordPath();
+    
+    if (hasRecordPath()) {
         if (0 != loadRecord()) {
-            RemoveFile(recordPath_);
+            removeRecordFile();
         }
     }
 
     if (hasRecord_) {
         if (0 != validateRecord()) {
-            RemoveFile(recordPath_);
+            removeRecordFile();
             if (0 != prepare(err)) {
                 return -1;
             }
@@ -76,3 +72,51 @@ void ResumableBaseWorker::determinePartSize()
 
     partSize_ = partSize;
 }
+
+bool ResumableBaseWorker::hasRecordPath()
+{
+    return !(recordPath_.empty() && recordPathW_.empty());
+}
+
+void ResumableBaseWorker::removeRecordFile()
+{
+    if (!recordPath_.empty()) {
+        RemoveFile(recordPath_);
+    }
+#ifdef _WIN32
+    if (!recordPathW_.empty()) {
+        RemoveFile(recordPathW_);
+    }
+#endif
+}
+
+#ifdef _WIN32
+
+std::string ResumableBaseWorker::toString(const std::wstring& str)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+    return conv.to_bytes(str);
+}
+
+std::wstring ResumableBaseWorker::toWString(const std::string& str)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+    return conv.from_bytes(str);
+}
+
+#else
+
+std::string ResumableBaseWorker::toString(const std::wstring& str)
+{
+    UNUSED_PARAM(str);
+    return "";
+}
+
+std::wstring ResumableBaseWorker::toWString(const std::string& str)
+{
+    UNUSED_PARAM(str);
+    return L"";
+}
+
+#endif
+

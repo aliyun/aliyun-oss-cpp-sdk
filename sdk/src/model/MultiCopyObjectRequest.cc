@@ -30,7 +30,8 @@ MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const 
 {}
 
 MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, 
-    const std::string &srcBucket, const std::string &srcKey, const std::string &checkpointDir) :
+    const std::string &srcBucket, const std::string &srcKey, 
+    const std::string &checkpointDir) :
     MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, DefaultPartSize, DefaultResumableThreadNum)
 {}
 
@@ -48,9 +49,43 @@ MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const 
     metaData_ = meta;
 }
 
-MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, const std::string &srcBucket, const std::string &srcKey,
+MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, 
+    const std::string &srcBucket, const std::string &srcKey,
     const std::string &checkpointDir, uint64_t partSize, uint32_t threadNum) :
-    OssResumableBaseRequest(bucket, key, checkpointDir, partSize, threadNum), srcBucket_(srcBucket), srcKey_(srcKey) 
+    OssResumableBaseRequest(bucket, key, checkpointDir, partSize, threadNum), 
+    srcBucket_(srcBucket), 
+    srcKey_(srcKey) 
+{
+    setCopySource(srcBucket, srcKey);
+}
+
+//wstring
+MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key,
+    const std::string &srcBucket, const std::string &srcKey, 
+    const std::wstring &checkpointDir) :
+    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, DefaultPartSize, DefaultResumableThreadNum)
+{}
+
+MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key,
+    const std::string &srcBucket, const std::string &srcKey,
+    const std::wstring &checkpointDir, const ObjectMetaData& meta) :
+    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, DefaultPartSize, DefaultResumableThreadNum, meta)
+{}
+
+MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key,
+    const std::string &srcBucket, const std::string &srcKey,
+    const std::wstring &checkpointDir, uint64_t partSize, uint32_t threadNum, const ObjectMetaData& meta) :
+    MultiCopyObjectRequest(bucket, key, srcBucket, srcKey, checkpointDir, partSize, threadNum)
+{
+    metaData_ = meta;
+}
+
+MultiCopyObjectRequest::MultiCopyObjectRequest(const std::string &bucket, const std::string &key, 
+    const std::string &srcBucket, const std::string &srcKey,
+    const std::wstring &checkpointDir, uint64_t partSize, uint32_t threadNum) :
+    OssResumableBaseRequest(bucket, key, checkpointDir, partSize, threadNum),
+    srcBucket_(srcBucket), 
+    srcKey_(srcKey)
 {
     setCopySource(srcBucket, srcKey);
 }
@@ -127,19 +162,9 @@ void MultiCopyObjectRequest::setAcl(const CannedAccessControlList& acl)
 
 int MultiCopyObjectRequest::validate() const 
 {
-    if (partSize_ < PartSizeLowerLimit) {
-        return ARG_ERROR_CHECK_PART_SIZE_LOWER;
-	}
-
-    if (threadNum_ <= 0) {
-        return ARG_ERROR_CHECK_THREAD_NUM_LOWER;
-    }
-
-    // if directory do not exist, return error
-    if (!checkpointDir_.empty()) {
-        if (!IsDirectoryExist(checkpointDir_)) {
-            return ARG_ERROR_CHECK_POINT_DIR_NONEXIST;
-        }
+    auto ret = OssResumableBaseRequest::validate();
+    if (ret != 0) {
+        return ret;
     }
 
     return 0;

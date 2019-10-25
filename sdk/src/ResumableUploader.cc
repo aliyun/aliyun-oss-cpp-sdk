@@ -35,6 +35,30 @@
 
 using namespace AlibabaCloud::OSS;
 
+
+ResumableUploader::ResumableUploader(const UploadObjectRequest& request, const OssClientImpl *client) :
+    ResumableBaseWorker(request.ObjectSize(), request.PartSize()),
+    request_(request),
+    client_(client)
+{
+    if (!request.FilePath().empty()) {
+        time_t lastMtime;
+        std::streamsize fileSize;
+        if (GetPathInfo(request.FilePath(), lastMtime, fileSize)) {
+            objectSize_ = static_cast<uint64_t>(fileSize);
+        }
+    }
+#ifdef _WIN32
+    else if (!request.FilePathW().empty()) {
+        time_t lastMtime;
+        std::streamsize fileSize;
+        if (GetPathInfo(request.FilePathW(), lastMtime, fileSize)) {
+            objectSize_ = static_cast<uint64_t>(fileSize);
+        }
+    }
+#endif
+}
+
 PutObjectOutcome ResumableUploader::Upload()
 {
     OssError err;
@@ -69,7 +93,9 @@ PutObjectOutcome ResumableUploader::Upload()
 
                 uint64_t offset = partSize_ * (part.PartNumber() - 1);
                 uint64_t length = part.Size();
-                auto content = std::make_shared<std::fstream>(request_.FilePath(), std::ios::in | std::ios::binary);
+
+                auto content = GetFstreamByPath(request_.FilePath(), request_.FilePathW(),
+                    std::ios::in | std::ios::binary);
                 content->seekg(offset, content->beg);
 
                 UploadPartRequest uploadPartRequest(request_.Bucket(), request_.Key(), part.PartNumber(), uploadID_, content);
@@ -171,9 +197,7 @@ PutObjectOutcome ResumableUploader::Upload()
         return PutObjectOutcome(OssError("CrcCheckError", "ResumableUpload Object CRC Checksum fail."));
     }
 
-    if (!recordPath_.empty()) {
-        RemoveFile(recordPath_);
-    }
+    removeRecordFile();
 
     HeaderCollection headers;
     headers[Http::ETAG] = outcome.result().ETag();
@@ -204,7 +228,7 @@ int ResumableUploader::prepare(OssError& err)
     //init record_
     uploadID_ = outcome.result().UploadId();
 
-    if (!recordPath_.empty()) {
+    if (hasRecordPath()) {
         initRecord(uploadID_);
 		
         Json::Value root;
@@ -222,9 +246,10 @@ int ResumableUploader::prepare(OssError& err)
         std::string md5Sum = ComputeContentETag(ss);
         root["md5Sum"] = md5Sum;
 
-        std::fstream recordStream(recordPath_, std::ios::out);
-        if (recordStream.is_open()) {
-            recordStream << root;
+        auto recordStream = GetFstreamByPath(recordPath_, recordPathW_, std::ios::out);
+        if (recordStream->is_open()) {
+            *recordStream << root;
+            recordStream->close();
         }
     }
     return 0;
@@ -257,12 +282,12 @@ int ResumableUploader::validateRecord()
 
 int ResumableUploader::loadRecord()
 {
-    std::fstream recordStream(recordPath_, std::ios::in);
-    if (recordStream.is_open()){
+    auto recordStream = GetFstreamByPath(recordPath_, recordPathW_, std::ios::in);
+    if (recordStream->is_open()){
         Json::Value root;
         Json::CharReaderBuilder rbuilder;
         std::string errMsg;
-        if (!Json::parseFromStream(rbuilder, recordStream, &root, &errMsg))
+        if (!Json::parseFromStream(rbuilder, *recordStream, &root, &errMsg))
         {
             return ARG_ERROR_PARSE_UPLOAD_RECORD_FILE;
         }
@@ -280,24 +305,34 @@ int ResumableUploader::loadRecord()
         partSize_ = record_.partSize;
         uploadID_ = record_.uploadID;
         hasRecord_ = true;
+
+        recordStream->close();
     }
 
     return 0;
 }
 
-const std::string ResumableUploader::getRecordPath()
+void ResumableUploader::genRecordPath()
 {
-    auto checkpointDir = request_.CheckpointDir();
-    if (!checkpointDir.empty()){
-        auto srcPath = request_.FilePath();
-        std::stringstream ss;
-        ss << "oss://"<<request_.Bucket()<<"/"<<request_.Key();
-        auto destPath = ss.str();
-       
-        auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(destPath);
-        return checkpointDir + PATH_DELIMITER + safeFileName;
+    recordPath_  = "";
+    recordPathW_ = L"";
+
+    if (!request_.hasCheckpointDir())
+        return;
+
+    auto srcPath = !request_.FilePathW().empty()? toString(request_.FilePathW()): request_.FilePath();
+    std::stringstream ss;
+    ss << "oss://" << request_.Bucket() << "/" << request_.Key();
+    auto destPath = ss.str();
+
+    auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(destPath);
+  
+    if (!request_.CheckpointDirW().empty()) {
+        recordPathW_ = request_.CheckpointDirW() + WPATH_DELIMITER + toWString(safeFileName);;
     }
-    return "";
+    else {
+        recordPath_ = request_.CheckpointDir() + PATH_DELIMITER + safeFileName;
+    }
 }
 
 int ResumableUploader::getPartsToUpload(OssError &err, PartList &partsUploaded, PartList &partsToUpload)
@@ -357,9 +392,14 @@ int ResumableUploader::getPartsToUpload(OssError &err, PartList &partsUploaded, 
 
 void ResumableUploader::initRecord(const std::string &uploadID) 
 {
+    auto filePath = request_.FilePath();
+    if (!request_.FilePathW().empty()) {
+        filePath = toString(request_.FilePathW());
+    }
+
     record_.opType = "ResumableUpload";
     record_.uploadID = uploadID;
-    record_.filePath = request_.FilePath();
+    record_.filePath = filePath;
     record_.bucket = request_.Bucket();
     record_.key = request_.Key();
     record_.mtime = request_.ObjectMtime();

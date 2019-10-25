@@ -70,9 +70,11 @@ GetObjectOutcome ResumableDownloader::Download()
                 uint64_t end = start + part.size - 1;
                 auto getObjectReq = GetObjectRequest(request_.Bucket(), request_.Key(), request_.ModifiedSinceConstraint(), request_.UnmodifiedSinceConstraint(),
                     request_.MatchingETagsConstraint(), request_.NonmatchingETagsConstraint(), request_.ResponseHeaderParameters());
-                getObjectReq.setResponseStreamFactory([=]() {std::shared_ptr<std::iostream> tmpFstream = std::make_shared<std::fstream>(request_.TempFilePath(), std::ios_base::in | std::ios_base::out | std::ios_base::binary);
-                tmpFstream->seekp(pos, tmpFstream->beg);
-                return tmpFstream;
+                getObjectReq.setResponseStreamFactory([=]() {
+                    auto tmpFstream = GetFstreamByPath(request_.TempFilePath(), request_.TempFilePathW(),
+                        std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+                    tmpFstream->seekp(pos, tmpFstream->beg);
+                    return tmpFstream;
                 });
                 getObjectReq.setRange(start, end);
                 getObjectReq.setFlags(getObjectReq.Flags() | REQUEST_FLAG_CHECK_CRC64 | REQUEST_FLAG_SAVE_CLIENT_CRC64);
@@ -110,7 +112,7 @@ GetObjectOutcome ResumableDownloader::Download()
                     outcomes.push_back(outcome);
 
                     //update record
-                    if (!recordPath_.empty() && outcome.isSuccess()) {
+                    if (hasRecordPath() && outcome.isSuccess()) {
                         auto &record = record_;
                         record.parts = downloadedParts;
 
@@ -141,9 +143,10 @@ GetObjectOutcome ResumableDownloader::Download()
                             root["rangeEnd"] = record.rangeEnd;
                         }
 
-                        std::ofstream recordStream(recordPath_, std::ios::out);
-                        if (recordStream.is_open()) {
-                            recordStream << root;
+                        auto recordStream = GetFstreamByPath(recordPath_, recordPathW_, std::ios::out);
+                        if (recordStream->is_open()) {
+                            *recordStream << root;
+                            recordStream->close();
                         }
                     }
                 }
@@ -223,14 +226,14 @@ GetObjectOutcome ResumableDownloader::Download()
     if (meta.HttpMetaData().find("x-oss-hash-crc64ecma-by-client") != meta.HttpMetaData().end()) {
         meta.HttpMetaData().erase("x-oss-hash-crc64ecma-by-client");
     }
-    if (!RenameFile(request_.TempFilePath(), request_.FilePath())) {
+
+    if (!renameTempFile()) {
         std::stringstream ss;
-        ss << "rename temp file "<< request_.TempFilePath() << " to " << request_.FilePath() << " failed";
+        ss << "rename temp file failed";
         return GetObjectOutcome(OssError("RenameError", ss.str()));
     }
-    if (!recordPath_.empty()) {
-        RemoveFile(recordPath_);
-    }
+
+    removeRecordFile();
 
     GetObjectResult result(request_.Bucket(), request_.Key(), meta);
     return GetObjectOutcome(result);
@@ -241,7 +244,7 @@ int ResumableDownloader::prepare(OssError& err)
     UNUSED_PARAM(err);
 
     determinePartSize();
-    if (!recordPath_.empty()) {
+    if (hasRecordPath()) {
         initRecord();
 
         Json::Value root;
@@ -264,9 +267,10 @@ int ResumableDownloader::prepare(OssError& err)
             root["rangeEnd"] = record_.rangeEnd;
         }
 
-        std::ofstream recordStream(recordPath_, std::ios::out);
-        if (recordStream.is_open()) {
-            recordStream << root;
+        auto recordStream = GetFstreamByPath(recordPath_, recordPathW_, std::ios::out);
+        if (recordStream->is_open()) {
+            *recordStream << root;
+            recordStream->close();
         }
     }
     return 0;
@@ -320,12 +324,12 @@ int ResumableDownloader::validateRecord()
 
 int ResumableDownloader::loadRecord() 
 {
-    std::fstream recordStream(recordPath_, std::ios::in);
-    if (recordStream.is_open()) {
+    auto recordStream = GetFstreamByPath(recordPath_, recordPathW_, std::ios::in);
+    if (recordStream->is_open()) {
         Json::Value root;
         Json::CharReaderBuilder rbuilder;
         std::string errMsg;
-        if (!Json::parseFromStream(rbuilder, recordStream, &root, &errMsg))
+        if (!Json::parseFromStream(rbuilder, *recordStream, &root, &errMsg))
         {
             return ARG_ERROR_PARSE_DOWNLOAD_RECORD_FILE;
         }
@@ -361,27 +365,35 @@ int ResumableDownloader::loadRecord()
 
         partSize_ = record_.partSize;
         hasRecord_ = true;
+        recordStream->close();
     }
 
     return 0;
 }
 
-const std::string ResumableDownloader::getRecordPath() 
+void ResumableDownloader::genRecordPath() 
 {
-    auto checkpointDir = request_.CheckpointDir();
-    if (!checkpointDir.empty()) {
-        std::stringstream ss;
-        ss << "oss://" << request_.Bucket() << "/" << request_.Key();
-        if (!request_.VersionId().empty()) {
-            ss << "?versionId=" << request_.VersionId();
-        }
-        auto srcPath = ss.str();
-        auto destPath = request_.FilePath();
+    recordPath_ = "";
+    recordPathW_ = L"";
 
-        auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(destPath);
-        return checkpointDir + PATH_DELIMITER + safeFileName;
+    if (!request_.hasCheckpointDir())
+        return;
+
+    std::stringstream ss;
+    ss << "oss://" << request_.Bucket() << "/" << request_.Key();
+    if (!request_.VersionId().empty()) {
+        ss << "?versionId=" << request_.VersionId();
     }
-    return "";
+    auto srcPath = ss.str();
+    auto destPath = !request_.FilePathW().empty() ? toString(request_.FilePathW()) : request_.FilePath();
+    auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(destPath);
+
+    if (!request_.CheckpointDirW().empty()) {
+        recordPathW_ = request_.CheckpointDirW() + WPATH_DELIMITER + toWString(safeFileName);;
+    }
+    else {
+        recordPath_ = request_.CheckpointDir() + PATH_DELIMITER + safeFileName;
+    }
 }
 
 int ResumableDownloader::getPartsToDownload(OssError &err, PartRecordList &partsToDownload) 
@@ -430,10 +442,15 @@ int ResumableDownloader::getPartsToDownload(OssError &err, PartRecordList &parts
 
 void ResumableDownloader::initRecord()
 {
+    auto filePath = request_.FilePath();
+    if (!request_.FilePathW().empty()) {
+        filePath = toString(request_.FilePathW());
+    }
+
     record_.opType = "ResumableDownload";
     record_.bucket = request_.Bucket();
     record_.key = request_.Key();
-    record_.filePath = request_.FilePath();
+    record_.filePath = filePath;
     record_.mtime = request_.ObjectMtime();
     record_.size = objectSize_;
     record_.partSize = partSize_;
@@ -463,3 +480,17 @@ void ResumableDownloader::DownloadPartProcessCallback(size_t increment, int64_t 
         process.Handler(increment, downloader->consumedSize_, downloader->contentLength_, process.UserData);
     }
 }
+
+bool ResumableDownloader::renameTempFile()
+{
+#ifdef _WIN32
+    if (!request_.TempFilePathW().empty()) {
+        return RenameFile(request_.TempFilePathW(), request_.FilePathW());
+    }
+    else
+#endif
+    {
+        return RenameFile(request_.TempFilePath(), request_.FilePath());
+    }
+}
+

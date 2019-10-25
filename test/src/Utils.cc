@@ -36,6 +36,7 @@
 #include <src/utils/Crc64.h>
 #include <src/http/Url.h>
 #include <cstring>
+#include <codecvt>
 
 #ifdef GetObject
 #undef GetObject
@@ -391,6 +392,26 @@ std::string TestUtils::GetExecutableDirectory()
     return "";
 }
 
+std::wstring TestUtils::GetExecutableDirectoryW()
+{
+    WCHAR buffer[PATH_MAX];
+    memset(buffer, 0, sizeof(buffer));
+
+    if (GetModuleFileNameW(nullptr, buffer, static_cast<DWORD>(sizeof(buffer))))
+    {
+        std::wstring bufferStr(buffer);
+        auto fileNameStart = bufferStr.find_last_of(L'\\');
+        if (fileNameStart != std::string::npos)
+        {
+            bufferStr = bufferStr.substr(0, fileNameStart);
+        }
+
+        return bufferStr;
+    }
+
+    return L"";
+}
+
 #else
 
 std::string TestUtils::GetExecutableDirectory()
@@ -411,6 +432,13 @@ std::string TestUtils::GetExecutableDirectory()
 
     return "./";
 }
+
+std::wstring TestUtils::GetExecutableDirectoryW()
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(GetExecutableDirectory());
+}
+
 #endif
 
 std::string TestUtils::GetGMTString(int64_t delayS)

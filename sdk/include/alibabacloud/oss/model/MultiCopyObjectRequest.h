@@ -44,6 +44,20 @@ namespace OSS
             const std::string& checkpointDir, uint64_t partSize, uint32_t threadNum, 
             const ObjectMetaData& metaData);
 
+        MultiCopyObjectRequest(const std::string& bucket, const std::string& key,
+            const std::string& srcBucket, const std::string& srcKey,
+            const std::wstring& checkpointDir);
+        MultiCopyObjectRequest(const std::string& bucket, const std::string& key,
+            const std::string& srcBucket, const std::string& srcKey,
+            const std::wstring& checkpointDir, const ObjectMetaData& meta);
+        MultiCopyObjectRequest(const std::string& bucket, const std::string& key,
+            const std::string& srcBucket, const std::string& srcKey,
+            const std::wstring& checkpointDir, uint64_t partSize, uint32_t threadNum);
+        MultiCopyObjectRequest(const std::string& bucket, const std::string& key,
+            const std::string& srcBucket, const std::string& srcKey,
+            const std::wstring& checkpointDir, uint64_t partSize, uint32_t threadNum,
+            const ObjectMetaData& metaData);
+
         const std::string& SrcBucket() const { return srcBucket_; }
         const std::string& SrcKey() const { return srcKey_; }
 

@@ -24,6 +24,7 @@
 #include "src/external/json/json.h"
 #include <fstream>
 #include <ctime>
+#include <codecvt>        // std::codecvt_utf8
 
 
 namespace AlibabaCloud {
@@ -993,9 +994,10 @@ public:
         outcome.result().setContent(content);
         EXPECT_EQ(outcome.isSuccess(), false);
         EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "Checkpoint directory is not exist.");
 
-        EXPECT_EQ(RemoveFile(targetFile.append(".temp")), true);
         EXPECT_EQ(RemoveFile(tmpFile), true);
+        RemoveFile(targetFile.append(".temp"));
     }
 
     TEST_F(ResumableObjectTest, MultiResumableDownloadWithCheckpointTest)
@@ -2378,6 +2380,9 @@ public:
         request.setTransferProgress(progressCallback);
 
         auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(outcome.result().Metadata().ContentLength(), 30 - 20 + 1);
+        EXPECT_EQ(RemoveFile(targetKey), true);
     }
 
     TEST_F(ResumableObjectTest, OssResumableBaseRequestTest)
@@ -2433,6 +2438,680 @@ public:
         OssResumableBaseRequest request1("test","test","test",1,0);
     }
 
+
+#ifdef _WIN32
+    static std::wstring StringToWString(std::string& str)
+    {
+        //just cover 0x00~0x7f char
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.from_bytes(str);
+    }
+
+    static std::string WStringToString(std::wstring& str)
+    {
+        //just cover 0x00~0x7f char
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        return converter.to_bytes(str);
+    }
+
+    static void WriteRandomDatatoFile(const std::wstring &file, int length)
+    {
+        std::fstream of(file, std::ios::out | std::ios::binary | std::ios::trunc);
+        of << TestUtils::GetRandomString(length);
+        of.close();
+    }
+
+    static std::string GetFileMd5(const std::wstring file)
+    {
+        std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(file, std::ios::in | std::ios::binary);
+        return ComputeContentMD5(*content);
+    }
+
+    std::wstring GetCheckpointFileByResumableUploaderW(std::string bucket, std::string key, 
+        std::wstring checkpointDir, std::wstring filePath)
+    {
+        std::stringstream ss;
+        ss << "oss://" << bucket << "/" << key;
+        auto destPath = ss.str();
+        auto safeFileName = ComputeContentETag(WStringToString(filePath)) + "--" + ComputeContentETag(destPath);
+        return checkpointDir + WPATH_DELIMITER + StringToWString(safeFileName);
+    }
+
+    static std::wstring GetCheckpointFileByResumableDownloaderW(std::string bucket, std::string key, 
+        std::wstring checkpointDir, std::wstring filePath)
+    {
+        std::stringstream ss;
+        ss << "oss://" << bucket << "/" << key;
+        auto srcPath = ss.str();
+        auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(WStringToString(filePath));
+        return checkpointDir + WPATH_DELIMITER + StringToWString(safeFileName);
+    }
+
+    static std::wstring GetCheckpointFileByResumableCopierW(std::string bucket, std::string key,
+        std::string srcBucket, std::string srcKey, std::wstring checkpointDir)
+    {
+        std::stringstream ss;
+        ss << "oss://" << srcBucket << "/" << srcKey;
+        auto srcPath = ss.str();
+        ss.str("");
+        ss << "oss://" << bucket << "/" << key;
+        auto destPath = ss.str();
+        auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(destPath);
+        return checkpointDir + WPATH_DELIMITER + StringToWString(safeFileName);
+    }
+
+    //wstring path
+    TEST_F(ResumableObjectTest, NormalResumableUploadWithSizeOverPartSizeWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("ResumableUploadObjectOverPartSizeW");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("ResumableUploadObjectOverPartSizeW").append(".tmp"));
+        // limit file size between 800KB and 2000KB
+        int num = 8 + rand() % 12;
+        WriteRandomDatatoFile(tmpFile, 1024 * 100 * num + 10);
+
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        auto getObjectOutcome = Client->GetObject(BucketName, key);
+        EXPECT_EQ(getObjectOutcome.isSuccess(), true);
+
+        auto getoutcome = Client->GetObject(GetObjectRequest(BucketName, key));
+
+        std::fstream file(tmpFile, std::ios::in | std::ios::binary);
+        std::string oriMd5 = ComputeContentMD5(file);
+        std::string memMd5 = ComputeContentMD5(*getObjectOutcome.result().Content());
+        EXPECT_EQ(oriMd5, memMd5);
+
+        file.close();
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableUploadWithSizeUnderPartSizeWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("ResumableUploadObjectUnderPartSizeW");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("ResumableUploadObjectUnderPartSizeW").append(".tmp"));
+        int num = rand() % 8;
+        WriteRandomDatatoFile(tmpFile, 10240 * num);
+
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        auto getObjectOutcome = Client->GetObject(BucketName, key);
+        EXPECT_EQ(getObjectOutcome.isSuccess(), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, UnnormalResumableObjectWithDisableRequestWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("UnnormalUploadObjectWithDisableRequestW");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("UnnormalUploadObjectWithDisableRequestW").append(".tmp"));
+        WriteRandomDatatoFile(tmpFile, 1024 * 100 * (1 + rand() % 10));
+        Client->DisableRequest();
+
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setPartSize(102400);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ClientError:100002");
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+        Client->EnableRequest();
+    }
+
+    TEST_F(ResumableObjectTest, MultiResumableUploadWithSizeOverPartSizeWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("MultiUploadObjectOverPartSizeW");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("MultiUploadObjectOverPartSizeW").append(".tmp"));
+        int num = 8 + rand() % 12;
+        WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+        int threadNum = 1 + rand() % 99;
+
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(threadNum);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableUploadSetMinPartSizeWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("NormalUploadObjectSetMinPartSizeW");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("NormalUploadObjectSetMinPartSizeW").append(".tmp"));
+        int num = 1 + rand() % 20;
+        WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+        int partSize = 1 + rand() % 99;
+
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setPartSize(partSize * 102400);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, UnnormalResumableUploadWithoutSourceFilePathWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("UnnormalUplloadObjectWithoutFilePathW");
+        std::wstring tmpFile;
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    }
+
+    TEST_F(ResumableObjectTest, UnnormalResumableUploadWithoutRealFileWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("UnnormalUplloadObjectWithoutRealFileW");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("UnnormalUplloadObjectWithoutRealFileW").append(".tmp"));
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    }
+
+    TEST_F(ResumableObjectTest, UnnormalResumableUploadWithNotExitsCheckpointWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("UnnormalUploadObjectWithNotExitsCheckpoint");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("UnnormalUploadObjectWithNotExitsCheckpoint").append(".tmp"));
+        WriteRandomDatatoFile(tmpFile, 100);
+
+        UploadObjectRequest request(BucketName, key, tmpFile, L"NotExistDir");
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableUploadRetryAfterFailedPartWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("NormalResumableUploadRetryAfterFailedPartWTest");
+        std::wstring tmpFile = StringToWString(TestUtils::GetTargetFileName("NormalResumableUploadRetryAfterFailedPartWTest").append(".tmp"));
+        WriteRandomDatatoFile(tmpFile, 1024 * 100 * (2 + rand() % 10));
+        std::wstring checkpointKey = StringToWString(TestUtils::GetObjectKey("checkpoint"));
+        EXPECT_EQ(CreateDirectory(checkpointKey), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointKey), true);
+
+        // resumable upload object failed
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setPartSize(102400);
+        request.setThreadNum(1);
+        request.setFlags(request.Flags() | UploadPartFailedFlag);
+        request.setCheckpointDir(checkpointKey);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+
+        EXPECT_EQ(IsFileExist(GetCheckpointFileByResumableUploaderW(BucketName, key, checkpointKey, tmpFile)), true);
+
+        // retry
+        request.setFlags(request.Flags() ^ UploadPartFailedFlag);
+        auto retryOutcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(retryOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+        EXPECT_EQ(RemoveDirectory(checkpointKey), true);
+    }
+
+    TEST_F(ResumableObjectTest, ResumableUploadWithMixPathTypeTest)
+    {
+        std::wstring checkpointDir = StringToWString(TestUtils::GetTargetFileName("checkpoint"));
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+
+        UploadObjectRequest request(BucketName, "targetKey", "filePath");
+        request.setCheckpointDir(checkpointDir);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "The type of filePath and checkpointDir should be the same, either string or wstring.");
+
+        UploadObjectRequest request1(BucketName, "targetKey", L"filePath");
+        request1.setCheckpointDir(WStringToString(checkpointDir));
+        outcome = Client->ResumableUploadObject(request1);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "The type of filePath and checkpointDir should be the same, either string or wstring.");
+
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableDownloadWithSizeOverPartSizeWTest)
+    {
+        // upload object
+        std::string key = TestUtils::GetObjectKey("ResumableDownloadObjectOverPartSizeW");
+        std::string tmpFile = TestUtils::GetTargetFileName("ResumableDownloadObjectOverPartSizeW").append(".tmp");
+        int num = 1 + rand() % 10;
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download object
+        std::wstring targetFile = StringToWString(TestUtils::GetTargetFileName("ResumableDownloadTargetObjectW"));
+        DownloadObjectRequest request(BucketName, key, targetFile);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string downloadMd5 = GetFileMd5(targetFile);
+        EXPECT_EQ(uploadMd5, downloadMd5);
+
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableDownloadWithSizeUnderPartSizeWTest)
+    {
+        // upload object
+        std::string key = TestUtils::GetObjectKey("ResumableDownloadObjectUnderPartSize");
+        std::string tmpFile = TestUtils::GetTargetFileName("ResumableDownloadObjectUnderPartSize").append(".tmp");
+        int num = 10 + rand() % 10;
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download object
+        std::wstring targetFile = StringToWString(TestUtils::GetTargetFileName("ResumableDownloadTargetObjectW"));
+        DownloadObjectRequest request(BucketName, key, targetFile);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string downloadMd5 = GetFileMd5(targetFile);
+        EXPECT_EQ(uploadMd5, downloadMd5);
+
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, MultiResumableDownloadWithSizeOverPartSizeWTest)
+    {
+        // upload
+        std::string key = TestUtils::GetObjectKey("MultiResumableDownloadObjectOverPartSizeW");
+        std::string tmpFile = TestUtils::GetTargetFileName("MultiResumableDownloadObjectOverPartSizeW").append(".tmp");
+        int num = 1 + rand() % 10;
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+        int threadNum = 1 + rand() % 100;
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download
+        std::wstring targetFile = StringToWString(TestUtils::GetTargetFileName("ResumableDownloadTargetObjectW"));
+        DownloadObjectRequest request(BucketName, key, targetFile);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(threadNum);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string downloadMd5 = GetFileMd5(targetFile);
+        EXPECT_EQ(uploadMd5, downloadMd5);
+
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableDownloadSetMinPartSizeWTest)
+    {
+        // upload
+        std::string key = TestUtils::GetObjectKey("ResumableDownloadObjectSetMinPartSizeW");
+        std::string tmpFile = TestUtils::GetTargetFileName("ResumableDownloadObjectSetMinPartSizeW").append(".tmp");
+        int num = 1 + rand() % 10;
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download
+        std::wstring targetFile = StringToWString(TestUtils::GetTargetFileName("ResumableDownloadTargetObjectW"));
+        int partSize = 1 + rand() % 99;
+        DownloadObjectRequest request(BucketName, key, targetFile);
+        request.setPartSize(partSize * 1024);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+
+        request.setPartSize(102400);
+        auto retryOutcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(retryOutcome.isSuccess(), true);
+
+        std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string downloadMd5 = GetFileMd5(targetFile);
+        EXPECT_EQ(uploadMd5, downloadMd5);
+
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, UnnormalResumableDownloadWithoutTargetFilePathWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("UnnormalUplloadObjectWithoutFilePathW");
+        std::string tmpFile = TestUtils::GetTargetFileName("UnnormalUplloadObjectWithoutFilePathW").append(".tmp");
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * (1 + rand() % 10));
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download
+        std::wstring targetFile;
+        DownloadObjectRequest request(BucketName, key, targetFile);
+        request.setPartSize(100 * 1024);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableDownloadWithCheckpointWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("NormalDownloadObjectWithCheckpointW");
+        std::string tmpFile = TestUtils::GetTargetFileName("NormalDownloadObjectWithCheckpointW").append(".tmp");
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * (1 + rand() % 10));
+
+        // upload
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download
+        std::wstring checkpointDir = TestUtils::GetExecutableDirectoryW();
+        std::wstring targetFile = StringToWString(TestUtils::GetTargetFileName("ResumableDownloadTargetObjectW"));
+        DownloadObjectRequest request(BucketName, key, targetFile, checkpointDir);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string downloadMd5 = GetFileMd5(targetFile);
+        EXPECT_EQ(uploadMd5, downloadMd5);
+
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, UnnormalResumableDownloadWithNotExitsCheckpointWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("UnnormalDownloadObjectWithNotExistCheckpointW");
+        std::string tmpFile = TestUtils::GetTargetFileName("UnnormalDownloadObjectWithNotExistCheckpointW").append(".tmp");
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * (1 + rand() % 10));
+
+        // upload
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download
+        std::wstring checkpointDir = L"NotExistDir";
+        std::wstring targetFile = StringToWString(TestUtils::GetTargetFileName("ResumableDownloadTargetObjectW"));
+        DownloadObjectRequest request(BucketName, key, targetFile, checkpointDir);
+        request.setPartSize(100 * 1024);
+        auto outcome = Client->ResumableDownloadObject(request);
+        std::shared_ptr<std::iostream> content = nullptr;
+        outcome.result().setContent(content);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "Checkpoint directory is not exist.");
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+        RemoveFile(targetFile.append(L".temp"));
+    }
+
+    TEST_F(ResumableObjectTest, MultiResumableDownloadWithCheckpointWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("MultiDownloadObjectWithCheckpointW");
+        std::string tmpFile = TestUtils::GetTargetFileName("MultiDownloadObjectWithCheckpointW").append(".tmp");
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * (1 + rand() % 10));
+
+        // upload
+        auto uploadOutcome = Client->ResumableUploadObject(UploadObjectRequest(BucketName, key, tmpFile));
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download
+        std::wstring checkpointDir = TestUtils::GetExecutableDirectoryW();
+        std::wstring targetFile = StringToWString(TestUtils::GetTargetFileName("ResumableDownloadTargetObjectW"));
+        int threadNum = 1 + rand() % 99;
+        DownloadObjectRequest request(BucketName, key, targetFile, checkpointDir);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(threadNum);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+
+        std::string uploadMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string downloadMd5 = GetFileMd5(targetFile);
+        EXPECT_EQ(uploadMd5, downloadMd5);
+
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableDownloadRetryWithCheckpointWTest)
+    {
+        std::string key = TestUtils::GetObjectKey("NormalResumableDownloadRetryWithCheckpointWTest");
+        std::string tmpFile = TestUtils::GetTargetFileName("NormalResumableDownloadRetryWithCheckpointWTest").append(".tmp");
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * (2 + rand() % 10));
+        std::wstring targetFile = StringToWString(TestUtils::GetObjectKey("ResumableDownloadTargetObject"));
+        std::wstring checkpointDir = StringToWString(TestUtils::GetTargetFileName("checkpoint"));
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
+
+        // upload object
+        auto uploadOutcome = Client->PutObject(BucketName, key, tmpFile);
+        EXPECT_EQ(uploadOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download object
+        DownloadObjectRequest request(BucketName, key, targetFile, checkpointDir, 102400, 1);
+        request.setFlags(request.Flags() | DownloadPartFailedFlag);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+
+        EXPECT_EQ(IsFileExist(GetCheckpointFileByResumableDownloaderW(BucketName, key, checkpointDir, targetFile)), true);
+
+        // retry
+        request.setFlags(request.Flags() ^ DownloadPartFailedFlag);
+        auto retryOutcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(retryOutcome.isSuccess(), true);
+
+        std::string uploadFileMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string downloadFileMd5 = GetFileMd5(targetFile);
+        EXPECT_EQ(uploadFileMd5, downloadFileMd5);
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+    TEST_F(ResumableObjectTest, ResumableDownloadWithMixPathTypeTest)
+    {
+        std::wstring checkpointDir = StringToWString(TestUtils::GetTargetFileName("checkpoint"));
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+
+        DownloadObjectRequest request(BucketName, "targetKey", "filePath");
+        request.setCheckpointDir(checkpointDir);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "The type of filePath and checkpointDir should be the same, either string or wstring.");
+
+        DownloadObjectRequest request1(BucketName, "targetKey", L"filePath");
+        request1.setCheckpointDir(WStringToString(checkpointDir));
+        outcome = Client->ResumableDownloadObject(request1);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "The type of filePath and checkpointDir should be the same, either string or wstring.");
+
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+    TEST_F(ResumableObjectTest, UnnormalResumableCopyWithNotExistCheckpointWTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("UnnormalCopySourceObjectWithNotExistCheckpointW");
+        std::string targetKey = TestUtils::GetObjectKey("UnnormalCopyTargetObjectWithNotExistCheckpointW");
+
+        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        auto putObjcetOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+        EXPECT_EQ(putObjcetOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        std::wstring checkpointDir = L"NotExistCheckpointDir";
+        MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey, checkpointDir);
+        request.setPartSize(102401);
+        auto outcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableCopyWithCheckpointWTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("NormalCopySourceObjectWithCheckpointW");
+        std::string targetKey = TestUtils::GetObjectKey("NormalCopyTargetObjectWithCheckpointW");
+
+        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        auto putObjcetOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+        EXPECT_EQ(putObjcetOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey, TestUtils::GetExecutableDirectoryW());
+        request.setPartSize(102400);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
+    }
+
+    TEST_F(ResumableObjectTest, MultiResumableCopyWithCheckpointWTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("MultiCopySourceObjectWithCheckpointW");
+        std::string targetKey = TestUtils::GetObjectKey("MultiCopyTargetObjectWithCheckpointW");
+
+        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        auto putObjcetOutcome = Client->PutObject(PutObjectRequest(BucketName, sourceKey, putObjectContent));
+        EXPECT_EQ(putObjcetOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        std::wstring checkpointDir = StringToWString(TestUtils::GetTargetFileName("checkpoint"));
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
+
+        MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey,
+            checkpointDir, 102401, (2 + rand() % 10));
+        auto outcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+    TEST_F(ResumableObjectTest, NormalResumableCopyRetryWithCheckpointWTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("NormalResumableCopyRetryWithCheckpointWTest");
+        std::string targetKey = TestUtils::GetObjectKey("NormalResumableCopyRetryWithCheckpointWTest-1");
+        std::wstring checkpointDir = StringToWString(TestUtils::GetTargetFileName("checkpoint"));
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
+
+        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        auto putObjectOutcome = Client->PutObject(BucketName, sourceKey, putObjectContent);
+        EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey, checkpointDir, 102401, 1);
+        request.setFlags(request.Flags() | CopyPartFailedFlag);
+        auto outcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), false);
+
+        EXPECT_EQ(IsFileExist(GetCheckpointFileByResumableCopierW(BucketName, targetKey, BucketName, sourceKey, checkpointDir)), true);
+
+        // retry
+        request.setFlags(request.Flags() ^ CopyPartFailedFlag);
+        auto retryOutcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(retryOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+    TEST_F(ResumableObjectTest, ResumableCopyWithMixPathTypeTest)
+    {
+        MultiCopyObjectRequest request(BucketName, "targetKey", BucketName, "sourceKey", "checkPoint");
+        EXPECT_EQ(request.CheckpointDirW().empty(), true);
+        EXPECT_EQ(request.CheckpointDir(), "checkPoint");
+        
+        request.setCheckpointDir(L"check");
+        EXPECT_EQ(request.CheckpointDirW(), L"check");
+        EXPECT_EQ(request.CheckpointDir().empty(), true);
+    }
+
+#else
+    //not support wstring path in non-windows
+    TEST_F(ResumableObjectTest, NormalResumableUploadWithSizeOverPartSizeWTest)
+    {
+        UploadObjectRequest request(BucketName, "key", L"TestKey");
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(1);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "Only support wstring path in windows os.");
+
+        UploadObjectRequest request1(BucketName, "key", L"testFile", L"TestDir");
+        request1.setPartSize(100 * 1024);
+        request1.setThreadNum(1);
+        outcome = Client->ResumableUploadObject(request1);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "Only support wstring path in windows os.");
+    }
+
+    TEST_F(ResumableObjectTest, MultiResumableDownloadWithCheckpointWTest)
+    {
+        DownloadObjectRequest request(BucketName, "key", L"TestKey");
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(2);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "Only support wstring path in windows os.");
+
+        DownloadObjectRequest request1(BucketName, "key", L"TestKey", L"TestDir");
+        request1.setPartSize(100 * 1024);
+        request1.setThreadNum(2);
+        outcome = Client->ResumableDownloadObject(request1);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "Only support wstring path in windows os.");
+    }
+
+    TEST_F(ResumableObjectTest, MultiResumableCopyWithWPathTest)
+    {
+        MultiCopyObjectRequest request(BucketName, "key", BucketName, "srcKey",
+            L"checkpoint", 102401, (2 + rand() % 10));
+        auto outcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+        EXPECT_EQ(outcome.error().Message(), "Only support wstring path in windows os.");
+    }
+
+#endif
 
 }
 }

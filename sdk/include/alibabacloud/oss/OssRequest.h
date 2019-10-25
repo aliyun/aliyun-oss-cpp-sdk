@@ -103,6 +103,18 @@ namespace OSS
             threadNum_ = threadNum == 0 ? 1 : threadNum;
         }
 
+        OssResumableBaseRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& checkpointDir, const uint64_t partSize, const uint32_t threadNum) :
+            OssRequest(bucket, key),
+            partSize_(partSize),
+            checkpointDirW_(checkpointDir),
+            requestPayer_(AlibabaCloud::OSS::RequestPayer::NotSet),
+            trafficLimit_(0),
+            versionId_()
+        {
+            threadNum_ = threadNum == 0 ? 1 : threadNum;
+        }
+
         void setBucket(const std::string& bucket);
         const std::string& Bucket() const;
 
@@ -120,6 +132,11 @@ namespace OSS
 
         void setCheckpointDir(const std::string& checkpointDir);
         const std::string& CheckpointDir() const;
+
+        void setCheckpointDir(const std::wstring& checkpointDir);
+        const std::wstring& CheckpointDirW() const;
+
+        bool hasCheckpointDir() const;
 
         void setObjectMtime(const std::string& mtime);
         const std::string& ObjectMtime() const;
@@ -143,6 +160,7 @@ namespace OSS
         uint64_t objectSize_;
         uint32_t threadNum_;
         std::string checkpointDir_;
+        std::wstring checkpointDirW_;
         std::string mtime_;
         AlibabaCloud::OSS::RequestPayer requestPayer_;
         uint64_t trafficLimit_;

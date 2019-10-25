@@ -55,6 +55,7 @@ public:
     static std::string GetIpByEndpoint(const std::string &endpoint);
 
     static std::string GetExecutableDirectory();
+    static std::wstring GetExecutableDirectoryW();
 
     static std::string GetGMTString(int64_t delayS);
 

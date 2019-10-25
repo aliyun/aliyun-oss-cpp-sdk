@@ -1316,7 +1316,8 @@ PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest&
 
     if (request.ObjectSize() <= request.PartSize())
     {
-        std::shared_ptr<std::iostream> content = std::make_shared<std::fstream>(request.FilePath(), std::ios::in | std::ios::binary);
+        auto content = GetFstreamByPath(request.FilePath(), request.FilePathW(),
+            std::ios::in | std::ios::binary);
         PutObjectRequest putObjectReq(request.Bucket(), request.Key(), content, request.MetaData());
         if (request.TransferProgress().Handler) {
             putObjectReq.setTransferProgress(request.TransferProgress());
@@ -1414,15 +1415,21 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
         if (!request.VersionId().empty()) {
             getObjectReq.setVersionId(request.VersionId());
         }
-        getObjectReq.setResponseStreamFactory([=]() {return std::make_shared<std::fstream>(request.FilePath(), std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary); });
+        getObjectReq.setResponseStreamFactory([=]() {
+            return GetFstreamByPath(request.FilePath(), request.FilePathW(),
+                std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary);
+        });
         auto outcome = this->GetObject(getObjectReq);
         std::shared_ptr<std::iostream> content = nullptr;
         outcome.result().setContent(content);
-        std::ifstream tmpFileStream(request.TempFilePath());
-        if (tmpFileStream.is_open()) {
-            tmpFileStream.close();
+        if (IsFileExist(request.TempFilePath())) {
             RemoveFile(request.TempFilePath());
         }
+#ifdef _WIN32
+        else if (IsFileExist(request.TempFilePathW())) {
+            RemoveFile(request.TempFilePathW());
+        }
+#endif
         return outcome;
     }
 

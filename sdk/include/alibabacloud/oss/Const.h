@@ -55,8 +55,10 @@ namespace OSS
 
 #ifdef _WIN32
     const char PATH_DELIMITER = '\\';
+    const wchar_t WPATH_DELIMITER = L'\\';
 #else
     const char PATH_DELIMITER = '/';
+    const wchar_t WPATH_DELIMITER = L'/';
 #endif
 }
 }

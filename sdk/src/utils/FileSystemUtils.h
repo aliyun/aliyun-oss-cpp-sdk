@@ -15,6 +15,8 @@
  */
 
 #include <string>
+#include <fstream>
+#include <memory>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -27,5 +29,24 @@ namespace OSS
     bool RenameFile(const std::string &from, const std::string &to);
     bool GetPathLastModifyTime(const std::string &path, time_t &t);
     bool IsDirectoryExist(std::string folder);
+    bool GetPathInfo(const std::string &path, time_t &t, std::streamsize& size);
+    bool IsFileExist(const std::string& file);
+
+    //wchar path
+#ifdef _WIN32
+    bool CreateDirectory(const std::wstring& folder);
+    bool RemoveDirectory(const std::wstring& folder);
+    bool RemoveFile(const std::wstring& filepath);
+    bool RenameFile(const std::wstring& from, const std::wstring& to);
+    bool GetPathLastModifyTime(const std::wstring& path, time_t& t);
+    bool IsDirectoryExist(std::wstring folder);
+    bool GetPathInfo(const std::wstring &path, time_t &t, std::streamsize& size);
+    bool IsFileExist(const std::wstring& file);
+#endif
+
+    std::shared_ptr<std::fstream> GetFstreamByPath(
+        const std::string& path, 
+        const std::wstring& pathw, 
+        std::ios_base::openmode mode);
 }
 }

@@ -39,17 +39,13 @@ namespace OSS
     class ResumableUploader : public ResumableBaseWorker
     {
     public:
-        ResumableUploader(const UploadObjectRequest& request, const OssClientImpl *client): 
-            ResumableBaseWorker(request.FilePath(), request.PartSize()), 
-            request_(request), 
-            client_(client)
-        {}
+        ResumableUploader(const UploadObjectRequest& request, const OssClientImpl *client);
 	
         PutObjectOutcome Upload();
         
     private:
         int getPartsToUpload(OssError &err, PartList &partsUploaded, PartList &partsToUpload);
-        const std::string getRecordPath();
+        void genRecordPath();
         int loadRecord();
         int validateRecord();
         int prepare(OssError& err);

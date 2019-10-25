@@ -47,7 +47,7 @@ namespace OSS
 	    CopyObjectOutcome Copy();
 
     protected:
-        const std::string getRecordPath();
+        void genRecordPath();
         int loadRecord();
         int validateRecord();
         int prepare(OssError& err);
