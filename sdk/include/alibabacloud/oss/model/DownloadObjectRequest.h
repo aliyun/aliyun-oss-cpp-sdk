@@ -34,10 +34,21 @@ namespace OSS
         DownloadObjectRequest(const std::string& bucket, const std::string& key,
             const std::string& filePath, const std::string& checkpointDir);
 
-        std::shared_ptr<std::iostream> Content() { return content_; }
         const std::string& FilePath() const { return filePath_; }
         const std::string& TempFilePath() const { return tempFilePath_; }
-			
+
+        DownloadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath);
+        DownloadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath, const std::wstring& checkpointDir,
+            const uint64_t partSize, const uint32_t threadNum);
+        DownloadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath, const std::wstring& checkpointDir);
+
+        const std::wstring& FilePathW() const { return filePathW_; }
+        const std::wstring& TempFilePathW() const { return tempFilePathW_; }
+
+        std::shared_ptr<std::iostream> Content() { return content_; }
         bool RangeIsSet() const{ return rangeIsSet_; }
         int64_t RangeStart() const { return range_[0]; }
         int64_t RangeEnd() const { return range_[1]; }
@@ -70,6 +81,9 @@ namespace OSS
         std::shared_ptr<std::iostream> content_;
 
         std::map<std::string, std::string> responseHeaderParameters_;
+
+        std::wstring filePathW_;
+        std::wstring tempFilePathW_;
     };
 }
 }

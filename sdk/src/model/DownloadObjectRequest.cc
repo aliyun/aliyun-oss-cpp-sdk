@@ -44,6 +44,28 @@ DownloadObjectRequest::DownloadObjectRequest(const std::string &bucket, const st
     DownloadObjectRequest(bucket, key, filePath, "", DefaultPartSize, DefaultResumableThreadNum)
 {}
 
+//wstring
+DownloadObjectRequest::DownloadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath, const std::wstring &checkpointDir,
+    const uint64_t partSize, const uint32_t threadNum) :
+    OssResumableBaseRequest(bucket, key, checkpointDir, partSize, threadNum),
+    rangeIsSet_(false),
+    filePathW_(filePath)
+{
+    tempFilePathW_ = filePath + L".temp";
+}
+
+DownloadObjectRequest::DownloadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath, const std::wstring &checkpointDir) :
+    DownloadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, DefaultResumableThreadNum)
+{}
+
+DownloadObjectRequest::DownloadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath) :
+    DownloadObjectRequest(bucket, key, filePath, L"", DefaultPartSize, DefaultResumableThreadNum)
+{}
+
+
 void DownloadObjectRequest::setRange(int64_t start, int64_t end)
 {
     range_[0] = start;
@@ -82,33 +104,37 @@ void DownloadObjectRequest::addResponseHeaders(RequestResponseHeader header, con
 
 int DownloadObjectRequest::validate() const
 {
-    if (partSize_ < PartSizeLowerLimit) {
-        return ARG_ERROR_CHECK_PART_SIZE_LOWER;
-    }
-
-    if (threadNum_ <= 0) {
-        return ARG_ERROR_CHECK_THREAD_NUM_LOWER;
+    auto ret = OssResumableBaseRequest::validate();
+    if (ret != 0) {
+        return ret;
     }
 
     if (rangeIsSet_ && (range_[0] < 0 || range_[1] < -1 || (range_[1] > -1 && range_[1] < range_[0]))) {
         return ARG_ERROR_INVALID_RANGE;
     }
 
-    if (filePath_.empty()) {
-        return ARG_ERROR_UPLOAD_FILE_PATH_EMPTY;
+#if !defined(_WIN32)
+    if (!filePathW_.empty()) {
+        return ARG_ERROR_PATH_NOT_SUPPORT_WSTRING_TYPE;
     }
-    else {
-        std::fstream tmpfs(tempFilePath_, std::ios::out | std::ios::app);
-        if (!tmpfs.is_open()) {
-            return ARG_ERROR_OPEN_DOWNLOAD_TEMP_FILE;
-        }
+#endif
+
+    if (filePath_.empty() && filePathW_.empty()) {
+        return ARG_ERROR_DOWNLOAD_FILE_PATH_EMPTY;
     }
 
-    // if directory do not exist, return error
-    if (!checkpointDir_.empty()) {
-        if (!IsDirectoryExist(checkpointDir_)) {
-            return ARG_ERROR_CHECK_POINT_DIR_NONEXIST;
-        }
+    //path and checkpoint must be same type.
+    if ((!filePath_.empty() && !checkpointDirW_.empty()) ||
+        (!filePathW_.empty() && !checkpointDir_.empty())) {
+        return ARG_ERROR_PATH_NOT_SAME_TYPE;
     }
+
+    //check tmpfilePath is available
+    auto stream = GetFstreamByPath(tempFilePath_, tempFilePathW_, std::ios::out | std::ios::app);
+    if (!stream->is_open()) {
+        return ARG_ERROR_OPEN_DOWNLOAD_TEMP_FILE;
+    }
+    stream->close();
+
     return 0;
 }

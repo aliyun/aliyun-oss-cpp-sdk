@@ -48,6 +48,21 @@ namespace OSS
         const ObjectMetaData& MetaData() const { return metaData_; }
         ObjectMetaData& MetaData() { return metaData_; }
 
+        UploadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath, const std::wstring& checkpointDir,
+            const uint64_t partSize, const uint32_t threadNum);
+        UploadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath, const std::wstring &checkpointDir,
+            const uint64_t partSize, const uint32_t threadNum, const ObjectMetaData& meta);
+        UploadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath, const std::wstring& checkpointDir,
+            const ObjectMetaData& meta);
+        UploadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath, const std::wstring& checkpointDir);
+        UploadObjectRequest(const std::string& bucket, const std::string& key,
+            const std::wstring& filePath);
+        const std::wstring& FilePathW() const { return filePathW_; }
+
         void setCacheControl(const std::string& value){metaData_.addHeader(Http::CACHE_CONTROL, value);}
         void setContentDisposition(const std::string& value){metaData_.addHeader(Http::CONTENT_DISPOSITION, value);}
         void setContentEncoding(const std::string& value){metaData_.addHeader(Http::CONTENT_ENCODING, value);}
@@ -64,6 +79,8 @@ namespace OSS
         std::shared_ptr<std::iostream> content_;
         ObjectMetaData metaData_;
         std::string encodingType_;
+        std::wstring filePathW_;
+        bool isFileExist_;
     };
 } 
 }

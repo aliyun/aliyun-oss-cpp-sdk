@@ -15,10 +15,12 @@
 */
 
 #include <alibabacloud/oss/OssRequest.h>
+#include <alibabacloud/oss/Const.h>
 #include <sstream>
 #include "http/HttpType.h"
 #include "utils/Utils.h"
 #include "model/ModelError.h"
+#include "utils/FileSystemUtils.h"
 
 using namespace AlibabaCloud::OSS;
 
@@ -196,6 +198,31 @@ int OssResumableBaseRequest::validate() const
         return ARG_ERROR_OBJECT_NAME;
     }
 
+    if (partSize_ < PartSizeLowerLimit) {
+        return ARG_ERROR_CHECK_PART_SIZE_LOWER;
+    }
+
+    if (threadNum_ <= 0) {
+        return ARG_ERROR_CHECK_THREAD_NUM_LOWER;
+    }
+
+#if !defined(_WIN32)
+    if (!checkpointDirW_.empty()) {
+        return ARG_ERROR_PATH_NOT_SUPPORT_WSTRING_TYPE;
+    }
+#endif
+
+    // if directory do not exist, return error
+    if (hasCheckpointDir()) {
+        if ((!checkpointDir_.empty() && !IsDirectoryExist(checkpointDir_))
+#ifdef _WIN32
+            || (!checkpointDirW_.empty() && !IsDirectoryExist(checkpointDirW_))
+#endif
+            ) {
+            return ARG_ERROR_CHECK_POINT_DIR_NONEXIST;
+        }
+    }
+
     return 0;
 }
 
@@ -257,11 +284,23 @@ uint32_t OssResumableBaseRequest::ThreadNum() const
 void OssResumableBaseRequest::setCheckpointDir(const std::string &checkpointDir)
 {
     checkpointDir_ = checkpointDir;
+    checkpointDirW_.clear();
 }
 
 const std::string& OssResumableBaseRequest::CheckpointDir() const
 {
     return checkpointDir_;
+}
+
+void OssResumableBaseRequest::setCheckpointDir(const std::wstring& checkpointDir)
+{
+    checkpointDirW_ = checkpointDir;
+    checkpointDir_.clear();
+}
+
+const std::wstring& OssResumableBaseRequest::CheckpointDirW() const
+{
+    return checkpointDirW_;
 }
 
 void OssResumableBaseRequest::setObjectMtime(const std::string &mtime)
@@ -302,6 +341,11 @@ void OssResumableBaseRequest::setVersionId(const std::string& versionId)
 const std::string& OssResumableBaseRequest::VersionId() const
 {
     return versionId_;
+}
+
+bool OssResumableBaseRequest::hasCheckpointDir() const
+{
+    return (!checkpointDir_.empty() || !checkpointDirW_.empty());
 }
 
 void LiveChannelRequest::setBucket(const std::string &bucket)

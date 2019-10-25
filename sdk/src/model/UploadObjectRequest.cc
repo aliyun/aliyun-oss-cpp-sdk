@@ -30,20 +30,17 @@ UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::s
     OssResumableBaseRequest(bucket, key, checkpointDir, partSize, threadNum), 
     filePath_(filePath)
 {
-    objectSize_ = 0;
-
     time_t lastMtime;
-    if (!GetPathLastModifyTime(filePath_, lastMtime)) {
+    std::streamsize fileSize;
+    isFileExist_ = true;
+    if (!GetPathInfo(filePath_, lastMtime, fileSize)) {
         //if fail, ignore the lastmodified time.
         lastMtime = 0;
+        fileSize = 0;
+        isFileExist_ = false;
     }
     mtime_ = ToGmtTime(lastMtime);
-
-    std::fstream content(filePath_, std::ios::in | std::ios::binary);
-    if (content) {
-        objectSize_ = GetIOStreamLength(content);
-    }
-    content.close();
+    objectSize_ = static_cast<uint64_t>(fileSize);
 }
 
 UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key,
@@ -68,6 +65,57 @@ UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::s
     const std::string &filePath): 
     UploadObjectRequest(bucket, key, filePath, "", DefaultPartSize, DefaultResumableThreadNum)
 {}
+
+//wstring
+UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath, const std::wstring &checkpointDir,
+    const uint64_t partSize, const uint32_t threadNum) :
+    OssResumableBaseRequest(bucket, key, checkpointDir, partSize, threadNum),
+    filePathW_(filePath)
+{
+#ifdef _WIN32
+    time_t lastMtime;
+    std::streamsize fileSize;
+    isFileExist_ = true;
+    if (!GetPathInfo(filePathW_, lastMtime, fileSize)) {
+        //if fail, ignore the lastmodified time.
+        lastMtime = 0;
+        fileSize = 0;
+        isFileExist_ = false;
+    }
+    mtime_ = ToGmtTime(lastMtime);
+    objectSize_ = static_cast<uint64_t>(fileSize);
+#else
+    objectSize_ = 0;
+    time_t lastMtime = 0;
+    mtime_ = ToGmtTime(lastMtime);
+    isFileExist_ = false;
+#endif
+}
+
+UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath, const std::wstring &checkpointDir,
+    const uint64_t partSize, const uint32_t threadNum, const ObjectMetaData& meta) :
+    UploadObjectRequest(bucket, key, filePath, checkpointDir, partSize, threadNum)
+{
+    metaData_ = meta;
+}
+
+UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath, const std::wstring &checkpointDir, const ObjectMetaData& meta) :
+    UploadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, DefaultResumableThreadNum, meta)
+{}
+
+UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath, const std::wstring &checkpointDir) :
+    UploadObjectRequest(bucket, key, filePath, checkpointDir, DefaultPartSize, DefaultResumableThreadNum)
+{}
+
+UploadObjectRequest::UploadObjectRequest(const std::string &bucket, const std::string &key,
+    const std::wstring &filePath) :
+    UploadObjectRequest(bucket, key, filePath, L"", DefaultPartSize, DefaultResumableThreadNum)
+{}
+
 
 void UploadObjectRequest::setAcl(CannedAccessControlList& acl)
 {
@@ -95,29 +143,26 @@ void UploadObjectRequest::setTagging(const std::string& value)
 
 int UploadObjectRequest::validate() const 
 {
-    if(partSize_ < PartSizeLowerLimit){
-        return ARG_ERROR_CHECK_PART_SIZE_LOWER;
+    auto ret = OssResumableBaseRequest::validate();
+    if (ret != 0) {
+        return ret;
     }
 
-    if(threadNum_ <= 0){
-        return ARG_ERROR_CHECK_THREAD_NUM_LOWER;
+#if !defined(_WIN32)
+    if (!filePathW_.empty()) {
+        return ARG_ERROR_PATH_NOT_SUPPORT_WSTRING_TYPE;
+    }
+#endif
+
+    //path and checkpoint must be same type.
+    if ((!filePath_.empty() && !checkpointDirW_.empty()) ||
+        (!filePathW_.empty() && !checkpointDir_.empty())) {
+        return ARG_ERROR_PATH_NOT_SAME_TYPE;
     }
 
-    if (filePath_.empty()){
-        return ARG_ERROR_UPLOAD_FILE_PATH_EMPTY;
-    }
-    else if (objectSize_ <= 0){
-        std::fstream content(filePath_, std::ios::in | std::ios::binary);
-        if (!content.is_open()) {
-            return ARG_ERROR_OPEN_UPLOAD_FILE;
-        }
+    if (!isFileExist_) {
+        return ARG_ERROR_OPEN_UPLOAD_FILE;
     }
 
-    // if directory do not exist, return error
-    if (!checkpointDir_.empty()){
-        if (!IsDirectoryExist(checkpointDir_)) {
-            return ARG_ERROR_CHECK_POINT_DIR_NONEXIST;
-        }
-    }
     return 0;
 }

@@ -105,7 +105,10 @@ static const char * GetArgErrorMsg(const int code)
         /*Tagging -65*/
         "Object tags cannot be greater than 10.",
         "Object Tag key is invalid, it's length should be [1, 128].",
-        "Object Tag value is invalid, it's length should be less than 256."
+        "Object Tag value is invalid, it's length should be less than 256.",
+        /*Resumable for wstring path -68*/
+        "Only support wstring path in windows os.",
+        "The type of filePath and checkpointDir should be the same, either string or wstring."
     };
 
     int index = code - ARG_ERROR_START;

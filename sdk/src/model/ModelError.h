@@ -120,6 +120,10 @@ namespace OSS
     const int ARG_ERROR_TAGGING_TAGS_LIMIT = ARG_ERROR_BASE + 65;
     const int ARG_ERROR_TAGGING_TAG_KEY_LIMIT = ARG_ERROR_BASE + 66;
     const int ARG_ERROR_TAGGING_TAG_VALUE_LIMIT = ARG_ERROR_BASE + 67;
+
+    /*Resumable for wstring path*/
+    const int ARG_ERROR_PATH_NOT_SUPPORT_WSTRING_TYPE = ARG_ERROR_BASE + 68;
+    const int ARG_ERROR_PATH_NOT_SAME_TYPE = ARG_ERROR_BASE + 69;
 }
 }
 

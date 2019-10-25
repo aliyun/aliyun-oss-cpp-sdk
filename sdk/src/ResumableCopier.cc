@@ -151,9 +151,8 @@ CopyObjectOutcome ResumableCopier::Copy()
         return CopyObjectOutcome(compOutcome.error());
     }
 
-    if (!recordPath_.empty()) {
-        RemoveFile(recordPath_);
-    }
+    removeRecordFile();
+
     CopyObjectResult result;
     HeadObjectRequest hRequest(request_.Bucket(), request_.Key());
     if (request_.RequestPayer() == RequestPayer::Requester) {
@@ -211,7 +210,7 @@ int ResumableCopier::prepare(OssError& err)
     //init record_
     uploadID_ = outcome.result().UploadId();
 
-    if (!recordPath_.empty()) {
+    if (hasRecordPath()) {
         initRecord(uploadID_);
 
         Json::Value root;
@@ -230,9 +229,10 @@ int ResumableCopier::prepare(OssError& err)
         std::string md5Sum = ComputeContentETag(ss);
         root["md5Sum"] = md5Sum;
 
-        std::ofstream recordStream(recordPath_, std::ios::out);
-        if (recordStream.is_open()) {
-            recordStream << root;
+        auto recordStream = GetFstreamByPath(recordPath_, recordPathW_, std::ios::out);
+        if (recordStream->is_open()) {
+            *recordStream << root;
+            recordStream->close();
         }
     }
     return 0;
@@ -269,13 +269,13 @@ int ResumableCopier::validateRecord()
 
 int ResumableCopier::loadRecord() 
 {
-    if (!recordPath_.empty()) {
-        std::fstream recordStream(recordPath_, std::ios::in);
-        if (recordStream.is_open()) {
+    if (hasRecordPath()) {
+        auto recordStream = GetFstreamByPath(recordPath_, recordPathW_, std::ios::in);
+        if (recordStream->is_open()) {
             Json::Value root;
             Json::CharReaderBuilder rbuilder;
             std::string errMsg;
-            if (!Json::parseFromStream(rbuilder, recordStream, &root, &errMsg))
+            if (!Json::parseFromStream(rbuilder, *recordStream, &root, &errMsg))
             {
                 return ARG_ERROR_PARSE_COPY_RECORD_FILE;
             }
@@ -294,30 +294,41 @@ int ResumableCopier::loadRecord()
             partSize_ = record_.partSize;
             uploadID_ = record_.uploadID;
             hasRecord_ = true;
+
+            recordStream->close();
         }
     }
 
     return 0;
 }
 
-const std::string ResumableCopier::getRecordPath() 
+void ResumableCopier::genRecordPath() 
 {
-    auto checkpointDir = request_.CheckpointDir();
-    if (!checkpointDir.empty()) {
-        std::stringstream ss;
-        ss << "oss://" << request_.SrcBucket() << "/" << request_.SrcKey();
-        if (!request_.VersionId().empty()) {
-            ss << "?versionId=" << request_.VersionId();
-        }
-        auto srcPath = ss.str();
-        ss.str("");
-        ss << "oss://" << request_.Bucket() << "/" << request_.Key();
-        auto destPath = ss.str();
+    recordPath_ = "";
+    recordPathW_ = L"";
 
-        auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(destPath);
-        return checkpointDir + PATH_DELIMITER + safeFileName;
+    if (!request_.hasCheckpointDir()) {
+        return;
     }
-    return "";
+
+    std::stringstream ss;
+    ss << "oss://" << request_.SrcBucket() << "/" << request_.SrcKey();
+    if (!request_.VersionId().empty()) {
+        ss << "?versionId=" << request_.VersionId();
+    }
+    auto srcPath = ss.str();
+    ss.str("");
+    ss << "oss://" << request_.Bucket() << "/" << request_.Key();
+    auto destPath = ss.str();
+
+    auto safeFileName = ComputeContentETag(srcPath) + "--" + ComputeContentETag(destPath);
+
+    if (!request_.CheckpointDirW().empty()) {
+        recordPathW_ = request_.CheckpointDirW() + WPATH_DELIMITER + toWString(safeFileName);
+    }
+    else {
+        recordPath_ = request_.CheckpointDir() + PATH_DELIMITER + safeFileName;
+    }
 }
 
 int ResumableCopier::getPartsToUploadCopy(OssError &err, PartList &partsCopied, PartList &partsToUploadCopy) 

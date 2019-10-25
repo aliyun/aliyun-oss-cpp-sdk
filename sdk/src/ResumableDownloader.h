@@ -56,13 +56,13 @@ namespace OSS
         GetObjectOutcome Download();
 
     protected:
-        const std::string getRecordPath();
+        void genRecordPath();
         int loadRecord();
         int validateRecord();
         int prepare(OssError& err);
         void initRecord();
         int getPartsToDownload(OssError &err, PartRecordList &partsToDownload);
-
+        bool renameTempFile();
         static void DownloadPartProcessCallback(size_t increment, int64_t transfered, int64_t total, void *userData);
 
         const DownloadObjectRequest request_;
