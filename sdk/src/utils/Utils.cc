@@ -173,7 +173,8 @@ std::string AlibabaCloud::OSS::XmlEscape(const std::string& value)
         { "&amp;",  '&'  },
         { "&apos;", '\'' },
         { "&lt;",	'<'  },
-        { "&gt;",	'>'  }
+        { "&gt;",	'>'  },
+        { "&#13;",	'\r' }
     };
 
     if (value.empty()) {

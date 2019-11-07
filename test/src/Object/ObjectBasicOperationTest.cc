@@ -1666,5 +1666,27 @@ TEST_F(ObjectBasicOperationTest, GetObjectWithOssDateHeaderTest)
     EXPECT_EQ(pOutcome.isSuccess(), true);
 }
 
+TEST_F(ObjectBasicOperationTest, DeleteObjectsWithSpecialCharsTest)
+{
+    std::string key = "bswodnvsttpqvnzwsgifetwe\n\n\t@#$!\t<!@#$%^&*()-=";
+    for (int i = 1; i < 0x1F; i++)
+        key.push_back((char)i);
+    key.append("--");
+
+    auto content = TestUtils::GetRandomStream(100);
+    auto outcome = Client->PutObject(BucketName, key, content);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+    DeleteObjectsRequest delRequest(BucketName);
+    delRequest.addKey(key);
+    auto delOutcome = Client->DeleteObjects(delRequest);
+    EXPECT_EQ(delOutcome.isSuccess(), true);
+    EXPECT_EQ(delOutcome.result().keyList().size(), 1);
+    EXPECT_EQ(delOutcome.result().Quiet(), false);
+
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, key), false);
+}
+
 }
 }
