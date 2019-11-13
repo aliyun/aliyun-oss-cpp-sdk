@@ -23,6 +23,7 @@
 #include <fstream>
 #include <thread>
 #ifdef _WIN32
+#include <codecvt>
 #include <ws2tcpip.h>
 #pragma comment (lib, "Ws2_32.lib")
 #else
@@ -36,7 +37,6 @@
 #include <src/utils/Crc64.h>
 #include <src/http/Url.h>
 #include <cstring>
-#include <codecvt>
 
 #ifdef GetObject
 #undef GetObject
@@ -435,8 +435,9 @@ std::string TestUtils::GetExecutableDirectory()
 
 std::wstring TestUtils::GetExecutableDirectoryW()
 {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(GetExecutableDirectory());
+    return L"";
+    //std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    //return converter.from_bytes(GetExecutableDirectory());
 }
 
 #endif

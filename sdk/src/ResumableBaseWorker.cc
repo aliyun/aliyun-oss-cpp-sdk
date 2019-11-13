@@ -15,9 +15,10 @@
  */
 
 #include <string>
-#include <codecvt>
 #include <algorithm>
-
+#ifdef _WIN32
+#include <codecvt>
+#endif
 #include <alibabacloud/oss/Const.h>
 #include "ResumableBaseWorker.h"
 #include "utils/FileSystemUtils.h"
