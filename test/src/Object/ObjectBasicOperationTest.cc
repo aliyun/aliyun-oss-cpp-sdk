@@ -1682,7 +1682,7 @@ TEST_F(ObjectBasicOperationTest, DeleteObjectsWithSpecialCharsTest)
     delRequest.addKey(key);
     auto delOutcome = Client->DeleteObjects(delRequest);
     EXPECT_EQ(delOutcome.isSuccess(), true);
-    EXPECT_EQ(delOutcome.result().keyList().size(), 1);
+    EXPECT_EQ(delOutcome.result().keyList().size(), 1U);
     EXPECT_EQ(delOutcome.result().Quiet(), false);
 
     EXPECT_EQ(Client->DoesObjectExist(BucketName, key), false);

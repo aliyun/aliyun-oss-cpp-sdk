@@ -24,8 +24,9 @@
 #include "src/external/json/json.h"
 #include <fstream>
 #include <ctime>
+#ifdef _WIN32
 #include <codecvt>        // std::codecvt_utf8
-
+#endif
 
 namespace AlibabaCloud {
 namespace OSS {

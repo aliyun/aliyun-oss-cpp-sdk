@@ -65,6 +65,7 @@ void LifeCycleTransition::setStorageClass(AlibabaCloud::OSS::StorageClass storag
 }
 
 LifecycleRule::LifecycleRule() :
+    status_(RuleStatus::Enabled),
     expiredObjectDeleteMarker_(false)
 {
 }
