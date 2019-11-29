@@ -121,7 +121,7 @@ bool AlibabaCloud::OSS::IsFileExist(const std::string& file)
 {
     std::streamsize size;
     time_t t;
-    return GetPathInfo(file, size, t);
+    return GetPathInfo(file, t, size);
 }
 
 
@@ -201,7 +201,7 @@ bool AlibabaCloud::OSS::IsFileExist(const std::wstring& file)
 {
     std::streamsize size;
     time_t t;
-    return GetPathInfo(file, size, t);
+    return GetPathInfo(file, t, size);
 }
 #endif
 
