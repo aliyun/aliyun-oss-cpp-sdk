@@ -37,6 +37,7 @@ namespace OSS
         ObjectMetaData& MetaData();
         void setEncodingType(const std::string& encodingType);
         void setTagging(const std::string& value);
+        void setSequential(bool value);
     protected:
         virtual HeaderCollection specialHeaders() const;
         virtual ParameterCollection specialParameters() const;
@@ -44,6 +45,7 @@ namespace OSS
         ObjectMetaData metaData_;
         std::string encodingType_;
         bool encodingTypeIsSet_;
+        bool sequential_;
     };
 } 
 }

@@ -30,7 +30,8 @@ InitiateMultipartUploadRequest::InitiateMultipartUploadRequest(const std::string
                                                                const ObjectMetaData &metaData) :
     OssObjectRequest(bucket, key),
     metaData_(metaData),
-    encodingTypeIsSet_(false)
+    encodingTypeIsSet_(false),
+    sequential_(false)
 {
 }
 
@@ -65,6 +66,11 @@ void InitiateMultipartUploadRequest::setTagging(const std::string& value)
     metaData_.addHeader("x-oss-tagging", value);
 }
 
+void InitiateMultipartUploadRequest::setSequential(bool value)
+{
+    sequential_ = value;
+}
+
 ObjectMetaData &InitiateMultipartUploadRequest::MetaData()
 {
     return metaData_;
@@ -87,9 +93,12 @@ ParameterCollection InitiateMultipartUploadRequest::specialParameters() const
 {
     ParameterCollection parameters;
     parameters["uploads"] = "";
-    if (encodingTypeIsSet_)
-    {
+    if (encodingTypeIsSet_) {
         parameters["encoding-type"] = encodingType_;
+    }
+
+    if (sequential_) {
+        parameters["sequential"] = "";
     }
     return parameters;
 }
