@@ -77,6 +77,13 @@ void GeneratePresignedUrlRequest::setVersionId(const std::string& versionId)
     parameters_["versionId"] = versionId;
 }
 
+void GeneratePresignedUrlRequest::setRequestPayer(RequestPayer value)
+{
+    if (value == RequestPayer::Requester) {
+        parameters_["x-oss-request-payer"] = ToLower(ToRequestPayerName(value));
+    }
+}
+
 void GeneratePresignedUrlRequest::addResponseHeaders(RequestResponseHeader header, const std::string &value)
 {
     static const char *ResponseHeader[] = {

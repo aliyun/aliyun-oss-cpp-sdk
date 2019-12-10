@@ -1537,5 +1537,31 @@ TEST_F(ObjectRequestPaymentTest, NormalResumableCopyWithSizeUnderPartSizeTest)
     EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
 }
 
+TEST_F(ObjectRequestPaymentTest, SignUrlTest)
+{
+    std::string key = TestUtils::GetObjectKey("SignUrlTest");
+
+    PutObjectRequest putRequest(BucketName, key, std::make_shared<std::stringstream>("hello world"));
+    putRequest.setRequestPayer(RequestPayer::Requester);
+    auto putOutcome = PayerClient->PutObject(putRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    GeneratePresignedUrlRequest gRequest(BucketName, key, Http::Method::Get);
+    auto gOutcome = PayerClient->GeneratePresignedUrl(gRequest);
+    EXPECT_EQ(gOutcome.isSuccess(), true);
+
+    auto gurlOutcome = PayerClient->GetObjectByUrl(gOutcome.result());
+    EXPECT_EQ(gurlOutcome.isSuccess(), false);
+    EXPECT_EQ(gurlOutcome.error().Code(), "AccessDenied");
+
+    gRequest.setRequestPayer(RequestPayer::Requester);
+    gOutcome = PayerClient->GeneratePresignedUrl(gRequest);
+    gurlOutcome = PayerClient->GetObjectByUrl(gOutcome.result());
+    EXPECT_EQ(gurlOutcome.isSuccess(), true);
+    std::istreambuf_iterator<char> isb(*gurlOutcome.result().Content().get()), end;
+    std::string str(isb, end);
+    EXPECT_EQ(str, "hello world");
+}
+
 }
 }

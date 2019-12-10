@@ -27,6 +27,7 @@ namespace OSS
 	class ALIBABACLOUD_OSS_EXPORT OutputFormat
 	{
 	public:
+        virtual ~OutputFormat() {};
 		void setKeepAllColumns(bool keepAllColumns);
 		void setOutputRawData(bool outputRawData);
 		void setEnablePayloadCrc(bool enablePayloadCrc);
