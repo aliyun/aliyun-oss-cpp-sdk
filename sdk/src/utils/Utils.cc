@@ -432,8 +432,17 @@ std::string AlibabaCloud::OSS::ToGmtTime(std::time_t &t)
 #endif
 
 #if defined(__GNUG__) && __GNUC__ < 5
+    static const char wday_name[][4] = {
+      "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    };
+    static const char mon_name[][4] = {
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
     char tmbuff[26];
-    strftime(tmbuff, 26, "%a, %d %b %Y %T", &tm);
+    snprintf(tmbuff, sizeof(tmbuff), "%.3s, %.2d %.3s %d %.2d:%.2d:%.2d",
+        wday_name[tm.tm_wday], tm.tm_mday, mon_name[tm.tm_mon],
+        1900 + tm.tm_year,
+        tm.tm_hour, tm.tm_min, tm.tm_sec);
     date << tmbuff << " GMT";
 #else
     date.imbue(std::locale::classic());
@@ -453,7 +462,7 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
 #endif
 #if defined(__GNUG__) && __GNUC__ < 5
     char tmbuff[26];
-    strftime(tmbuff, 26, "%Y-%m-%dT%X.000Z", &tm);
+    strftime(tmbuff, 26, "%Y-%m-%dT%H:%M:%S.000Z", &tm);
     date << tmbuff;
 #else
     date.imbue(std::locale::classic());
