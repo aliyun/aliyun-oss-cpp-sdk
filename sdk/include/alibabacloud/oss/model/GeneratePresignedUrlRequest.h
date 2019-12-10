@@ -40,6 +40,7 @@ namespace OSS
         void setProcess(const std::string& process);
         void setTrafficLimit(uint64_t value);
         void setVersionId(const std::string& versionId);
+        void setRequestPayer(RequestPayer value);
         void addResponseHeaders(RequestResponseHeader header, const std::string& value);
         void addParameter(const std::string& key, const std::string& value);
         MetaData& UserMetaData();
