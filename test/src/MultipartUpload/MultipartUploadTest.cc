@@ -1910,5 +1910,52 @@ TEST_F(MultipartUploadTest, UploadPartCopyResultBranchTest)
     xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
     UploadPartCopyResult result5(xml);
 }
+
+TEST_F(MultipartUploadTest, MultiUploadWithSequentialTest)
+{
+    auto key = TestUtils::GetObjectKey("MultiUploadWithSequentialTest");
+    auto content = TestUtils::GetRandomStream(100);
+    auto calcETag = ComputeContentETag(*content);
+
+    //default
+    InitiateMultipartUploadRequest request(BucketName, key);
+    auto initOutcome = Client->InitiateMultipartUpload(request);
+    EXPECT_EQ(initOutcome.isSuccess(), true);
+    EXPECT_EQ(initOutcome.result().Key(), key);
+
+    auto uploadPartOutcome = Client->UploadPart(UploadPartRequest(BucketName, key, 2, initOutcome.result().UploadId(), content));
+    EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
+    EXPECT_EQ(uploadPartOutcome.result().ETag(), calcETag);
+    EXPECT_FALSE(uploadPartOutcome.result().RequestId().empty());
+
+    //set true
+    InitiateMultipartUploadRequest request1(BucketName, key);
+    request1.setSequential(true);
+    initOutcome = Client->InitiateMultipartUpload(request1);
+    EXPECT_EQ(initOutcome.isSuccess(), true);
+    EXPECT_EQ(initOutcome.result().Key(), key);
+
+    uploadPartOutcome = Client->UploadPart(UploadPartRequest(BucketName, key, 2, initOutcome.result().UploadId(), content));
+    EXPECT_EQ(uploadPartOutcome.isSuccess(), false);
+
+    uploadPartOutcome = Client->UploadPart(UploadPartRequest(BucketName, key, 1, initOutcome.result().UploadId(), content));
+    EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
+    EXPECT_EQ(uploadPartOutcome.result().ETag(), calcETag);
+    EXPECT_FALSE(uploadPartOutcome.result().RequestId().empty());
+
+
+    //set false
+    request1.setSequential(false);
+    initOutcome = Client->InitiateMultipartUpload(request1);
+    EXPECT_EQ(initOutcome.isSuccess(), true);
+    EXPECT_EQ(initOutcome.result().Key(), key);
+
+    uploadPartOutcome = Client->UploadPart(UploadPartRequest(BucketName, key, 2, initOutcome.result().UploadId(), content));
+    EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
+    EXPECT_EQ(uploadPartOutcome.result().ETag(), calcETag);
+    EXPECT_FALSE(uploadPartOutcome.result().RequestId().empty());
+
+}
+
 }
 }
