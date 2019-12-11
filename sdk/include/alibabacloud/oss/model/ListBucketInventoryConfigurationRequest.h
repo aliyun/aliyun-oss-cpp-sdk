@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-#include <string>
-class Config
+#pragma once
+#include <alibabacloud/oss/Export.h>
+#include <alibabacloud/oss/OssRequest.h>
+
+namespace AlibabaCloud
 {
-public:
-    static void ParseArg(int argc, char **argv);
-    static bool InitTestEnv();
-    static std::string GetDataPath();
-public:
-    static std::string AccessKeyId;
-    static std::string AccessKeySecret;
-    static std::string Endpoint;
-    static std::string CallbackServer;
-    static std::string CfgFilePath;
-    static std::string PayerAccessKeyId;
-    static std::string PayerAccessKeySecret;
-    static std::string PayerUID;
-    static std::string OssStsArn;
-    static std::string AccountId;
-};
+namespace OSS
+{
+    class ALIBABACLOUD_OSS_EXPORT ListBucketInventoryConfigurationRequest : public OssBucketRequest
+    {
+    public:
+        ListBucketInventoryConfigurationRequest(const std::string& bucket);
+        void setContinuationToken(const std::string& token) { continuationToken_ = token; }
+    protected:
+        virtual ParameterCollection specialParameters() const;
+    private:
+        std::string continuationToken_;
+    };
+}
+}
 

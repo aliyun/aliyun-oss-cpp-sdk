@@ -35,7 +35,7 @@ const static std::set<std::string> ParamtersToSign =
     "startTime", "endTime", "x-oss-process", "security-token", "objectMeta",
     "callback", "callback-var", "tagging", "policy", "requestPayment", "x-oss-traffic-limit",
     "encryption", "qosInfo", "versioning", "versionId", "versions",
-    "x-oss-request-payer", "sequential"
+    "x-oss-request-payer", "sequential", "inventory", "inventoryId"
 };
 
 SignUtils::SignUtils(const std::string &version):

@@ -158,6 +158,12 @@
 #include <alibabacloud/oss/model/ListObjectVersionsResult.h>
 #include <alibabacloud/oss/model/DeleteObjectVersionsRequest.h>
 #include <alibabacloud/oss/model/DeleteObjectVersionsResult.h>
+#include <alibabacloud/oss/model/SetBucketInventoryConfigurationRequest.h>
+#include <alibabacloud/oss/model/DeleteBucketInventoryConfigurationRequest.h>
+#include <alibabacloud/oss/model/GetBucketInventoryConfigurationResult.h>
+#include <alibabacloud/oss/model/GetBucketInventoryConfigurationRequest.h>
+#include <alibabacloud/oss/model/ListBucketInventoryConfigurationRequest.h>
+#include <alibabacloud/oss/model/ListBucketInventoryConfigurationResult.h>
 #include <alibabacloud/oss/Types.h>
 
 namespace AlibabaCloud
@@ -172,7 +178,8 @@ namespace OSS
     using CreateBucketOutcome = Outcome<OssError, Bucket>;
     using ListObjectOutcome = Outcome<OssError, ListObjectsResult>;
     using ListObjectVersionsOutcome = Outcome<OssError, ListObjectVersionsResult>;
-
+    using ListBucketInventoryConfigurationOutcome = Outcome<OssError, ListBucketInventoryConfigurationResult>;
+	
     using GetBucketAclOutcome = Outcome<OssError, GetBucketAclResult>;
     using GetBucketLocationOutcome = Outcome<OssError, GetBucketLocationResult>;
     using GetBucketInfoOutcome = Outcome<OssError, GetBucketInfoResult>;
@@ -190,7 +197,8 @@ namespace OSS
     using GetBucketQosInfoOutcome = Outcome<OssError, GetBucketQosInfoResult>;
     using GetUserQosInfoOutcome = Outcome<OssError, GetUserQosInfoResult>;
     using GetBucketVersioningOutcome = Outcome<OssError, GetBucketVersioningResult>;
-
+    using GetBucketInventoryConfigurationOutcome = Outcome<OssError, GetBucketInventoryConfigurationResult>;
+	
     using GetObjectOutcome = Outcome<OssError, GetObjectResult>;
     using PutObjectOutcome = Outcome<OssError, PutObjectResult>;
     using DeleteObjectOutcome = Outcome<OssError, DeleteObjectResult>;

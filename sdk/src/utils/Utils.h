@@ -104,5 +104,14 @@ namespace OSS
 
     const char * ToTierTypeName(TierType status);
     TierType ToTierType(const char *name);
+
+    const char* ToInventoryFrequencyName(InventoryFrequency status);
+    InventoryFrequency ToInventoryFrequency(const char* name);
+
+    const char* ToInventoryOptionalFieldsName(InventoryOptionalFields status);
+    InventoryOptionalFields ToInventoryOptionalFields(const char* name);
+
+    const char* ToInventoryIncludedObjectVersionsName(InventoryIncludedObjectVersions status);
+    InventoryIncludedObjectVersions ToInventoryIncludedObjectVersions(const char* name);
 }
 }

@@ -108,6 +108,11 @@ ListBucketsOutcome OssClient::ListBuckets(const ListBucketsRequest &request) con
     return client_->ListBuckets(request);
 }
 
+ListBucketInventoryConfigurationOutcome OssClient::ListBucketInventoryConfiguration(const ListBucketInventoryConfigurationRequest& request) const
+{
+    return client_->ListBucketInventoryConfiguration(request);
+}
+
 CreateBucketOutcome OssClient::CreateBucket(const std::string &bucket, StorageClass storageClass) const
 {
     return client_->CreateBucket(CreateBucketRequest(bucket, storageClass));
@@ -268,6 +273,11 @@ VoidOutcome OssClient::SetBucketVersioning(const SetBucketVersioningRequest& req
     return client_->SetBucketVersioning(request);
 }
 
+VoidOutcome OssClient::SetBucketInventoryConfiguration(const SetBucketInventoryConfigurationRequest& request) const
+{
+    return client_->SetBucketInventoryConfiguration(request);
+}
+
 VoidOutcome OssClient::DeleteBucket(const std::string &bucket) const
 {
     return client_->DeleteBucket(DeleteBucketRequest(bucket));
@@ -331,6 +341,11 @@ VoidOutcome OssClient::DeleteBucketTagging(const DeleteBucketTaggingRequest& req
 VoidOutcome OssClient::DeleteBucketQosInfo(const DeleteBucketQosInfoRequest& request) const
 {
     return client_->DeleteBucketQosInfo(request);
+}
+
+VoidOutcome OssClient::DeleteBucketInventoryConfiguration(const DeleteBucketInventoryConfigurationRequest& request) const
+{
+    return client_->DeleteBucketInventoryConfiguration(request);
 }
 
 GetBucketAclOutcome OssClient::GetBucketAcl(const std::string &bucket) const
@@ -465,6 +480,11 @@ GetUserQosInfoOutcome OssClient::GetUserQosInfo(const GetUserQosInfoRequest& req
 GetBucketVersioningOutcome OssClient::GetBucketVersioning(const GetBucketVersioningRequest& request) const
 {
     return client_->GetBucketVersioning(request);
+}
+
+GetBucketInventoryConfigurationOutcome OssClient::GetBucketInventoryConfiguration(const GetBucketInventoryConfigurationRequest& request) const
+{
+    return client_->GetBucketInventoryConfiguration(request);
 }
 
 GetObjectOutcome OssClient::GetObject(const std::string &bucket, const std::string &key) const

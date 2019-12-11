@@ -127,6 +127,28 @@ namespace OSS
         Bulk
     };
 
+    enum class InventoryFrequency
+    {
+        NotSet,
+        Daily,
+        Weekly
+    };
+
+    enum class InventoryOptionalFields
+    {
+        Size,
+        LastModifiedDate,
+        ETag,
+        StorageClass,
+        IsMultipartUploaded,
+        EncryptionStatus
+    };
+
+    enum class InventoryIncludedObjectVersions
+    { 
+        All
+    };
+
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 
     struct  ALIBABACLOUD_OSS_EXPORT caseSensitiveLess

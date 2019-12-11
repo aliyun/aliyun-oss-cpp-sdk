@@ -968,3 +968,45 @@ TierType AlibabaCloud::OSS::ToTierType(const char *name)
     else return TierType::Standard;
 }
 
+const char* AlibabaCloud::OSS::ToInventoryFrequencyName(InventoryFrequency status)
+{
+    static const char* StatusName[] = { "NotSet", "Daily", "Weekly" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(InventoryFrequency::NotSet)];
+}
+
+InventoryFrequency AlibabaCloud::OSS::ToInventoryFrequency(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("notset")) return InventoryFrequency::NotSet;
+    else if (!statusName.compare("daily")) return InventoryFrequency::Daily;
+    else return InventoryFrequency::Weekly;
+}
+
+const char* AlibabaCloud::OSS::ToInventoryOptionalFieldsName(InventoryOptionalFields status)
+{
+    static const char* StatusName[] = { "Size", "LastModifiedDate", "ETag", "StorageClass", "IsMultipartUploaded", "EncryptionStatus" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(InventoryOptionalFields::Size)];
+}
+
+InventoryOptionalFields AlibabaCloud::OSS::ToInventoryOptionalFields(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("size")) return InventoryOptionalFields::Size;
+    else if (!statusName.compare("lastmodifieddate")) return InventoryOptionalFields::LastModifiedDate;
+    else if (!statusName.compare("etag")) return InventoryOptionalFields::ETag;
+    else if (!statusName.compare("storageclass")) return InventoryOptionalFields::StorageClass;
+    else if (!statusName.compare("ismultipartuploaded")) return InventoryOptionalFields::IsMultipartUploaded;
+    else return InventoryOptionalFields::EncryptionStatus;
+}
+
+const char* AlibabaCloud::OSS::ToInventoryIncludedObjectVersionsName(InventoryIncludedObjectVersions status)
+{
+    static const char* StatusName[] = { "All" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(InventoryIncludedObjectVersions::All)];
+}
+
+InventoryIncludedObjectVersions AlibabaCloud::OSS::ToInventoryIncludedObjectVersions(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("all")) return InventoryIncludedObjectVersions::All;
+}
