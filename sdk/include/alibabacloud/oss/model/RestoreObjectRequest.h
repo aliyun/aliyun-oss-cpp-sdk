@@ -28,8 +28,15 @@ namespace OSS
     {
     public:
         RestoreObjectRequest(const std::string& bucket, const std::string& key);
+        void setDays(uint32_t days);
+        void setTierType(TierType type);
     protected:
+        virtual std::string payload() const;
         virtual ParameterCollection specialParameters() const;
+    private:
+        uint32_t days_;
+        TierType tierType_;
+        bool tierTypeIsSet_;
     };
 }
 }

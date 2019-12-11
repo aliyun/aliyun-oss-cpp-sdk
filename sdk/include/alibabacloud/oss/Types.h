@@ -30,9 +30,10 @@ namespace OSS
 {
     enum StorageClass
     {
-        Standard, // Standard bucket
-        IA,       // Infrequent Access bucket
-        Archive   // Archive bucket
+        Standard,       // Standard bucket
+        IA,             // Infrequent Access bucket
+        Archive,        // Archive bucket
+        LongTermArchive // Longterm Archive bucket
     };
 
     enum CannedAccessControlList
@@ -117,6 +118,13 @@ namespace OSS
         NotSet,
         Enabled,
         Suspended
+    };
+
+    enum class TierType
+    {
+        Expedited,
+        Standard,
+        Bulk
     };
 
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);

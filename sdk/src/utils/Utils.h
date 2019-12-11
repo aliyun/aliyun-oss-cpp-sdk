@@ -101,5 +101,8 @@ namespace OSS
 
     const char * ToVersioningStatusName(VersioningStatus status);
     VersioningStatus ToVersioningStatusType(const char *name);
+
+    const char * ToTierTypeName(TierType status);
+    TierType ToTierType(const char *name);
 }
 }
