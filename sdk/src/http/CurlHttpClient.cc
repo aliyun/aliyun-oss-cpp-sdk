@@ -126,10 +126,17 @@ namespace OSS
             return handle;
         }    
     
-        void Release(CURL* handle)
+        void Release(CURL* handle, bool force)
         {
             if (handle) {
                 curl_easy_reset(handle);
+                if (force) {
+                    CURL* newhandle = curl_easy_init();
+                    if (newhandle) {
+                        curl_easy_cleanup(handle);
+                        handle = newhandle;
+                    }
+                }
                 setDefaultOptions(handle);
                 handleContainer_.Release(handle);
             }
@@ -595,7 +602,7 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
     }
     request->setTransferedBytes(transferState.transferred);
 
-    curlContainer_->Release(curl);
+    curlContainer_->Release(curl, (res != CURLE_OK));
 
     curl_slist_free_all(list);
 
