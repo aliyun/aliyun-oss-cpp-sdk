@@ -953,3 +953,78 @@ VersioningStatus AlibabaCloud::OSS::ToVersioningStatusType(const char *name)
     else return VersioningStatus::NotSet;
 }
 
+const char* AlibabaCloud::OSS::ToInventoryFormatName(InventoryFormat status)
+{
+    static const char* StatusName[] = { "NotSet", "CSV"};
+    return StatusName[static_cast<int>(status) - static_cast<int>(InventoryFormat::NotSet)];
+}
+
+InventoryFormat AlibabaCloud::OSS::ToInventoryFormatType(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("csv")) return InventoryFormat::CSV;
+    else return InventoryFormat::NotSet;
+}
+
+const char* AlibabaCloud::OSS::ToInventoryFrequencyName(InventoryFrequency status)
+{
+    static const char* StatusName[] = { "NotSet", "Daily", "Weekly" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(InventoryFrequency::NotSet)];
+}
+
+InventoryFrequency AlibabaCloud::OSS::ToInventoryFrequencyType(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("daily")) return InventoryFrequency::Daily;
+    else if (!statusName.compare("weekly")) return InventoryFrequency::Weekly;
+    else return InventoryFrequency::NotSet;
+}
+
+const char* AlibabaCloud::OSS::ToInventoryOptionalFieldName(InventoryOptionalField status)
+{
+    static const char* StatusName[] = { "NotSet", "Size", "LastModifiedDate", "ETag", "StorageClass", "IsMultipartUploaded", "EncryptionStatus" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(InventoryOptionalField::NotSet)];
+}
+
+InventoryOptionalField AlibabaCloud::OSS::ToInventoryOptionalFieldType(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("size")) return InventoryOptionalField::Size;
+    else if (!statusName.compare("lastmodifieddate")) return InventoryOptionalField::LastModifiedDate;
+    else if (!statusName.compare("etag")) return InventoryOptionalField::ETag;
+    else if (!statusName.compare("storageclass")) return InventoryOptionalField::StorageClass;
+    else if (!statusName.compare("ismultipartuploaded")) return InventoryOptionalField::IsMultipartUploaded;
+    else if (!statusName.compare("encryptionstatus")) return InventoryOptionalField::EncryptionStatus;
+    else return InventoryOptionalField::NotSet;
+}
+
+const char* AlibabaCloud::OSS::ToInventoryIncludedObjectVersionsName(InventoryIncludedObjectVersions status)
+{
+    static const char* StatusName[] = { "NotSet", "All", "Current" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(InventoryIncludedObjectVersions::NotSet)];
+}
+
+InventoryIncludedObjectVersions AlibabaCloud::OSS::ToInventoryIncludedObjectVersionsType(const char* name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("all")) return InventoryIncludedObjectVersions::All;
+    else if (!statusName.compare("current")) return InventoryIncludedObjectVersions::Current;
+    else return InventoryIncludedObjectVersions::NotSet;
+}
+
+std::string AlibabaCloud::OSS::ToInventoryBucketFullName(const std::string& name)
+{
+    std::string fullName = "acs:oss:::";
+    return fullName.append(name);
+}
+
+std::string AlibabaCloud::OSS::ToInventoryBucketShortName(const char* name)
+{
+    std::string name_ = ToLower(name);
+    std::string shortName;
+
+    if (!name_.compare(0, 10, "acs:oss:::")) {
+        shortName.append(name + 10);
+    }
+    return shortName;
+}

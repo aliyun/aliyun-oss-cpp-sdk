@@ -101,5 +101,20 @@ namespace OSS
 
     const char * ToVersioningStatusName(VersioningStatus status);
     VersioningStatus ToVersioningStatusType(const char *name);
+
+    const char* ToInventoryFormatName(InventoryFormat status);
+    InventoryFormat ToInventoryFormatType(const char* name);
+
+    const char* ToInventoryFrequencyName(InventoryFrequency status);
+    InventoryFrequency ToInventoryFrequencyType(const char* name);
+
+    const char* ToInventoryOptionalFieldName(InventoryOptionalField status);
+    InventoryOptionalField ToInventoryOptionalFieldType(const char* name);
+
+    const char* ToInventoryIncludedObjectVersionsName(InventoryIncludedObjectVersions status);
+    InventoryIncludedObjectVersions ToInventoryIncludedObjectVersionsType(const char* name);
+
+    std::string ToInventoryBucketFullName(const std::string& name);
+    std::string ToInventoryBucketShortName(const char* name);
 }
 }
