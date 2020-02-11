@@ -113,6 +113,7 @@ TEST_F(UtilsFunctionTest, ToStorageClassNameTest)
     EXPECT_STREQ(ToStorageClassName(StorageClass::Standard), "Standard");
     EXPECT_STREQ(ToStorageClassName(StorageClass::IA), "IA");
     EXPECT_STREQ(ToStorageClassName(StorageClass::Archive), "Archive");
+    EXPECT_STREQ(ToStorageClassName(StorageClass::ColdArchive), "ColdArchive");
 }
 
 TEST_F(UtilsFunctionTest, ToStorageClassTypeTest)
@@ -125,6 +126,8 @@ TEST_F(UtilsFunctionTest, ToStorageClassTypeTest)
     EXPECT_EQ(ToStorageClassType("ArChive"), StorageClass::Archive);
     EXPECT_EQ(ToStorageClassType(nullptr), StorageClass::Standard);
     EXPECT_EQ(ToStorageClassType("unknown"), StorageClass::Standard);
+    EXPECT_EQ(ToStorageClassType("ColdArchive"), StorageClass::ColdArchive);
+    EXPECT_EQ(ToStorageClassType("coldArchive"), StorageClass::ColdArchive);
 }
 
 TEST_F(UtilsFunctionTest, ToAclNameTest)
@@ -911,6 +914,23 @@ TEST_F(UtilsFunctionTest, ToInventoryBucketShortNameTest)
     EXPECT_EQ(ToInventoryBucketShortName(nullptr), "");
     EXPECT_EQ(ToInventoryBucketShortName("acs:oss:::test"), "test");
     EXPECT_EQ(ToInventoryBucketShortName("ACS:OSS:::test"), "test");
+}
+
+TEST_F(UtilsFunctionTest, ToTierTypeNameTest)
+{
+    EXPECT_STREQ(ToTierTypeName(TierType::Standard), "Standard");
+    EXPECT_STREQ(ToTierTypeName(TierType::Expedited), "Expedited");
+    EXPECT_STREQ(ToTierTypeName(TierType::Bulk), "Bulk");
+}
+
+TEST_F(UtilsFunctionTest, ToTierTypeTest)
+{
+    EXPECT_EQ(ToTierType("Standard"), TierType::Standard);
+    EXPECT_EQ(ToTierType("standard"), TierType::Standard);
+    EXPECT_EQ(ToTierType("Expedited"), TierType::Expedited);
+    EXPECT_EQ(ToTierType("expedited"), TierType::Expedited);
+    EXPECT_EQ(ToTierType("Bulk"), TierType::Bulk);
+    EXPECT_EQ(ToTierType("bulk"), TierType::Bulk);
 }
 
 }

@@ -16,13 +16,42 @@
 
 
 #include <alibabacloud/oss/model/RestoreObjectRequest.h>
+#include <../utils/Utils.h>
+#include <sstream>
+
 using namespace AlibabaCloud::OSS;
 
 RestoreObjectRequest::RestoreObjectRequest(const std::string &bucket, const std::string &key)
-    :OssObjectRequest(bucket,key)
+    :OssObjectRequest(bucket,key),
+    days_(1U),
+    tierTypeIsSet_(false)
 {
 }
-    
+
+void RestoreObjectRequest::setDays(uint32_t days)
+{
+    days_ = days;
+}
+
+void RestoreObjectRequest::setTierType(TierType type)
+{
+    tierType_ = type;
+    tierTypeIsSet_ = true;
+}
+
+std::string RestoreObjectRequest::payload() const
+{
+    std::stringstream ss;
+    if (tierTypeIsSet_) {
+        ss << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+        ss << "<RestoreRequest>" << std::endl;
+        ss << "<Days>" << std::to_string(days_) << "</Days>" << std::endl;
+        ss << "<JobParameters><Tier>" << ToTierTypeName(tierType_) << "</Tier></JobParameters>" << std::endl;
+        ss << "</RestoreRequest>" << std::endl;
+    }
+    return ss.str();
+}
+
 ParameterCollection RestoreObjectRequest::specialParameters() const
 {
     auto parameters = OssObjectRequest::specialParameters();
