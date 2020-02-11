@@ -116,5 +116,8 @@ namespace OSS
 
     std::string ToInventoryBucketFullName(const std::string& name);
     std::string ToInventoryBucketShortName(const char* name);
+
+    const char * ToTierTypeName(TierType status);
+    TierType ToTierType(const char *name);
 }
 }

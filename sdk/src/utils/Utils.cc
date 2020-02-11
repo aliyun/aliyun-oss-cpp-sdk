@@ -832,7 +832,7 @@ std::streampos AlibabaCloud::OSS::GetIOStreamLength(std::iostream &stream)
 
 const char *AlibabaCloud::OSS::ToStorageClassName(StorageClass storageClass)
 {
-    static const char *StorageClassName[] = { "Standard", "IA", "Archive" };
+    static const char *StorageClassName[] = { "Standard", "IA", "Archive", "ColdArchive" };
     return StorageClassName[storageClass - StorageClass::Standard];
 }
 
@@ -841,6 +841,7 @@ StorageClass AlibabaCloud::OSS::ToStorageClassType(const char *name)
     std::string storageName = ToLower(name);
     if(!storageName.compare("ia")) return StorageClass::IA;
     else if (!storageName.compare("archive")) return StorageClass::Archive;
+    else if (!storageName.compare("coldarchive")) return StorageClass::ColdArchive;
     else return StorageClass::Standard;
 }
 
@@ -1028,3 +1029,18 @@ std::string AlibabaCloud::OSS::ToInventoryBucketShortName(const char* name)
     }
     return shortName;
 }
+
+const char * AlibabaCloud::OSS::ToTierTypeName(TierType status)
+{
+    static const char *StatusName[] = { "Expedited", "Standard", "Bulk" };
+    return StatusName[static_cast<int>(status) - static_cast<int>(TierType::Expedited)];
+}
+
+TierType AlibabaCloud::OSS::ToTierType(const char *name)
+{
+    std::string statusName = ToLower(name);
+    if (!statusName.compare("expedited")) return TierType::Expedited;
+    else if (!statusName.compare("bulk")) return TierType::Bulk;
+    else return TierType::Standard;
+}
+

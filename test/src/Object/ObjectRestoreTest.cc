@@ -129,5 +129,34 @@ TEST_F(ObjectRestoreTest, SetAndGetObjectRestoreSuccessTest)
     EXPECT_EQ(restoreOutCome.isSuccess(), false);
     EXPECT_EQ(restoreOutCome.error().Code(), "OperationNotSupported");
 }
+
+TEST_F(ObjectRestoreTest, RestoreWithColdArchiveTest)
+{
+    std::string objName = TestUtils::GetObjectKey("RestoreWithTierTypeTest");
+
+    std::string bucket = TestUtils::GetBucketName("cpp-sdk-objectrestore-ltarchive");
+    auto outcome = Client->CreateBucket(CreateBucketRequest(bucket, StorageClass::ColdArchive));
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    // first: put object
+    std::string text = "hellowworld";
+    auto putOutcome = Client->PutObject(PutObjectRequest(bucket, objName, std::make_shared<std::stringstream>(text)));
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    //second:restore object
+    RestoreObjectRequest roRequest(bucket, objName);
+    roRequest.setDays(2);
+    roRequest.setTierType(TierType::Expedited);
+    auto restoreOutCome = Client->RestoreObject(roRequest);
+    EXPECT_EQ(restoreOutCome.isSuccess(), true);
+
+    TestUtils::WaitForCacheExpire(5);
+    restoreOutCome = Client->RestoreObject(roRequest);
+    EXPECT_EQ(restoreOutCome.isSuccess(), false);
+    EXPECT_EQ(restoreOutCome.error().Code(), "RestoreAlreadyInProgress");
+
+    TestUtils::CleanBucket(*Client, bucket);
+}
+
 }}
 
