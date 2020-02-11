@@ -816,5 +816,102 @@ TEST_F(UtilsFunctionTest, XmlEscapeTest)
     EXPECT_EQ(XmlEscape(str), str);
 }
 
+TEST_F(UtilsFunctionTest, ToInventoryFormatNameTest)
+{
+    EXPECT_STREQ(ToInventoryFormatName(InventoryFormat::NotSet), "NotSet");
+    EXPECT_STREQ(ToInventoryFormatName(InventoryFormat::CSV), "CSV");
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryFormatTypeTest)
+{
+    EXPECT_EQ(ToInventoryFormatType("NotSet"), InventoryFormat::NotSet);
+    EXPECT_EQ(ToInventoryFormatType("notSet"), InventoryFormat::NotSet);
+    EXPECT_EQ(ToInventoryFormatType("Invalid"), InventoryFormat::NotSet);
+    EXPECT_EQ(ToInventoryFormatType("CSV"), InventoryFormat::CSV);
+    EXPECT_EQ(ToInventoryFormatType("csv"), InventoryFormat::CSV);
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryFrequencyNameTest)
+{
+    EXPECT_STREQ(ToInventoryFrequencyName(InventoryFrequency::NotSet), "NotSet");
+    EXPECT_STREQ(ToInventoryFrequencyName(InventoryFrequency::Daily), "Daily");
+    EXPECT_STREQ(ToInventoryFrequencyName(InventoryFrequency::Weekly), "Weekly");
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryFrequencyTypeTest)
+{
+    EXPECT_EQ(ToInventoryFrequencyType("NotSet"), InventoryFrequency::NotSet);
+    EXPECT_EQ(ToInventoryFrequencyType("notSet"), InventoryFrequency::NotSet);
+    EXPECT_EQ(ToInventoryFrequencyType("Invalid"), InventoryFrequency::NotSet);
+    EXPECT_EQ(ToInventoryFrequencyType("Daily"), InventoryFrequency::Daily);
+    EXPECT_EQ(ToInventoryFrequencyType("daily"), InventoryFrequency::Daily);
+    EXPECT_EQ(ToInventoryFrequencyType("Weekly"), InventoryFrequency::Weekly);
+    EXPECT_EQ(ToInventoryFrequencyType("weekly"), InventoryFrequency::Weekly);
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryOptionalFieldNameTest)
+{
+    EXPECT_STREQ(ToInventoryOptionalFieldName(InventoryOptionalField::NotSet), "NotSet");
+    EXPECT_STREQ(ToInventoryOptionalFieldName(InventoryOptionalField::Size), "Size");
+    EXPECT_STREQ(ToInventoryOptionalFieldName(InventoryOptionalField::LastModifiedDate), "LastModifiedDate");
+    EXPECT_STREQ(ToInventoryOptionalFieldName(InventoryOptionalField::ETag), "ETag");
+    EXPECT_STREQ(ToInventoryOptionalFieldName(InventoryOptionalField::StorageClass), "StorageClass");
+    EXPECT_STREQ(ToInventoryOptionalFieldName(InventoryOptionalField::IsMultipartUploaded), "IsMultipartUploaded");
+    EXPECT_STREQ(ToInventoryOptionalFieldName(InventoryOptionalField::EncryptionStatus), "EncryptionStatus");
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryOptionalFieldTypeTest)
+{
+    EXPECT_EQ(ToInventoryOptionalFieldType("NotSet"), InventoryOptionalField::NotSet);
+    EXPECT_EQ(ToInventoryOptionalFieldType("notSet"), InventoryOptionalField::NotSet);
+    EXPECT_EQ(ToInventoryOptionalFieldType("Invalid"), InventoryOptionalField::NotSet);
+    EXPECT_EQ(ToInventoryOptionalFieldType("Size"), InventoryOptionalField::Size);
+    EXPECT_EQ(ToInventoryOptionalFieldType("size"), InventoryOptionalField::Size);
+    EXPECT_EQ(ToInventoryOptionalFieldType("LastModifiedDate"), InventoryOptionalField::LastModifiedDate);
+    EXPECT_EQ(ToInventoryOptionalFieldType("lastModifiedDate"), InventoryOptionalField::LastModifiedDate);
+    EXPECT_EQ(ToInventoryOptionalFieldType("ETag"), InventoryOptionalField::ETag);
+    EXPECT_EQ(ToInventoryOptionalFieldType("eTag"), InventoryOptionalField::ETag);
+    EXPECT_EQ(ToInventoryOptionalFieldType("StorageClass"), InventoryOptionalField::StorageClass);
+    EXPECT_EQ(ToInventoryOptionalFieldType("storageClass"), InventoryOptionalField::StorageClass);
+    EXPECT_EQ(ToInventoryOptionalFieldType("IsMultipartUploaded"), InventoryOptionalField::IsMultipartUploaded);
+    EXPECT_EQ(ToInventoryOptionalFieldType("isMultipartUploaded"), InventoryOptionalField::IsMultipartUploaded);
+    EXPECT_EQ(ToInventoryOptionalFieldType("EncryptionStatus"), InventoryOptionalField::EncryptionStatus);
+    EXPECT_EQ(ToInventoryOptionalFieldType("encryptionStatus"), InventoryOptionalField::EncryptionStatus);
+}
+
+
+TEST_F(UtilsFunctionTest, ToInventoryIncludedObjectVersionsNameTest)
+{
+    EXPECT_STREQ(ToInventoryIncludedObjectVersionsName(InventoryIncludedObjectVersions::NotSet), "NotSet");
+    EXPECT_STREQ(ToInventoryIncludedObjectVersionsName(InventoryIncludedObjectVersions::All), "All");
+    EXPECT_STREQ(ToInventoryIncludedObjectVersionsName(InventoryIncludedObjectVersions::Current), "Current");
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryIncludedObjectVersionsTypeTest)
+{
+    EXPECT_EQ(ToInventoryIncludedObjectVersionsType("NotSet"), InventoryIncludedObjectVersions::NotSet);
+    EXPECT_EQ(ToInventoryIncludedObjectVersionsType("notSet"), InventoryIncludedObjectVersions::NotSet);
+    EXPECT_EQ(ToInventoryIncludedObjectVersionsType("Invalid"), InventoryIncludedObjectVersions::NotSet);
+    EXPECT_EQ(ToInventoryIncludedObjectVersionsType("All"), InventoryIncludedObjectVersions::All);
+    EXPECT_EQ(ToInventoryIncludedObjectVersionsType("all"), InventoryIncludedObjectVersions::All);
+    EXPECT_EQ(ToInventoryIncludedObjectVersionsType("Current"), InventoryIncludedObjectVersions::Current);
+    EXPECT_EQ(ToInventoryIncludedObjectVersionsType("current"), InventoryIncludedObjectVersions::Current);
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryBucketFullNameTest)
+{
+    EXPECT_EQ(ToInventoryBucketFullName("bucket-name"), "acs:oss:::bucket-name");
+    EXPECT_EQ(ToInventoryBucketFullName(""), "acs:oss:::");
+    EXPECT_EQ(ToInventoryBucketFullName("test"), "acs:oss:::test");
+}
+
+TEST_F(UtilsFunctionTest, ToInventoryBucketShortNameTest)
+{
+    EXPECT_EQ(ToInventoryBucketShortName("acs:oss:::bucket-name"), "bucket-name");
+    EXPECT_EQ(ToInventoryBucketShortName(nullptr), "");
+    EXPECT_EQ(ToInventoryBucketShortName("acs:oss:::test"), "test");
+    EXPECT_EQ(ToInventoryBucketShortName("ACS:OSS:::test"), "test");
+}
+
 }
 }

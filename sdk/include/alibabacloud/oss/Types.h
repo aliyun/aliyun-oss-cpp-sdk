@@ -119,6 +119,37 @@ namespace OSS
         Suspended
     };
 
+    enum class InventoryFormat
+    {
+        NotSet,
+        CSV
+    };
+
+    enum class InventoryFrequency
+    {
+        NotSet,
+        Daily,
+        Weekly
+    };
+
+    enum class InventoryOptionalField
+    {
+        NotSet,
+        Size,
+        LastModifiedDate,
+        ETag,
+        StorageClass,
+        IsMultipartUploaded,
+        EncryptionStatus
+    };
+
+    enum class InventoryIncludedObjectVersions
+    { 
+        NotSet,
+        All,
+        Current
+    };
+
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 
     struct  ALIBABACLOUD_OSS_EXPORT caseSensitiveLess
