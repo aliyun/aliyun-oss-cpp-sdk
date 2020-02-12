@@ -66,7 +66,7 @@ bool DefaultRetryStrategy::shouldRetry(const Error & error, long attemptedRetrie
     long responseCode = error.Status();
 
     //http code
-    if ((responseCode == 403 && error.Message().find("RequestTimeTooSkewed")) ||
+    if ((responseCode == 403 && error.Message().find("RequestTimeTooSkewed") != std::string::npos) ||
         (responseCode > 499 && responseCode < 599)) {
         return true;
     }
