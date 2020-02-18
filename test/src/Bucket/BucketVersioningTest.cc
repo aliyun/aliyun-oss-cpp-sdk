@@ -120,6 +120,35 @@ namespace OSS {
         EXPECT_EQ(bfOutcome.result().VersioningStatus(), VersioningStatus::Enabled);
     }
     
+    TEST_F(BucketVersioningTest, SetAndGetBucketVersioningNGTest)
+    {
+        SetBucketVersioningRequest sRequest("Invalid-Bucket", VersioningStatus::Enabled);
+        auto sOutcome = Client->SetBucketVersioning(sRequest);
+        EXPECT_EQ(sOutcome.isSuccess(), false);
+
+        GetBucketVersioningRequest gRequest("Invalid-Bucket");
+        auto gOutcome = Client->GetBucketVersioning(gRequest);
+        EXPECT_EQ(gOutcome.isSuccess(), false);
+    }
+
+    TEST_F(BucketVersioningTest, GetBucketVersioningWithInvalidResponseBodyTest)
+    {
+        SetBucketVersioningRequest request(BucketName, VersioningStatus::Enabled);
+        auto sOutcome = Client->SetBucketVersioning(request);
+        EXPECT_EQ(sOutcome.isSuccess(), true);
+        EXPECT_EQ(sOutcome.result().RequestId().size(), 24UL);
+
+        auto gbvRequest = GetBucketVersioningRequest(BucketName);
+        gbvRequest.setResponseStreamFactory([=]() {
+            auto content = std::make_shared<std::stringstream>();
+            content->write("invlid data", 11);
+            return content;
+        });
+        auto gbvOutcome = Client->GetBucketVersioning(gbvRequest);
+        EXPECT_EQ(gbvOutcome.isSuccess(), false);
+        EXPECT_EQ(gbvOutcome.error().Code(), "ParseXMLError");
+    }
+
     TEST_F(BucketVersioningTest, GetBucketVersioningResult)
     {
         std::string xml;

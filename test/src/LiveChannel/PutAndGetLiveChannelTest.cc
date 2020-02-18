@@ -342,6 +342,33 @@ TEST_F(PutAndGetLiveChannelTest, LiveChannelRequestTest)
     auto getOutcome = Client->GetLiveChannelInfo(request);
 }
 
+TEST_F(PutAndGetLiveChannelTest, PutLiveChannelWithInvalidResponseBodyTest)
+{
+    // case 1 default
+    std::string channelName = "test-channel-1";
+    std::string channelType = "HLS";
+
+    PutLiveChannelRequest plcRequest(BucketName, channelName, channelType);
+    plcRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto putOutcome = Client->PutLiveChannel(plcRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), false);
+    EXPECT_EQ(putOutcome.error().Code(), "PutLiveChannelError");
+
+    GetLiveChannelInfoRequest glcRequest(BucketName, channelName);
+    glcRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto glcOutcome = Client->GetLiveChannelInfo(glcRequest);
+    EXPECT_EQ(glcOutcome.isSuccess(), false);
+    EXPECT_EQ(glcOutcome.error().Code(), "GetLiveChannelStatError");
+}
+
 TEST_F(PutAndGetLiveChannelTest, PutLiveChannelResultFunctionTest)
 {
 

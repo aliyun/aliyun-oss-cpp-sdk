@@ -164,6 +164,15 @@ TEST_F(AccessKeyTest, GenerateRTMPSignatureUrlCredentialsProviderTest)
     auto generateOutcome = client->GenerateRTMPSignedUrl(request);
 
     EXPECT_EQ(generateOutcome.isSuccess(), true);
+
+    auto outcome = generateOutcome;
+    outcome = outcome;
+    EXPECT_EQ(outcome.isSuccess(), generateOutcome.isSuccess());
+    EXPECT_EQ(outcome.result(), generateOutcome.result());
+
+    outcome = std::move(outcome);
+    EXPECT_EQ(outcome.isSuccess(), generateOutcome.isSuccess());
+    EXPECT_EQ(outcome.result(), generateOutcome.result());
 }
 
 }

@@ -806,8 +806,7 @@ GetBucketPolicyOutcome OssClientImpl::GetBucketPolicy(const GetBucketPolicyReque
     if (outcome.isSuccess()) {
         GetBucketPolicyResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketPolicyOutcome(std::move(result)) :
-            GetBucketPolicyOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return GetBucketPolicyOutcome(std::move(result));
     }
     else {
         return GetBucketPolicyOutcome(outcome.error());

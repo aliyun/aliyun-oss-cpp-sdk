@@ -3114,5 +3114,47 @@ public:
 
 #endif
 
+    TEST_F(ResumableObjectTest, MultiResumableInvalidBucketNameTest)
+    {
+        DownloadObjectRequest request("Invalid-Bucket", "key", L"filePath", L"TestKey");
+        EXPECT_EQ(request.CheckpointDir().empty(), true);
+        EXPECT_EQ(request.CheckpointDirW(), L"TestKey");
+        request.setCheckpointDir("TestKey");
+        EXPECT_EQ(request.CheckpointDir(), "TestKey");
+        EXPECT_EQ(request.CheckpointDirW().empty(), true);
+        request.setPartSize(100 * 1024);
+        request.setThreadNum(2);
+        auto outcome = Client->ResumableDownloadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    }
+
+    TEST_F(ResumableObjectTest, MultiCopyObjectRequestTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("NormalCopySourceObject");
+        std::string targetKey = TestUtils::GetObjectKey("NormalCopyTargetObject");
+
+        // copy
+        MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey, L"CheckPoint");
+        EXPECT_EQ(request.CheckpointDirW(), L"CheckPoint");
+
+        MultiCopyObjectRequest request1(BucketName, targetKey, BucketName, sourceKey, L"CheckPoint1", ObjectMetaData());
+        EXPECT_EQ(request1.CheckpointDirW(), L"CheckPoint1");
+
+        MultiCopyObjectRequest request2(BucketName, targetKey, BucketName, sourceKey, L"CheckPoint2", 100*1024, 2, ObjectMetaData());
+        EXPECT_EQ(request2.CheckpointDirW(), L"CheckPoint2");
+    }
+
+    TEST_F(ResumableObjectTest, UploadObjectRequestTest)
+    {
+        std::string key = TestUtils::GetObjectKey("UploadObjectRequestTest");
+
+        UploadObjectRequest reqeust(BucketName, key, L"filePath1", L"checkPoint1", 100 * 1024, 2, ObjectMetaData());
+        EXPECT_EQ(reqeust.CheckpointDirW(), L"checkPoint1");
+
+        UploadObjectRequest reqeust1(BucketName, key, L"filePath2", L"checkPoint2", ObjectMetaData());
+        EXPECT_EQ(reqeust1.CheckpointDirW(), L"checkPoint2");
+    }
+    
 }
 }

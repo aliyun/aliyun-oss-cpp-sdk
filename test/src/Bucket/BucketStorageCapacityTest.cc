@@ -91,6 +91,19 @@ TEST_F(BucketStorageCapacityTest, GetBucketStorageCapacityNegativeTest)
     EXPECT_EQ(outcome.error().Code(), "NoSuchBucket");
 }
 
+TEST_F(BucketStorageCapacityTest, BucketStorageCapacityWithInvalidResponseBodyTest)
+{
+    auto gbscRequest = GetBucketStorageCapacityRequest(BucketName);
+    gbscRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbscOutcome = Client->GetBucketStorageCapacity(gbscRequest);
+    EXPECT_EQ(gbscOutcome.isSuccess(), false);
+    EXPECT_EQ(gbscOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(BucketStorageCapacityTest, SetBucketStorageCapacityInvalidInputTest)
 {
     auto outcome = Client->SetBucketStorageCapacity(SetBucketStorageCapacityRequest(BucketName, -2));

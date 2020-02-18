@@ -202,6 +202,14 @@ TEST_F(ObjectSymlinkTest, CreateSymlinkResultTest)
     CreateSymlinkResult reuslt1("ETag");
     reuslt = reuslt1;
     EXPECT_EQ(reuslt.ETag(), "ETag");
+
+    GetSymlinkResult result2("symlink", "etag");
+    EXPECT_EQ(result2.ETag(), "etag");
+    EXPECT_EQ(result2.SymlinkTarget(), "symlink");
+
+    auto headers = HeaderCollection();
+    GetSymlinkResult result3(headers);
+    EXPECT_EQ(result3.ETag(), "");
 }
 
 TEST_F(ObjectSymlinkTest, CreateSymlinkNegativeTest)

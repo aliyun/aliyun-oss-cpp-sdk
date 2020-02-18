@@ -149,6 +149,24 @@ TEST_F(ObjectAclTest, SetAndGetObjectAclErrorTest)
     EXPECT_EQ(aclOutcome2.error().Code().size()>0, true);
 }
 
+TEST_F(ObjectAclTest, GetObjectAclWithInvalidResponseBodyTest)
+{
+    std::string objName = TestUtils::GetObjectKey("GetObjectAclWithInvalidResponseBodyTest");
+    std::string text = "hellowworld";
+    auto putOutcome = Client->PutObject(PutObjectRequest(BucketName, objName, std::make_shared<std::stringstream>(text)));
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    GetObjectAclRequest gaclRequest(BucketName, objName);
+    gaclRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gaclOutcome = Client->GetObjectAcl(gaclRequest);
+    EXPECT_EQ(gaclOutcome.isSuccess(), false);
+    EXPECT_EQ(gaclOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(ObjectAclTest, GetObjectAclResultTest)
 {
     std::string xml = R"(<?xml version="1.0" ?>

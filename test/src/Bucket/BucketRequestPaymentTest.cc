@@ -109,6 +109,19 @@ TEST_F(BucketRequestPaymentTest, PutAndGetBucketRequestPayment)
     EXPECT_EQ(getOutcome.result().Payer(), RequestPayer::Requester);
 }
 
+TEST_F(BucketRequestPaymentTest, BucketRequestPaymentWithInvalidResponseBodyTest)
+{
+    auto gbrpRequest = GetBucketRequestPaymentRequest(BucketName1);
+    gbrpRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbrpOutcome = Client->GetBucketRequestPayment(gbrpRequest);
+    EXPECT_EQ(gbrpOutcome.isSuccess(), false);
+    EXPECT_EQ(gbrpOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(BucketRequestPaymentTest, BucketPaymentResult)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>

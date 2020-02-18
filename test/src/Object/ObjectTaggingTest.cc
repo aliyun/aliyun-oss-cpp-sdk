@@ -1273,6 +1273,31 @@ TEST_F(ObjectTaggingTest, SetObjectTaggingRequestFunctionTest)
     outcome = Client->SetObjectTagging(request2);
 }
 
+TEST_F(ObjectTaggingTest, GetObjectTaggingWithInvalidResponseBodyTest)
+{
+    std::string key = TestUtils::GetObjectKey("GetObjectTaggingWithInvalidResponseBodyTest");
+    auto putOutcome = Client->PutObject(PutObjectRequest(BucketName, key, std::make_shared<std::stringstream>("hellowworld")));
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    SetObjectTaggingRequest request(BucketName, key);
+    Tagging tagging;
+    tagging.addTag(Tag("key1", "value1"));
+    tagging.addTag(Tag("key2", "value2"));
+    request.setTagging(tagging);
+    auto outcome = Client->SetObjectTagging(request);
+
+
+    GetObjectTaggingRequest gotRequest(BucketName, key);
+    gotRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gotlOutcome = Client->GetObjectTagging(gotRequest);
+    EXPECT_EQ(gotlOutcome.isSuccess(), false);
+    EXPECT_EQ(gotlOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(ObjectTaggingTest, GetObjectTaggingResultBranchTest)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
@@ -1289,7 +1314,7 @@ TEST_F(ObjectTaggingTest, GetObjectTaggingResultBranchTest)
                 </TagSet>
             </Tagg>)";
 
-    GetObjectTaggingResult result1(xml);
+    GetObjectTaggingResult result1(std::make_shared<std::stringstream>(xml));
 
     xml = R"(<?xml version="1.0" encoding="UTF-8"?>
             <Tagging>

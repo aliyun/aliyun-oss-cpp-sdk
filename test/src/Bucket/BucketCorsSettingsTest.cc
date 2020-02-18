@@ -363,6 +363,23 @@ TEST_F(BucketCorsSettingsTest, SetBucketCorsNegativeTest)
     EXPECT_EQ(outcome.error().Code(), "NoSuchBucket");
 }
 
+TEST_F(BucketCorsSettingsTest, GetBucketCorsWithInvalidResponseBodyTest)
+{
+    CORSRuleList ruleList;
+    ruleList.push_back(ConstructDummyCorsRule());
+    Client->SetBucketCors(BucketName, ruleList);
+
+    auto gbcRequest = GetBucketCorsRequest(BucketName);
+    gbcRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbcOutcome = Client->GetBucketCors(gbcRequest);
+    EXPECT_EQ(gbcOutcome.isSuccess(), false);
+    EXPECT_EQ(gbcOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(BucketCorsSettingsTest, GetBucketCorsResult)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>

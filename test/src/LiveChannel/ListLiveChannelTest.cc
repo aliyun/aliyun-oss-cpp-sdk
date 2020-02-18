@@ -115,6 +115,19 @@ TEST_F(ListLiveChannelTest, ListLiveChannelListTest)
 	EXPECT_EQ(vec.size(), 0U);
 }
 
+TEST_F(ListLiveChannelTest, ListLiveChannelWithInvalidResponseBodyTest)
+{
+    ListLiveChannelRequest request(BucketName);
+    request.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto listOutcome = Client->ListLiveChannel(request);
+    EXPECT_EQ(listOutcome.isSuccess(), false);
+    EXPECT_EQ(listOutcome.error().Code(), "GetLiveChannelStatError");
+}
+
 TEST_F(ListLiveChannelTest, ListLiveChannelResultTest)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>

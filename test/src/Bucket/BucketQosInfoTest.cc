@@ -161,6 +161,42 @@ namespace OSS
         EXPECT_EQ(deloutcome.isSuccess(), true);
     }
 
+    TEST_F(BucketQosInfoTest, GetUserQosInfoWithInvalidResponseBodyTest)
+    {
+        QosConfiguration qos;
+        qos.setTotalUploadBandwidth(10);
+        qos.setExtranetUploadBandwidth(-1);
+        qos.setIntranetUploadBandwidth(-1);
+        qos.setTotalDownloadBandwidth(10);
+        qos.setExtranetDownloadBandwidth(-1);
+        qos.setIntranetDownloadBandwidth(-1);
+        qos.setTotalQps(1000);
+        qos.setExtranetQps(-1);
+        qos.setIntranetQps(-1);
+        SetBucketQosInfoRequest setrequest(BucketName, qos);
+        Client->SetBucketQosInfo(setrequest);
+
+        auto gbqiRequest = GetBucketQosInfoRequest(BucketName);
+        gbqiRequest.setResponseStreamFactory([=]() {
+            auto content = std::make_shared<std::stringstream>();
+            content->write("invlid data", 11);
+            return content;
+        });
+        auto gbqiOutcome = Client->GetBucketQosInfo(gbqiRequest);
+        EXPECT_EQ(gbqiOutcome.isSuccess(), false);
+        EXPECT_EQ(gbqiOutcome.error().Code(), "ParseXMLError");
+
+        auto guqiRequest = GetUserQosInfoRequest();
+        guqiRequest.setResponseStreamFactory([=]() {
+            auto content = std::make_shared<std::stringstream>();
+            content->write("invlid data", 11);
+            return content;
+        });
+        auto guqiOutcome = Client->GetUserQosInfo(guqiRequest);
+        EXPECT_EQ(guqiOutcome.isSuccess(), false);
+        EXPECT_EQ(guqiOutcome.error().Code(), "ParseXMLError");
+    }
+
     TEST_F(BucketQosInfoTest, GetBucketQosInfoResultTest)
     {
         std::string xml = R"(<?xml version="1.0" ?>

@@ -218,6 +218,7 @@ TEST_F(ObjectVersioningTest, ObjectBasicWithVersioningEnableTest)
     EXPECT_EQ(gmOutcome.result().VersionId(), versionId2);
 
     dRequest.setVersionId(versionId1);
+    EXPECT_EQ(dRequest.VersionId(), versionId1);
     dOutcome = Client->DeleteObject(dRequest);
     EXPECT_EQ(dOutcome.isSuccess(), true);
     EXPECT_EQ(dOutcome.result().VersionId(), versionId1);
@@ -230,9 +231,9 @@ TEST_F(ObjectVersioningTest, ObjectBasicWithVersioningEnableTest)
     EXPECT_EQ(dOutcome.result().DeleteMarker(), false);
 
     //list again
-    lvRequest.setBucket(BucketName);
-    lvRequest.setPrefix(key);
-    lvOutcome = Client->ListObjectVersions(lvRequest);
+    //lvRequest.setBucket(BucketName);
+    //lvRequest.setPrefix(key);
+    lvOutcome = Client->ListObjectVersions(BucketName, key);
     EXPECT_EQ(lvOutcome.isSuccess(), true);
     EXPECT_EQ(lvOutcome.result().ObjectVersionSummarys().size(), 0UL);
     EXPECT_EQ(lvOutcome.result().DeleteMarkerSummarys().size(), 0UL);
@@ -832,7 +833,7 @@ TEST_F(ObjectVersioningTest, DeleteObjecsWithVersioningEnableTest)
     EXPECT_EQ(lsOutcome.isSuccess(), true);
     EXPECT_EQ(lsOutcome.result().ObjectSummarys().empty(), true);
 
-    auto lsvOutcome = Client->ListObjectVersions(ListObjectVersionsRequest(bucketName));
+    auto lsvOutcome = Client->ListObjectVersions(bucketName);
     EXPECT_EQ(lsvOutcome.isSuccess(), true);
     EXPECT_EQ(lsvOutcome.result().DeleteMarkerSummarys().size(), keys.size());
     EXPECT_EQ(lsvOutcome.result().ObjectVersionSummarys().size(), keys.size());
@@ -938,6 +939,10 @@ TEST_F(ObjectVersioningTest, DeleteObjecsSpecialCharactersWithVersioningEnableTe
     for (size_t i = 0; i < keys.size(); i++) {
         dsRequest.addObject(ObjectIdentifier(keys.at(i)));
     }
+    EXPECT_EQ(dsRequest.EncodingType(), "");
+    EXPECT_EQ(dsRequest.Quiet(), false);
+    EXPECT_EQ(dsRequest.Objects().size(), keys.size());
+
     auto dsOutcome = Client->DeleteObjectVersions(dsRequest);
     EXPECT_EQ(dsOutcome.isSuccess(), true);
     EXPECT_EQ(dsOutcome.result().DeletedObjects().size(), keys.size());
@@ -1033,11 +1038,11 @@ TEST_F(ObjectVersioningTest, DeleteObjecsSpecialCharactersWithVersioningEnableTe
         EXPECT_EQ(dsOutcome.result().DeletedObjects()[i].Key(), keys[i]);
     }
 
-    dsRequest.clearObjects();
+    ObjectIdentifierList objectList;
     for (size_t i = 0; i < keys.size(); i++) {
-        dsRequest.addObject(ObjectIdentifier(keys.at(i), deletedVersionIds.at(i)));
+        objectList.push_back(ObjectIdentifier(keys.at(i), deletedVersionIds.at(i)));
     }
-    dsOutcome = Client->DeleteObjectVersions(dsRequest);
+    dsOutcome = Client->DeleteObjectVersions(bucketName, objectList);
     EXPECT_EQ(dsOutcome.isSuccess(), true);
     EXPECT_EQ(dsOutcome.result().DeletedObjects().size(), keys.size());
     for (size_t i = 0; i < keys.size(); i++) {
@@ -1474,7 +1479,7 @@ TEST_F(ObjectVersioningTest, ProcessObjectWithVersioningEnableTest)
     gRequest.setVersionId(versionId1);
     gOutcome = Client->GetObject(gRequest);
     EXPECT_EQ(gOutcome.isSuccess(), false);
-    EXPECT_EQ(gOutcome.error().Code(), "InternalError");
+    EXPECT_EQ(gOutcome.error().Code(), "NoSuchKey");
 
     std::stringstream ss;
     ss << process
@@ -1486,7 +1491,7 @@ TEST_F(ObjectVersioningTest, ProcessObjectWithVersioningEnableTest)
     poRequest.setVersionId(versionId1);
     auto poOutcome = Client->ProcessObject(poRequest);
     EXPECT_EQ(poOutcome.isSuccess(), false);
-    EXPECT_EQ(poOutcome.error().Code(), "BadRequest");
+    EXPECT_EQ(poOutcome.error().Code(), "NoSuchKey");
 }
 
 TEST_F(ObjectVersioningTest, ObjectOperationWithoutVersioningTest)
@@ -1565,6 +1570,328 @@ TEST_F(ObjectVersioningTest, ObjectOperationWithoutVersioningTest)
     client->DeleteObject(bucketName, key_append);
 
     client->DeleteBucket(bucketName);
+}
+
+TEST_F(ObjectVersioningTest, ObjectVersionsWithInvalidResponseBodyTest)
+{
+    ListObjectVersionsRequest lsRequest(BucketName);
+    lsRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto listOutcome = Client->ListObjectVersions(lsRequest);
+    EXPECT_EQ(listOutcome.isSuccess(), false);
+    EXPECT_EQ(listOutcome.error().Code(), "ParseXMLError");
+
+    DeleteObjectVersionsRequest dovRequest(BucketName);
+    dovRequest.addObject(ObjectIdentifier("key"));
+    dovRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto dOutcome = Client->DeleteObjectVersions(dovRequest);
+    EXPECT_EQ(dOutcome.isSuccess(), false);
+    EXPECT_EQ(dOutcome.error().Code(), "ParseXMLError");
+}
+
+TEST_F(ObjectVersioningTest, DeleteObjectVersionsResultTest)
+{
+    std::string xml = R"(
+        <DeleteResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Deleted>
+               <Key>multipart.data</Key>
+               <VersionId>CAEQNRiBgIDyz.6C0BYiIGQ2NWEwNmVhNTA3ZTQ3MzM5ODliYjM1ZTdjYjA4MDE1</VersionId>
+            </Deleted>
+        </DeleteResult>)";
+
+    DeleteObjectVersionsResult result(xml);
+    EXPECT_EQ(result.Quiet(), false);
+    EXPECT_EQ(result.DeletedObjects().size(), 1U);
+    EXPECT_EQ(result.DeletedObjects()[0].Key(), "multipart.data");
+
+    DeleteObjectVersionsResult result1("");
+    EXPECT_EQ(result1.Quiet(), true);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <DeleteResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Deleted>
+               <Key>multipart.data</Key>
+               <VersionId>CAEQNRiBgIDyz.6C0BYiIGQ2NWEwNmVhNTA3ZTQ3MzM5ODliYjM1ZTdjYjA4MDE1</VersionId>
+            </Deleted>
+        <>
+        )";
+    result1 = DeleteObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <DeleteResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <EncodingType></EncodingType>
+            <Deleted>
+               <Key></Key>
+               <VersionId></VersionId>
+               <DeleteMarker></DeleteMarker>
+               <DeleteMarkerVersionId></DeleteMarkerVersionId>
+            </Deleted>
+        <DeleteResult>)";
+    result1 = DeleteObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <DeleteResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <EncodingType></EncodingType>
+            <Deleted>
+            </Deleted>
+        <DeleteResult>)";
+    result1 = DeleteObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <DeleteResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+        <DeleteResult>)";
+    result1 = DeleteObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <OtherResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+        <OtherResult>)";
+    result1 = DeleteObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        )";
+    result1 = DeleteObjectVersionsResult(xml);
+
+    xml = R"(
+        invalid xml
+        )";
+    result1 = DeleteObjectVersionsResult(xml);
+}
+
+TEST_F(ObjectVersioningTest, ObjectOperationNGTest)
+{
+    DeleteObjectVersionsRequest dsRequest("Invalid-Bucket");
+    dsRequest.setQuiet(true);
+    EXPECT_EQ(dsRequest.Quiet(), true);
+    auto dsOutcome = Client->DeleteObjectVersions(dsRequest);
+    EXPECT_EQ(dsOutcome.isSuccess(), false);
+
+
+    ListObjectVersionsRequest loRequest("Invalid-Bucket");
+    auto lsOutcome = Client->ListObjectVersions(loRequest);
+    EXPECT_EQ(lsOutcome.isSuccess(), false);
+}
+
+TEST_F(ObjectVersioningTest, ListObjectVersionsResultTest)
+{
+    std::string xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name>oss-example</Name>
+            <Prefix></Prefix>
+            <KeyMarker>example</KeyMarker>
+            <VersionIdMarker>CAEQMxiBgICbof2D0BYiIGRhZjgwMzJiMjA3MjQ0ODE5MWYxZDYwMzJlZjU1YmMy</VersionIdMarker>
+            <MaxKeys>100</MaxKeys>
+            <Delimiter></Delimiter>
+            <IsTruncated>false</IsTruncated>
+            <DeleteMarker>
+                <Key>example</Key>
+                <VersionId>CAEQMxiBgICAof2D0BYiIDJhMGE3N2M1YTI1NDQzOGY5NTkyNTI3MGYyMzJmNTI2</VersionId>
+                <IsLatest>false</IsLatest>
+                <LastModified>2019-04-09T07:27:28.000Z</LastModified>
+                <Owner>
+                  <ID>12345125285864390</ID>
+                  <DisplayName>12345125285864390</DisplayName>
+                </Owner>
+            </DeleteMarker>
+            <Version>
+                <Key>example</Key>
+                <VersionId>CAEQMxiBgMDNoP2D0BYiIDE3MWUxNzgxZDQxNTRiODI5OGYwZGMwNGY3MzZjNDVm</VersionId>
+                <IsLatest>false</IsLatest>
+                <LastModified>2019-04-09T07:27:28.000Z</LastModified>
+                <ETag>"250F8A0AE989679A22926A875F0A2B95"</ETag>
+                <Type>Normal</Type>
+                <Size>93731</Size>
+                <StorageClass>Standard</StorageClass>
+                <Owner>
+                  <ID>12345125285864390</ID>
+                  <DisplayName>12345125285864390</DisplayName>
+                </Owner>
+            </Version>
+        </ListVersionsResult>
+        )";
+    auto result = ListObjectVersionsResult(std::make_shared<std::stringstream>(xml));
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name></Name>
+            <Prefix></Prefix>
+            <KeyMarker></KeyMarker>
+            <VersionIdMarker></VersionIdMarker>
+            <MaxKeys></MaxKeys>
+            <Delimiter></Delimiter>
+            <IsTruncated></IsTruncated>
+            <DeleteMarker>
+                <Key></Key>
+                <VersionId></VersionId>
+                <IsLatest></IsLatest>
+                <LastModified></LastModified>
+                <Owner>
+                  <ID></ID>
+                  <DisplayName></DisplayName>
+                </Owner>
+            </DeleteMarker>
+            <Version>
+                <Key></Key>
+                <VersionId></VersionId>
+                <IsLatest></IsLatest>
+                <LastModified></LastModified>
+                <ETag></ETag>
+                <Type></Type>
+                <Size></Size>
+                <StorageClass></StorageClass>
+                <Owner>
+                  <ID></ID>
+                  <DisplayName></DisplayName>
+                </Owner>
+            </Version>
+        </ListVersionsResult>
+        )";
+    result = ListObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name></Name>
+            <Prefix></Prefix>
+            <KeyMarker></KeyMarker>
+            <VersionIdMarker></VersionIdMarker>
+            <MaxKeys></MaxKeys>
+            <Delimiter></Delimiter>
+            <IsTruncated></IsTruncated>
+            <DeleteMarker>
+                <Key></Key>
+                <VersionId></VersionId>
+                <IsLatest></IsLatest>
+                <LastModified></LastModified>
+                <Owner>
+                </Owner>
+            </DeleteMarker>
+            <Version>
+                <Key></Key>
+                <VersionId></VersionId>
+                <IsLatest></IsLatest>
+                <LastModified></LastModified>
+                <ETag></ETag>
+                <Type></Type>
+                <Size></Size>
+                <StorageClass></StorageClass>
+                <Owner>
+                </Owner>
+            </Version>
+            <CommonPrefixes>
+                <Prefix></Prefix>
+            </CommonPrefixes>
+        </ListVersionsResult>
+        )";
+    result = ListObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name></Name>
+            <Prefix></Prefix>
+            <KeyMarker></KeyMarker>
+            <VersionIdMarker></VersionIdMarker>
+            <MaxKeys></MaxKeys>
+            <Delimiter></Delimiter>
+            <IsTruncated></IsTruncated>
+            <EncodingType>url</EncodingType>
+            <DeleteMarker>
+                <Key></Key>
+                <VersionId></VersionId>
+                <IsLatest></IsLatest>
+                <LastModified></LastModified>
+                <Owner>
+                </Owner>
+            </DeleteMarker>
+            <Version>
+                <Key></Key>
+                <VersionId></VersionId>
+                <IsLatest></IsLatest>
+                <LastModified></LastModified>
+                <ETag></ETag>
+                <Type></Type>
+                <Size></Size>
+                <StorageClass></StorageClass>
+                <Owner>
+                </Owner>
+            </Version>
+            <CommonPrefixes>
+                <Prefix>key</Prefix>
+            </CommonPrefixes>
+        </ListVersionsResult>
+        )";
+    result = ListObjectVersionsResult(xml);
+
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name></Name>
+            <Prefix></Prefix>
+            <KeyMarker></KeyMarker>
+            <VersionIdMarker></VersionIdMarker>
+            <MaxKeys></MaxKeys>
+            <Delimiter></Delimiter>
+            <IsTruncated></IsTruncated>
+            <NextKeyMarker></NextKeyMarker>
+            <NextVersionIdMarker></NextVersionIdMarker>
+            <EncodingType></EncodingType>
+            <DeleteMarker>
+            </DeleteMarker>
+            <Version>
+            </Version>
+            <CommonPrefixes>
+            </CommonPrefixes>
+        </ListVersionsResult>
+        )";
+    result = ListObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+        </ListVersionsResult>
+        )";
+    result = ListObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <NonListVersionsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+        </NonListVersionsResult>
+        )";
+    result = ListObjectVersionsResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        )";
+    result = ListObjectVersionsResult(xml);
+
+    xml = R"(
+        invalid xml
+        )";
+    result = ListObjectVersionsResult(xml);
+}
+
+TEST_F(ObjectVersioningTest, DeleteObjectVersionsRequestTest)
+{
+    DeleteObjectVersionsRequest request(BucketName);
+    request.setRequestPayer(RequestPayer::Requester);
+    auto headers = request.Headers();
+    EXPECT_EQ(headers.at("x-oss-request-payer"), "requester");
 }
 
 }

@@ -1688,5 +1688,46 @@ TEST_F(ObjectBasicOperationTest, DeleteObjectsWithSpecialCharsTest)
     EXPECT_EQ(Client->DoesObjectExist(BucketName, key), false);
 }
 
+TEST_F(ObjectBasicOperationTest, DeleteObjectsWithInvalidResponseBodyTest)
+{
+    std::string key = "bswodnvsttpqvnzwsgifetwe\n\n\t@#$!\t<!@#$%^&*()-=";
+    for (int i = 1; i < 0x1F; i++)
+        key.push_back((char)i);
+    key.append("--");
+
+    auto content = TestUtils::GetRandomStream(100);
+    auto outcome = Client->PutObject(BucketName, key, content);
+    EXPECT_EQ(outcome.isSuccess(), true);
+    EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+    DeleteObjectsRequest delRequest(BucketName);
+    delRequest.addKey(key);
+    delRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });    
+    auto delOutcome = Client->DeleteObjects(delRequest);
+    EXPECT_EQ(delOutcome.isSuccess(), false);
+    EXPECT_EQ(delOutcome.error().Code(), "ParseXMLError");
+}
+
+TEST_F(ObjectBasicOperationTest, ListObjectsWithInvalidResponseBodyTest)
+{
+    std::string key = TestUtils::GetObjectKey("ListObjectsWithInvalidResponseBodyTest");
+    auto content = TestUtils::GetRandomStream(100);
+    auto outcome = Client->PutObject(BucketName, key, content);
+
+    ListObjectsRequest lsRequest(BucketName);
+    lsRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto listOutcome = Client->ListObjects(lsRequest);
+    EXPECT_EQ(listOutcome.isSuccess(), false);
+    EXPECT_EQ(listOutcome.error().Code(), "ParseXMLError");
+}
+
 }
 }

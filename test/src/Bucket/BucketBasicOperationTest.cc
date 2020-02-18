@@ -358,8 +358,8 @@ TEST_F(BucketBasicOperationTest, ListBucketspagingTest)
     EXPECT_EQ(total, 5UL);
 
     //delete all
-    request.setMaxKeys(100);
-    outcome = Client->ListBuckets(request);
+    //request.setMaxKeys(100);
+    outcome = Client->ListBuckets(ListBucketsRequest(bucketName, "", 100));
     EXPECT_EQ(outcome.isSuccess(), true);
     for (auto const &bucket : outcome.result().Buckets()) {
         Client->DeleteBucket(DeleteBucketRequest(bucket.Name()));
@@ -568,6 +568,64 @@ TEST_F(BucketBasicOperationTest, ObjectMetaDataFunctionTest)
     meta.removeUserHeader("value");
 }
 
+TEST_F(BucketBasicOperationTest, InvalidResponseBodyTest)
+{
+    auto bucketName = TestUtils::GetBucketName("invalid-body");
+    Client->CreateBucket(bucketName);
+
+    auto lsRequest = ListBucketsRequest();
+    lsRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto lsOutcome = Client->ListBuckets(lsRequest);
+    EXPECT_EQ(lsOutcome.isSuccess(), false);
+    EXPECT_EQ(lsOutcome.error().Code(), "ParseXMLError");
+
+    auto gbiRequest = GetBucketInfoRequest(bucketName);
+    gbiRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbiOutcome = Client->GetBucketInfo(gbiRequest);
+    EXPECT_EQ(gbiOutcome.isSuccess(), false);
+    EXPECT_EQ(gbiOutcome.error().Code(), "ParseXMLError");
+
+    auto gbrRequest = GetBucketRefererRequest(bucketName);
+    gbrRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbrOutcome = Client->GetBucketReferer(gbrRequest);
+    EXPECT_EQ(gbrOutcome.isSuccess(), false);
+    EXPECT_EQ(gbrOutcome.error().Code(), "ParseXMLError");
+
+    auto gbsRequest = GetBucketStatRequest(bucketName);
+    gbsRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbsOutcome = Client->GetBucketStat(gbsRequest);
+    EXPECT_EQ(gbsOutcome.isSuccess(), false);
+    EXPECT_EQ(gbsOutcome.error().Code(), "ParseXMLError");
+
+    auto gblRequest = GetBucketLocationRequest(bucketName);
+    gblRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gblOutcome = Client->GetBucketLocation(gblRequest);
+    EXPECT_EQ(gblOutcome.isSuccess(), false);
+    EXPECT_EQ(gblOutcome.error().Code(), "ParseXMLError");
+
+    Client->DeleteBucket(bucketName);
+}
+
 TEST_F(BucketBasicOperationTest, GetBucketInfoResultBranchTest)
 {
     GetBucketInfoResult result("test");
@@ -599,10 +657,8 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoResultBranchTest)
                             <Location></Location>
                             <Name></Name>
                             <Owner>
-
                             </Owner>
                             <AccessControlList>
-
                             </AccessControlList>
                             <Comment></Comment>
                             <DataRedundancyType>LRS</DataRedundancyType>
@@ -633,21 +689,82 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoResultBranchTest)
                         </BucketInfo>)";
     GetBucketInfoResult result10(xml);
 
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                          <Bucket>
+                            <CreationDate></CreationDate>
+                            <ExtranetEndpoint></ExtranetEndpoint>
+                            <IntranetEndpoint></IntranetEndpoint>
+                            <Location></Location>
+                            <Name></Name>
+                            <StorageClass></StorageClass>
+                            <Owner>
+                              <DisplayName></DisplayName>
+                              <ID></ID>
+                            </Owner>
+                            <AccessControlList>
+                              <Grant></Grant>
+                            </AccessControlList>
+                            <Comment></Comment>
+                            <DataRedundancyType></DataRedundancyType>
+                            <ServerSideEncryptionRule>
+                              <SSEAlgorithm></SSEAlgorithm>
+                              <KMSMasterKeyID></KMSMasterKeyID>
+                            </ServerSideEncryptionRule>
+                            <Versioning></Versioning>
+                          </Bucket>
+                        </BucketInfo>)";
+    result10 = GetBucketInfoResult(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                          <Bucket>
+                            <CreationDate></CreationDate>
+                            <ExtranetEndpoint></ExtranetEndpoint>
+                            <IntranetEndpoint></IntranetEndpoint>
+                            <Location></Location>
+                            <Name></Name>
+                            <StorageClass></StorageClass>
+                            <Owner>
+                            </Owner>
+                            <AccessControlList>
+                            </AccessControlList>
+                            <Comment></Comment>
+                            <DataRedundancyType></DataRedundancyType>
+                            <ServerSideEncryptionRule>
+                            </ServerSideEncryptionRule>
+                            <Versioning></Versioning>
+                          </Bucket>
+                        </BucketInfo>)";
+    result10 = GetBucketInfoResult(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                          <Bucket>
+                          </Bucket>
+                        </BucketInfo>)";
+    result10 = GetBucketInfoResult(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketInfo>
+                        </BucketInfo>)";
+    result10 = GetBucketInfoResult(xml);
+
     xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
     GetBucketInfoResult result13(xml);
 
     GetBucketLocationResult result5("test");
 
-    std::string xml1 = R"(<?xml version="1.0" encoding="UTF-8"?>
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
                         <Location xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">oss-cn-hangzhou</Location>)";
-    GetBucketLocationResult result6(xml1);
+    GetBucketLocationResult result6(xml);
 
-    xml1 = R"(<?xml version="1.0" encoding="UTF-8"?>
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
                         <LocationConstraint></LocationConstraint>)";
-    GetBucketLocationResult result11(xml1);
+    GetBucketLocationResult result11(xml);
 
     xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
-    GetBucketLocationResult result14(xml1);
+    GetBucketLocationResult result14(xml);
 
     GetBucketStatResult result7("test");
 

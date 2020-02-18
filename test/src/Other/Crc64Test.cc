@@ -115,6 +115,9 @@ TEST_F(Crc64Test, CombineCRCTest)
     uint64_t crc3 = CRC64::CalcCRC(0, (void *)(data3.c_str()), data3.size());
     uint64_t crc4 = CRC64::CombineCRC(crc1, crc2, data2.size());
     EXPECT_EQ(crc3, crc4);
+
+    uint64_t crc5 = CombineCRC64(crc1, crc2, data2.size());
+    EXPECT_EQ(crc3, crc5);
 }
 
 TEST_F(Crc64Test, PubObjectCrc64HeaderTest)
