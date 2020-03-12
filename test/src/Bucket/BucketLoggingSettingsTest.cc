@@ -168,6 +168,19 @@ TEST_F(BucketLoggingSettingsTest, EnableLoggingWithEmtpyPrefixNameTest)
     EXPECT_STREQ(blOutcome.result().TargetPrefix().c_str(), "");
 }
 
+TEST_F(BucketLoggingSettingsTest, BucketLoggingWithInvalidResponseBodyTest)
+{
+    auto gblRequest = GetBucketLoggingRequest(BucketName);
+    gblRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gblOutcome = Client->GetBucketLogging(gblRequest);
+    EXPECT_EQ(gblOutcome.isSuccess(), false);
+    EXPECT_EQ(gblOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(BucketLoggingSettingsTest, GetBucketLoggingResult)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>

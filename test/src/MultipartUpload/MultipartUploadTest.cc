@@ -529,6 +529,40 @@ TEST_F(MultipartUploadTest, ListMultipartUploadsResultTest)
     EXPECT_EQ(result.MultipartUploadList().rbegin()->Key, "oss.avi");
     EXPECT_EQ(result.MultipartUploadList().rbegin()->UploadId, "0004B99B8E707874FC2D692FA5D77D3F");
     EXPECT_EQ(result.MultipartUploadList().rbegin()->Initiated, "2012-02-23T06:14:27.000Z");
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListMultipartUploadsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Bucket>oss-example</Bucket>
+            <KeyMarker>keyMarker1</KeyMarker>
+            <UploadIdMarker>1104B99B8E707874FC2D692FA5D77D3F</UploadIdMarker>
+            <NextKeyMarker>oss.avi</NextKeyMarker>
+            <NextUploadIdMarker>0004B99B8E707874FC2D692FA5D77D3F</NextUploadIdMarker>
+            <Delimiter>/</Delimiter>
+            <Prefix>prefix</Prefix>
+            <MaxUploads>1000</MaxUploads>
+            <EncodingType>url</EncodingType>
+            <IsTruncated>false</IsTruncated>
+            <Upload>
+                <Key>multipart.data</Key>
+                <UploadId>0004B999EF518A1FE585B0C9360DC4C8</UploadId>
+                <Initiated>2012-02-23T04:18:23.000Z</Initiated>
+            </Upload>
+            <Upload>
+                <Key>multipart.data</Key>
+                <UploadId>0004B999EF5A239BB9138C6227D69F95</UploadId>
+                <Initiated>2012-02-23T04:18:23.000Z</Initiated>
+            </Upload>
+            <Upload>
+                <Key>oss.avi</Key>
+                <UploadId>0004B99B8E707874FC2D692FA5D77D3F</UploadId>
+                <Initiated>2012-02-23T06:14:27.000Z</Initiated>
+            </Upload>
+        </ListMultipartUploadsResult>
+    )";
+    result = ListMultipartUploadsResult(xml);
+    EXPECT_EQ(result.KeyMarker(), "keyMarker1");
+
 }
 
 TEST_F(MultipartUploadTest, ListMultipartUploadsResultEmptyNodeTest)
@@ -570,6 +604,34 @@ TEST_F(MultipartUploadTest, ListMultipartUploadsResultEmptyNodeTest)
     EXPECT_EQ(result.MultipartUploadList().rbegin()->Key, "");
     EXPECT_EQ(result.MultipartUploadList().rbegin()->UploadId, "");
     EXPECT_EQ(result.MultipartUploadList().rbegin()->Initiated, "");
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListMultipartUploadsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Bucket></Bucket>
+            <KeyMarker></KeyMarker>
+            <UploadIdMarker></UploadIdMarker>
+            <NextKeyMarker></NextKeyMarker>
+            <NextUploadIdMarker></NextUploadIdMarker>
+            <Delimiter></Delimiter>
+            <Prefix></Prefix>
+            <MaxUploads></MaxUploads>
+            <IsTruncated></IsTruncated>
+            <Upload>
+                <Key></Key>
+                <UploadId></UploadId>
+                <Initiated></Initiated>
+            </Upload>
+            <Upload>
+                <Key></Key>
+                <UploadId></UploadId>
+                <Initiated></Initiated>
+            </Upload>
+            <CommonPrefixes>
+            </CommonPrefixes>
+        </ListMultipartUploadsResult>
+        )";
+    result = ListMultipartUploadsResult(xml);
 }
 
 TEST_F(MultipartUploadTest, ListPartsResultTest)
@@ -1706,6 +1768,73 @@ TEST_F(MultipartUploadTest, ListPartsNegativeTest)
     auto outcome = Client->ListParts(listRequest);
     EXPECT_EQ(outcome.isSuccess(), false);
     EXPECT_EQ(outcome.error().Code(), "NoSuchUpload");
+}
+
+TEST_F(MultipartUploadTest, MultipartUploadWithInvalidResponseBodyTest)
+{
+    auto key = TestUtils::GetObjectKey("MultipartUploadWithInvalidResponseBodyTest");
+
+    //test init
+    InitiateMultipartUploadRequest imuRequest(BucketName, key);
+    imuRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
+    EXPECT_EQ(initOutcome.isSuccess(), false);
+    EXPECT_EQ(initOutcome.error().Code(), "InitiateMultipartUploadError");
+
+    InitiateMultipartUploadRequest request(BucketName, key);
+    initOutcome = Client->InitiateMultipartUpload(request);
+    EXPECT_EQ(initOutcome.isSuccess(), true);
+
+    std::shared_ptr<std::iostream> content = TestUtils::GetRandomStream(100);
+    UploadPartRequest upRequest(BucketName, key, content);
+    upRequest.setPartNumber(1);
+    upRequest.setUploadId(initOutcome.result().UploadId());
+    auto uploadPartOutcome = Client->UploadPart(upRequest);
+    EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
+
+    //test listParts
+    ListPartsRequest listRequest(BucketName, key, initOutcome.result().UploadId());
+    listRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto listOutcome = Client->ListParts(listRequest);
+    EXPECT_EQ(listOutcome.isSuccess(), false);
+    EXPECT_EQ(listOutcome.error().Code(), "ListParts");
+
+    //test listUploads
+    ListMultipartUploadsRequest lmuRequest(BucketName);
+    lmuRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto lmuOutcome = Client->ListMultipartUploads(lmuRequest);
+    EXPECT_EQ(lmuOutcome.isSuccess(), false);
+    EXPECT_EQ(lmuOutcome.error().Code(), "ListMultipartUploads");
+
+    //test compelete
+    PartList partList;
+    Part part(1, uploadPartOutcome.result().ETag());
+    partList.push_back(part);
+
+    CompleteMultipartUploadRequest completeRequest(BucketName, key);
+    completeRequest.setPartList(partList);
+    completeRequest.setUploadId(initOutcome.result().UploadId());
+    completeRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto cOutcome = Client->CompleteMultipartUpload(completeRequest);
+    EXPECT_EQ(cOutcome.isSuccess(), false);
+    EXPECT_EQ(cOutcome.error().Code(), "CompleteMultipartUpload");
+
 }
 
 TEST_F(MultipartUploadTest, UploadPartCopyRequestValidateNegativeTest)

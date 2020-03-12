@@ -160,6 +160,19 @@ namespace OSS
         EXPECT_EQ(listoutcome.result().Buckets()[0].Name(), BucketName);
     }
 
+    TEST_F(BucketTaggingTest, BucketTaggingWithInvalidResponseBodyTest)
+    {
+        auto gbtRequest = GetBucketTaggingRequest(BucketName);
+        gbtRequest.setResponseStreamFactory([=]() {
+            auto content = std::make_shared<std::stringstream>();
+            content->write("invlid data", 11);
+            return content;
+        });
+        auto gbtOutcome = Client->GetBucketTagging(gbtRequest);
+        EXPECT_EQ(gbtOutcome.isSuccess(), false);
+        EXPECT_EQ(gbtOutcome.error().Code(), "ParseXMLError");
+    }
+
     TEST_F(BucketTaggingTest, GetBucketTaggingResultBranchTest)
     {
         GetBucketTaggingResult result("test");

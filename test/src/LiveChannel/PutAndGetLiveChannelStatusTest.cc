@@ -109,6 +109,30 @@ TEST_F(PutAndGetLiveChannelStatusTest, PutLiveChannelStatusAndGetTest)
 
 }
 
+TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelStatusWithInvalidResponseBodyTest)
+{
+    // case 1 default
+    std::string channelName = "test-channel1";
+
+    PutLiveChannelRequest request2(BucketName, channelName, "HLS");
+    auto putOutcome2 = Client->PutLiveChannel(request2);
+    EXPECT_EQ(putOutcome2.isSuccess(), true);
+
+    PutLiveChannelStatusRequest request3(BucketName, channelName, LiveChannelStatus::DisabledStatus);
+    auto putOutcome3 = Client->PutLiveChannelStatus(request3);
+    EXPECT_EQ(putOutcome3.isSuccess(), true);
+
+    GetLiveChannelStatRequest request4(BucketName, channelName);
+    request4.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto getStatOutcome = Client->GetLiveChannelStat(request4);
+    EXPECT_EQ(getStatOutcome.isSuccess(), false);
+    EXPECT_EQ(getStatOutcome.error().Code(), "GetLiveChannelStatError");
+}
+
 TEST_F(PutAndGetLiveChannelStatusTest, GetLiveChannelResultTest)
 {
     std::string xml1 = R"(<?xml version="1.0" encoding="UTF-8"?>

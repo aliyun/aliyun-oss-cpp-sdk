@@ -247,4 +247,6 @@ TEST_F(ObjectAppendTest, AppendObjectFuntionTest)
     Client->AppendObject(appendRequest1);
 
 }
-}}
+
+}
+}

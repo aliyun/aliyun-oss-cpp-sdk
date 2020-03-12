@@ -789,6 +789,86 @@ TEST_F(BucketLifecycleSettingsTest, GetBucketLifecycleResultWithVersioningTest)
     EXPECT_EQ(result.LifecycleRules().at(3).NoncurrentVersionTransitionList().at(1).Expiration().Days(), 20U);
     EXPECT_EQ(result.LifecycleRules().at(3).hasAbortMultipartUpload(), false);
     EXPECT_EQ(result.LifecycleRules().at(3).hasExpiration(), false);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <LifecycleConfiguration>
+            <Rule>
+                <ID>delete example</ID>
+                <Prefix>logs/</Prefix>
+                <Status>Enabled</Status>
+                <Expiration>
+                    <ExpiredObjectDeleteMarker></ExpiredObjectDeleteMarker>
+                </Expiration>
+                <NoncurrentVersionExpiration>
+                    <NoncurrentDays></NoncurrentDays>
+                </NoncurrentVersionExpiration>
+            </Rule>
+            <Rule>
+            <ID>transit example</ID>
+            <Prefix>data/</Prefix>
+            <Status>Enabled</Status>
+            <Transition>
+                <Days>30</Days>
+                <StorageClass>IA</StorageClass>
+            </Transition>
+            <Transition>
+                <Days>130</Days>
+                <StorageClass>Archive</StorageClass>
+            </Transition>
+            <NoncurrentVersionTransition>
+                <NoncurrentDays></NoncurrentDays>
+                <StorageClass></StorageClass>
+            </NoncurrentVersionTransition>
+            <NoncurrentVersionTransition>
+                <NoncurrentDays></NoncurrentDays>
+                <StorageClass></StorageClass>
+            </NoncurrentVersionTransition>
+            </Rule>
+        </LifecycleConfiguration>)";
+    result = GetBucketLifecycleResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <LifecycleConfiguration>
+            <Rule>
+                <ID>delete example</ID>
+                <Prefix>logs/</Prefix>
+                <Status>Enabled</Status>
+                <Expiration>
+                </Expiration>
+                <NoncurrentVersionExpiration>
+                </NoncurrentVersionExpiration>
+            </Rule>
+            <Rule>
+            <ID>transit example</ID>
+            <Prefix>data/</Prefix>
+            <Status>Enabled</Status>
+            <Transition>
+                <Days>30</Days>
+                <StorageClass>IA</StorageClass>
+            </Transition>
+            <Transition>
+                <Days>130</Days>
+                <StorageClass>Archive</StorageClass>
+            </Transition>
+            <NoncurrentVersionTransition>
+            </NoncurrentVersionTransition>
+            <NoncurrentVersionTransition>
+            </NoncurrentVersionTransition>
+            </Rule>
+        </LifecycleConfiguration>)";
+    result = GetBucketLifecycleResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <LifecycleConfiguration>
+            <Rule>
+            </Rule>
+            <Rule>
+            </Rule>
+        </LifecycleConfiguration>)";
+    result = GetBucketLifecycleResult(xml);
 }
 
 TEST_F(BucketLifecycleSettingsTest, LifecycleRuleWithVersioningTest)
@@ -1025,6 +1105,28 @@ TEST_F(BucketLifecycleSettingsTest, SetAndGetLifecycleRuleWithVersioningTest)
     EXPECT_EQ(gOutcome.result().LifecycleRules().at(0), rule6);
 
     client->DeleteBucket(bucketName);
+}
+
+TEST_F(BucketLifecycleSettingsTest, GetBucketLifecycleWithInvalidResponseBodyTest)
+{
+    auto rule = LifecycleRule();
+    rule.setID("basic-test");
+    rule.setPrefix("test");
+    rule.setStatus(RuleStatus::Enabled);
+    rule.Expiration().setDays(200);
+    auto sblRequest = SetBucketLifecycleRequest(BucketName);
+    sblRequest.addLifecycleRule(rule);
+    Client->SetBucketLifecycle(sblRequest);
+
+    auto gblfRequest = GetBucketLifecycleRequest(BucketName);
+    gblfRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gblfOutcome = Client->GetBucketLifecycle(gblfRequest);
+    EXPECT_EQ(gblfOutcome.isSuccess(), false);
+    EXPECT_EQ(gblfOutcome.error().Code(), "ParseXMLError");
 }
 
 }

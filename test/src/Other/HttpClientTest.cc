@@ -299,6 +299,7 @@ TEST_F(HttpClientTest, DisableRequestWhenDoingTest)
         }
     }
 
+    client.EnableRequest();
     SetLogLevel(LogLevel::LogOff);
     SetLogCallback(nullptr);
     RemoveFile(tmpFile);
@@ -418,6 +419,48 @@ TEST_F(HttpClientTest, SetNetworkInterfaceTest)
     outcome = client1.PutObject(BucketName, key, content1);
     EXPECT_EQ(outcome.isSuccess(), true);
     EXPECT_TRUE(outcome.result().RequestId().size() > 0);
+}
+
+TEST_F(HttpClientTest, SetInvalidProxyTest)
+{
+    ClientConfiguration conf;
+    conf.connectTimeoutMs = 2000;
+    conf.proxyHost = "127.10.10.10";
+    conf.proxyPort = 10000;
+    OssClient client(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+
+    std::string key = TestUtils::GetObjectKey("SetInvalidProxyTest");
+    auto content = std::make_shared<std::stringstream>();
+    auto outcome = client.PutObject(BucketName, key, content);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ClientError:200007");
+}
+
+TEST_F(HttpClientTest, ResponseBodyNegativeTest)
+{
+    //don't write error response to user content
+    std::string key = TestUtils::GetObjectKey("ResponseBodyToUserContentPasitiveTest");
+    auto content = std::make_shared<std::stringstream>("test");
+    auto outcome = Client->PutObject(BucketName, key, content);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    GetObjectRequest gRequest(BucketName, key);
+    gRequest.setResponseStreamFactory([=]() {
+        return nullptr; 
+    });
+    auto gOutcome = Client->GetObject(gRequest);
+    EXPECT_EQ(gOutcome.isSuccess(), false);
+    EXPECT_EQ(gOutcome.error().Message(), "Failed writing received data to disk/application. Caused by content is null.");
+
+    gRequest.setResponseStreamFactory([=]() {
+        auto ret = std::make_shared<std::stringstream>();
+        ret->setstate(std::ios::failbit);
+        return ret;
+    });
+    gOutcome = Client->GetObject(gRequest);
+    EXPECT_EQ(gOutcome.isSuccess(), false);
+    EXPECT_EQ(gOutcome.error().Message(), "Failed writing received data to disk/application. Caused by content is in fail state(Logical error on i/o operation).");
+
 }
 
 class Classtest : public Client
