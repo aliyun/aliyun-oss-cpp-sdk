@@ -610,5 +610,34 @@ TEST_F(ObjectCallbackTest, ObjectCallbackBuilderFunctionTest)
     varBuilder.addCallbackVariable("var1", "value1");
     varBuilder.build();
 }
+
+TEST_F(ObjectCallbackTest, PutPreSignedCallbackWithInvalidResponseTest)
+{
+    std::string key = TestUtils::GetObjectKey("PutPreSignedCallbackWithInvalidResponseTest");
+    std::shared_ptr<std::iostream> content = TestUtils::GetRandomStream(1024);
+
+    //invalid callback server
+    std::string callbackUrl = "http://oss-cn-hangzhou.aliyuncs.com";
+    std::string callbackBody = "bucket=${bucket}&object=${object}&etag=${etag}&size=${size}&mimeType=${mimeType}&my_var1=${x:var1}";
+
+    ObjectCallbackBuilder builder(callbackUrl, callbackBody);
+    std::string value = builder.build();
+    GeneratePresignedUrlRequest request(BucketName, key, Http::Put);
+    request.addParameter("callback", value);
+
+    auto urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+
+    PutObjectByUrlRequest poRequest(urlOutcome.result(), content);
+    poRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto pOutcome = Client->PutObjectByUrl(poRequest);
+    EXPECT_EQ(pOutcome.isSuccess(), false);
+    EXPECT_EQ(pOutcome.error().Code(), "ParseXMLError:13");
+}
+
 }
 }

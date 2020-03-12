@@ -178,6 +178,19 @@ TEST_F(BucketAclSettingsTest, OssBucketRequestSetBucketTest)
     EXPECT_EQ(aclOutcome.isSuccess(), true);
 }
 
+TEST_F(BucketAclSettingsTest, BucketAclWithInvalidResponseBodyTest)
+{
+    auto gbaRequest = GetBucketAclRequest(BucketName);
+    gbaRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbaOutcome = Client->GetBucketAcl(gbaRequest);
+    EXPECT_EQ(gbaOutcome.isSuccess(), false);
+    EXPECT_EQ(gbaOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(BucketAclSettingsTest, GetBucketAclResultBranchTest)
 {
     GetBucketAclResult result("test");
@@ -189,7 +202,7 @@ TEST_F(BucketAclSettingsTest, GetBucketAclResultBranchTest)
                             <AccessControlList>
                             </AccessControlList>
                         </AccessControl>)";
-    GetBucketAclResult result1(xml);
+    GetBucketAclResult result1(std::make_shared<std::stringstream>(xml));
 
     xml = R"(<?xml version="1.0" ?>
                         <AccessControlPolicy>

@@ -656,11 +656,106 @@ TEST_F(SelectObjectTest, CSVOutputFormatFunctionTest)
     format.RecordDelimiter();
 }
 
+TEST_F(SelectObjectTest, SelectObjectRequestTest)
+{
+    CSVOutputFormat csvOutputFormat;
+    CSVInputFormat csvInputFormat;
+    SelectObjectRequest selectRequest(BucketName, "key");
+    std::shared_ptr<std::iostream> body;
+    std::string str, input_str, output_str;
+    std::istreambuf_iterator<char> isb, end;
+
+    csvOutputFormat.setFieldDelimiter("");
+    selectRequest.setOutputFormat(csvOutputFormat);
+
+    csvInputFormat.setQuoteChar("");
+    csvInputFormat.setCommentChar("");
+    csvInputFormat.setFieldDelimiter("");
+    selectRequest.setInputFormat(csvInputFormat);
+    body = selectRequest.Body();
+    isb = std::istreambuf_iterator<char>(*body.get());
+    str = std::string(isb, end);
+    input_str = str.substr(0, str.find("</InputSerialization>"));
+    output_str = str.substr(str.find("<OutputSerialization>"));
+    EXPECT_EQ(input_str.find("<FieldDelimiter></FieldDelimiter>") != std::string::npos, true);
+    EXPECT_EQ(input_str.find("<CommentCharacter></CommentCharacter>") != std::string::npos, true);
+    EXPECT_EQ(input_str.find("<QuoteCharacter></QuoteCharacter>") != std::string::npos, true);
+    EXPECT_EQ(output_str.find("<FieldDelimiter></FieldDelimiter>") != std::string::npos, true);
+
+
+    JSONInputFormat inputJson;
+    inputJson.setJsonType(JsonType::LINES);
+    inputJson.setCompressionType(CompressionType::NONE);
+    JSONOutputFormat outputJson;
+    outputJson.setEnablePayloadCrc(false);
+    outputJson.setKeepAllColumns(true);
+    outputJson.setOutputRawData(true);
+    outputJson.setOutputHeader(true);
+    selectRequest.setInputFormat(inputJson);
+    selectRequest.setOutputFormat(outputJson);
+    body = selectRequest.Body();
+    isb = std::istreambuf_iterator<char>(*body.get());
+    str = std::string(isb, end);
+    output_str = str.substr(str.find("<OutputSerialization>"));
+    EXPECT_EQ(output_str.find("<KeepAllColumns>true</KeepAllColumns>") != std::string::npos, true);
+    EXPECT_EQ(output_str.find("<OutputRawData>true</OutputRawData>") != std::string::npos, true);
+    EXPECT_EQ(output_str.find("<OutputHeader>true</OutputHeader>") != std::string::npos, true);
+    EXPECT_EQ(output_str.find("<EnablePayloadCrc>false</EnablePayloadCrc>") != std::string::npos, true);
+}
+
 TEST_F(SelectObjectTest, CreateSelectObjectMetaRequestBranchTest)
 {
     CreateSelectObjectMetaRequest request(BucketName,"test");
     request.setOverWriteIfExists(false);
     Client->CreateSelectObjectMeta(request);
+}
+
+TEST_F(SelectObjectTest, CreateSelectObjectMetaWithInvalidResponseBodyTest)
+{
+    std::string key = TestUtils::GetObjectKey("CreateSelectObjectMetaWithInvalidResponseBodyTest");
+
+    // put object
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>(sqlMessage);
+    PutObjectRequest putRequest(BucketName, key, content);
+    auto putOutcome = Client->PutObject(putRequest);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    // createSelectObjectMeta
+    CreateSelectObjectMetaRequest metaRequest(BucketName, key);
+    CSVInputFormat csvInputFormat;
+    csvInputFormat.setHeaderInfo(CSVHeader::Use);
+    csvInputFormat.setRecordDelimiter("\r\n");
+    csvInputFormat.setFieldDelimiter(",");
+    csvInputFormat.setQuoteChar("\"");
+    csvInputFormat.setCommentChar("#");    
+
+    metaRequest.setInputFormat(csvInputFormat);
+    metaRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        unsigned char invalid_pattern[] = {
+            0x01, 0x80, 0x00, 0x06, 0x00, 0x00, 0x00, 0x25,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0xc8, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x04, 0x2e, 0x78, 0x95, 0x1f, 0x00};
+        content->write((const char*)invalid_pattern, sizeof(invalid_pattern));
+        return content;
+    });
+    auto metaOutcome = Client->CreateSelectObjectMeta(metaRequest);
+    EXPECT_EQ(metaOutcome.isSuccess(), false);
+    EXPECT_EQ(metaOutcome.error().Code(), "ParseIOStreamError");
+
+
+    metaRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        unsigned char invalid_pattern[] = {
+            0x01, 0x80, 0x00, 0x06, 0x00, 0x00, 0x00, 0x25,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0xc5, 0x00, 0x00, 0x00, 0xc8, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x04, 0x2e, 0x00, 0x00, 0x00, 0x00 };
+        content->write((const char*)invalid_pattern, sizeof(invalid_pattern));
+        return content;
+    });
+    metaOutcome = Client->CreateSelectObjectMeta(metaRequest);
 }
 
 }

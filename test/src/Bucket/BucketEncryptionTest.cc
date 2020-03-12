@@ -132,6 +132,25 @@ namespace OSS {
         EXPECT_EQ(delOutcome.isSuccess(), false);
     }
 
+    TEST_F(BucketEncryptionTest, GetBucketVersioningWithInvalidResponseBodyTest)
+    {
+        SetBucketEncryptionRequest setrequest(BucketName);
+        setrequest.setSSEAlgorithm(SSEAlgorithm::KMS);
+        setrequest.setKMSMasterKeyID("1234");
+        auto setoutcome = Client->SetBucketEncryption(setrequest);
+        EXPECT_EQ(setoutcome.isSuccess(), true);
+
+        auto gbeRequest = GetBucketEncryptionRequest(BucketName);
+        gbeRequest.setResponseStreamFactory([=]() {
+            auto content = std::make_shared<std::stringstream>();
+            content->write("invlid data", 11);
+            return content;
+        });
+        auto gbeOutcome = Client->GetBucketEncryption(gbeRequest);
+        EXPECT_EQ(gbeOutcome.isSuccess(), false);
+        EXPECT_EQ(gbeOutcome.error().Code(), "ParseXMLError");
+    }
+
     TEST_F(BucketEncryptionTest, GetBucketEncryptionResult)
     {
         std::string xml = R"(<?xml version="1.0" ?>

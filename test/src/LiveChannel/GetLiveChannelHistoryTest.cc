@@ -90,6 +90,24 @@ TEST_F(GetLiveChannelHistoryTest, GetLiveChannelHistoryGetTest)
     EXPECT_EQ(getOutcome2.result().LiveRecordList().size(), 0u);
 }
 
+TEST_F(GetLiveChannelHistoryTest, GetLiveChannelHistoryWithInvalidResponseBodyTest)
+{
+    std::string channelName = "test-channel1";
+    PutLiveChannelRequest request(BucketName, channelName, "HLS");
+    auto putOutcome = Client->PutLiveChannel(request);
+    EXPECT_EQ(putOutcome.isSuccess(), true);
+
+    GetLiveChannelHistoryRequest request2(BucketName, channelName);
+    request2.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto getOutcome = Client->GetLiveChannelHistory(request2);
+    EXPECT_EQ(getOutcome.isSuccess(), false);
+    EXPECT_EQ(getOutcome.error().Code(), "GetLiveChannelStatError");
+}
+
 TEST_F(GetLiveChannelHistoryTest, GetLiveChannelHistoryResultTest)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>

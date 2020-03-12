@@ -144,6 +144,24 @@ TEST_F(BucketWebsiteSettingsTest, SetBucketWebsiteInvalidInputTest)
     EXPECT_EQ(outcome.error().Message(), "Invalid error document, must be end with .html.");
 }
 
+TEST_F(BucketWebsiteSettingsTest, GetBucketWebsiteWithInvalidResponseBodyTest)
+{
+    auto sbwRequest = SetBucketWebsiteRequest(BucketName);
+    sbwRequest.setIndexDocument("index.html");
+    sbwRequest.setErrorDocument("NotFound.html");
+    Client->SetBucketWebsite(sbwRequest);
+
+    auto gbwRequest = GetBucketWebsiteRequest(BucketName);
+    gbwRequest.setResponseStreamFactory([=]() {
+        auto content = std::make_shared<std::stringstream>();
+        content->write("invlid data", 11);
+        return content;
+    });
+    auto gbwOutcome = Client->GetBucketWebsite(gbwRequest);
+    EXPECT_EQ(gbwOutcome.isSuccess(), false);
+    EXPECT_EQ(gbwOutcome.error().Code(), "ParseXMLError");
+}
+
 TEST_F(BucketWebsiteSettingsTest, GetBucketWebsiteResult)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
@@ -158,6 +176,54 @@ TEST_F(BucketWebsiteSettingsTest, GetBucketWebsiteResult)
     GetBucketWebsiteResult result(xml);
     EXPECT_EQ(result.IndexDocument(), "index.html");
     EXPECT_EQ(result.ErrorDocument(), "NotFound.html");
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <WebsiteConfiguration>
+            <IndexDocument>
+                <Suffix></Suffix>
+            </IndexDocument>
+            <ErrorDocument>
+                <Key></Key>
+            </ErrorDocument>
+        </WebsiteConfiguration>
+        )";
+    result = GetBucketWebsiteResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <WebsiteConfiguration>
+            <IndexDocument>
+            </IndexDocument>
+            <ErrorDocument>
+            </ErrorDocument>
+        </WebsiteConfiguration>
+        )";
+    result = GetBucketWebsiteResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <WebsiteConfiguration>
+        </WebsiteConfiguration>
+        )";
+    result = GetBucketWebsiteResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Other>
+        </Other>
+        )";
+    result = GetBucketWebsiteResult(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        )";
+    result = GetBucketWebsiteResult(xml);
+
+    xml = R"(
+        invalid xml
+        )";
+    result = GetBucketWebsiteResult(xml);
 }
 
 }
