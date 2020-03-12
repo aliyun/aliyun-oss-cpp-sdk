@@ -14,14 +14,28 @@
 * limitations under the License.
 */
 
-#include <alibabacloud/oss/utils/Executor.h>
+#pragma once
 
-using namespace AlibabaCloud::OSS;
+#include <atomic>
+#include <condition_variable>
+#include <queue>
+#include <vector>
+#include <thread>
+#include <mutex>
+#include <unordered_map>
+#include <alibabacloud/oss/Export.h>
+#include <alibabacloud/oss/utils/Runnable.h>
 
-Executor::Executor()
+namespace AlibabaCloud
 {
+namespace OSS
+{
+    class ALIBABACLOUD_OSS_EXPORT Executor
+    {
+    public:
+        Executor();
+        virtual ~Executor();
+        virtual void execute(Runnable* task) = 0;
+    };
 }
-
-Executor::~Executor()
-{
 }

@@ -15,10 +15,10 @@
  */
 
 #include <alibabacloud/oss/client/RetryStrategy.h>
+#include <alibabacloud/oss/utils/Executor.h>
 #include <tinyxml2/tinyxml2.h>
 #include "Client.h"
 #include "../http/CurlHttpClient.h"
-#include "../utils/Executor.h"
 #include "../utils/Utils.h"
 #include "../auth/Signer.h"
 #include <sstream>
@@ -32,7 +32,7 @@ Client::Client(const std::string & servicename, const ClientConfiguration &confi
     requestDateOffset_(0),
     serviceName_(servicename),
     configuration_(configuration),
-    httpClient_(std::make_shared<CurlHttpClient>(configuration))
+    httpClient_(configuration.httpClient? configuration.httpClient:std::make_shared<CurlHttpClient>(configuration))
 {
 }
 

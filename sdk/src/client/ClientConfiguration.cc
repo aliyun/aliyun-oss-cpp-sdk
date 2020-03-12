@@ -112,7 +112,9 @@ ClientConfiguration::ClientConfiguration() :
     enableCrc64(true),
     enableDateSkewAdjustment(true),
     sendRateLimiter(nullptr),
-    recvRateLimiter(nullptr)
+    recvRateLimiter(nullptr),
+    executor(nullptr),
+    httpClient(nullptr)
 {
 
 }

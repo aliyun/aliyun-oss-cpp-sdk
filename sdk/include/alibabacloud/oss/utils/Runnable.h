@@ -23,7 +23,7 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class Runnable
+    class ALIBABACLOUD_OSS_EXPORT Runnable
     {
     public:
         explicit Runnable(const std::function<void()> f);

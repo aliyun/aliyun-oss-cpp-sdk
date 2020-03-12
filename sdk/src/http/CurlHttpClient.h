@@ -17,7 +17,7 @@
 #pragma once
 
 #include <alibabacloud/oss/client/ClientConfiguration.h>
-#include "HttpClient.h"
+#include <alibabacloud/oss/http/HttpClient.h>
 
 namespace AlibabaCloud
 {

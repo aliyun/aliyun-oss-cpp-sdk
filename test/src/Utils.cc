@@ -35,7 +35,6 @@
 #include <iomanip>
 #include <src/utils/Utils.h>
 #include <src/utils/Crc64.h>
-#include <src/http/Url.h>
 #include <cstring>
 
 #ifdef GetObject
