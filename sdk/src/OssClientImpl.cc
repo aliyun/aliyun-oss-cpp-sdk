@@ -24,6 +24,7 @@
 #include <fstream>
 #include "utils/Utils.h"
 #include "utils/SignUtils.h"
+#include "utils/ThreadExecutor.h"
 #include "auth/HmacSha1Signer.h"
 #include "OssClientImpl.h"
 #include "utils/LogUtils.h"
@@ -46,7 +47,7 @@ OssClientImpl::OssClientImpl(const std::string &endpoint, const std::shared_ptr<
     endpoint_(endpoint),
     credentialsProvider_(credentialsProvider),
     signer_(std::make_shared<HmacSha1Signer>()),
-    executor_(std::make_shared<Executor>())
+    executor_(configuration.executor ? configuration.executor :std::make_shared<ThreadExecutor>())
 {
 }
 

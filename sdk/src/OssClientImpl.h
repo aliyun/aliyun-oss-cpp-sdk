@@ -21,10 +21,9 @@
 #include <alibabacloud/oss/auth/CredentialsProvider.h>
 #include <alibabacloud/oss/OssRequest.h>
 #include <alibabacloud/oss/OssResponse.h>
-#include <alibabacloud/oss/utils/Runnable.h>
+#include <alibabacloud/oss/utils/Executor.h>
 #include <alibabacloud/oss/OssFwd.h>
 #include "auth/Signer.h"
-#include "utils/Executor.h"
 #include "client/Client.h"
 #ifdef GetObject
 #undef GetObject
@@ -176,7 +175,7 @@ namespace OSS
         std::string endpoint_;
         std::shared_ptr<CredentialsProvider> credentialsProvider_;
         std::shared_ptr<Signer> signer_;
-        std::shared_ptr< Executor> executor_;
+        std::shared_ptr<Executor> executor_;
     };
 }
 }

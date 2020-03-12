@@ -30,7 +30,7 @@
 #include <iomanip>
 #include <alibabacloud/oss/Const.h>
 #include <alibabacloud/oss/http/HttpType.h>
-#include "../http/Url.h"
+#include <alibabacloud/oss/http/Url.h>
 
 using namespace AlibabaCloud::OSS;
 

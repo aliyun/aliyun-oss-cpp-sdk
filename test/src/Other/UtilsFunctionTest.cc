@@ -16,13 +16,13 @@
 
 #include <gtest/gtest.h>
 #include <alibabacloud/oss/OssClient.h>
+#include <alibabacloud/oss/http/Url.h>
 #include <src/utils/Utils.h>
 #include "../Config.h"
 #include "../Utils.h"
 #include <fstream>
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/StreamBuf.h"
-#include "src/http/Url.h"
 #include "src/auth/HmacSha1Signer.h"
 
 namespace AlibabaCloud {

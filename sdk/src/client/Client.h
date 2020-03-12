@@ -23,7 +23,7 @@
 #include <alibabacloud/oss/client/ClientConfiguration.h>
 #include <alibabacloud/oss/client/Error.h>
 #include <alibabacloud/oss/utils/Outcome.h>
-#include "../http/HttpClient.h"
+#include <alibabacloud/oss/http/HttpClient.h>
 
 namespace AlibabaCloud
 {

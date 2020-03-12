@@ -18,7 +18,8 @@
 #include <memory>
 #include <string>
 #include <alibabacloud/oss/auth/CredentialsProvider.h>
-#include <alibabacloud/oss/http/HttpType.h>
+#include <alibabacloud/oss/http/HttpClient.h>
+#include <alibabacloud/oss/utils/Executor.h>
 
 namespace AlibabaCloud
 {
@@ -112,6 +113,14 @@ namespace OSS
         * The interface for outgoing traffic. E.g. eth0 in linux
         */
         std::string networkInterface;
+        /**
+        * Your executor's implement
+        */
+        std::shared_ptr<Executor> executor;
+        /**
+        * Your http client' implement
+        */
+        std::shared_ptr<HttpClient> httpClient;
     };
 }
 }

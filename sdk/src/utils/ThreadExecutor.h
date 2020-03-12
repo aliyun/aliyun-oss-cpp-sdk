@@ -16,24 +16,17 @@
 
 #pragma once
 
-#include <atomic>
-#include <condition_variable>
-#include <queue>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <unordered_map>
+#include <alibabacloud/oss/utils/Executor.h>
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
-    class Runnable;
-    class Executor
+    class ThreadExecutor: public Executor
     {
     public:
-        Executor();
-        ~Executor();
+        ThreadExecutor();
+        virtual ~ThreadExecutor();
         void execute(Runnable* task);
     private:
         enum class State

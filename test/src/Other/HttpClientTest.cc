@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <alibabacloud/oss/OssClient.h>
 #include <alibabacloud/oss/client/RateLimiter.h>
+#include <alibabacloud/oss/http/HttpMessage.h>
 #include <src/http/CurlHttpClient.h>
 #include "../Config.h"
 #include "../Utils.h"
@@ -26,7 +27,6 @@
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/Utils.h"
 #include "src/client/Client.h"
-#include "src/http/HttpMessage.h"
 #include "src/auth/SimpleCredentialsProvider.h"
 #include "src/OssClientImpl.h"
 

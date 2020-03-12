@@ -16,18 +16,18 @@
 
 #pragma once
 
-#include <alibabacloud/oss/Types.h>
 #include <string>
-#include "HttpMessage.h"
-#include "Url.h"
+#include <alibabacloud/oss/Types.h>
 #include <alibabacloud/oss/ServiceRequest.h>
+#include <alibabacloud/oss/http/HttpMessage.h>
+#include <alibabacloud/oss/http/Url.h>
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
 
-    class HttpRequest : public HttpMessage
+    class ALIBABACLOUD_OSS_EXPORT HttpRequest : public HttpMessage
     {
         public:
             HttpRequest(Http::Method method = Http::Method::Get);

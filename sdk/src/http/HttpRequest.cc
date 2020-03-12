@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <alibabacloud/oss/http/HttpType.h>
-#include "HttpRequest.h"
+
+#include <alibabacloud/oss/http/HttpRequest.h>
 
 using namespace AlibabaCloud::OSS;
 
