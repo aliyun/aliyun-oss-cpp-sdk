@@ -31,6 +31,7 @@ option(BUILD_SHARED_LIBS  "Enable shared library" OFF)
 option(BUILD_SAMPLE "Build sample" ON)
 option(BUILD_TESTS "Build unit and perfermence tests" OFF)
 option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
+option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
 
 
 #Platform
@@ -101,11 +102,22 @@ endif()
 list(APPEND SDK_COMPILER_FLAGS "-std=c++11")
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	list(APPEND SDK_COMPILER_FLAGS "/MP")
+	if (NOT ENABLE_RTTI)
+	list(APPEND SDK_COMPILER_FLAGS "/GR-")
+	endif()
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	list(APPEND SDK_COMPILER_FLAGS "-fno-exceptions" "-fPIC" "-fno-rtti")
+	if (NOT ENABLE_RTTI)
+	list(APPEND SDK_COMPILER_FLAGS "-fno-rtti")
+	endif()
+	
 	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
 else()
-	list(APPEND SDK_COMPILER_FLAGS "-fno-exceptions" "-fPIC" "-fno-rtti")
+	list(APPEND SDK_COMPILER_FLAGS "-fno-exceptions" "-fPIC")
+	if (NOT ENABLE_RTTI)
+	list(APPEND SDK_COMPILER_FLAGS "-fno-rtti")
+	endif()
+	
 	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra" "-Wshadow")
 	
 	if (ENABLE_COVERAGE)
