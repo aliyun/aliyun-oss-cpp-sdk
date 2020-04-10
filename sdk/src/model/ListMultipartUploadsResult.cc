@@ -117,7 +117,7 @@ ListMultipartUploadsResult& ListMultipartUploadsResult::operator =(
             for( ; uploadNode ; uploadNode = uploadNode->NextSiblingElement("Upload"))
             {
                 MultipartUpload rec;
-                XMLElement * node = uploadNode->FirstChildElement("Key");
+                node = uploadNode->FirstChildElement("Key");
                 if(node && node->GetText())
                 {
                     rec.Key = isUrlEncode ? UrlDecode(node->GetText()) : node->GetText();

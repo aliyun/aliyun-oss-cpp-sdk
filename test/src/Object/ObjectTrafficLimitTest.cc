@@ -223,8 +223,8 @@ TEST_F(ObjectTrafficLimitTest, UploadPartCopyTest)
     //get target object name*/
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadPartCopyComplexStepTest");
 
-    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, targetObjectKey);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
     //Set the part size 

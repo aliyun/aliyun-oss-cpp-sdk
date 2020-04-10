@@ -159,15 +159,15 @@ void TestUtils::CleanBucket(const OssClient &client, const std::string &bucketNa
     ListLiveChannelRequest request2(bucketName);
     IsTruncated = false;
     do{
-        auto listOutcome = client.ListLiveChannel(request2);
-        if(listOutcome.isSuccess())
+        auto listvOutcome = client.ListLiveChannel(request2);
+        if(listvOutcome.isSuccess())
         {
-            for(auto const &liveChannel : listOutcome.result().LiveChannelList())
+            for(auto const &liveChannel : listvOutcome.result().LiveChannelList())
             {
                 client.DeleteLiveChannel(DeleteLiveChannelRequest(bucketName, liveChannel.name));
             }
-            IsTruncated = listOutcome.result().IsTruncated();
-            request2.setMarker(listOutcome.result().NextMarker());
+            IsTruncated = listvOutcome.result().IsTruncated();
+            request2.setMarker(listvOutcome.result().NextMarker());
         }else{
             break;
         }

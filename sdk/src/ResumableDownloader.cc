@@ -126,10 +126,10 @@ GetObjectOutcome ResumableDownloader::Download()
                         root["partSize"] = record.partSize;
 
                         int index = 0;
-                        for (PartRecord& part : record.parts) {
-                            root["parts"][index]["partNumber"] = part.partNumber;
-                            root["parts"][index]["size"] = part.size;
-                            root["parts"][index]["crc64"] = part.crc64;
+                        for (PartRecord& partR : record.parts) {
+                            root["parts"][index]["partNumber"] = partR.partNumber;
+                            root["parts"][index]["size"] = partR.size;
+                            root["parts"][index]["crc64"] = partR.crc64;
                             index++;
                         }
 

@@ -630,9 +630,9 @@ TEST_F(ObjectCallbackTest, PutPreSignedCallbackWithInvalidResponseTest)
 
     PutObjectByUrlRequest poRequest(urlOutcome.result(), content);
     poRequest.setResponseStreamFactory([=]() {
-        auto content = std::make_shared<std::stringstream>();
-        content->write("invlid data", 11);
-        return content;
+        auto data = std::make_shared<std::stringstream>();
+        data->write("invlid data", 11);
+        return data;
     });
     auto pOutcome = Client->PutObjectByUrl(poRequest);
     EXPECT_EQ(pOutcome.isSuccess(), false);

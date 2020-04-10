@@ -108,7 +108,6 @@ ListObjectVersionsResult& ListObjectVersionsResult::operator =(const std::string
             XMLElement *contents_node = root->FirstChildElement("Version");
             for (; contents_node; contents_node = contents_node->NextSiblingElement("Version")) {
                 ObjectVersionSummary content;
-                XMLElement *node;
                 node = contents_node->FirstChildElement("Key");
                 if (node && node->GetText()) content.key_ = useUrlDecode ? UrlDecode(node->GetText()) : node->GetText();
 
@@ -152,7 +151,6 @@ ListObjectVersionsResult& ListObjectVersionsResult::operator =(const std::string
             contents_node = root->FirstChildElement("DeleteMarker");
             for (; contents_node; contents_node = contents_node->NextSiblingElement("DeleteMarker")) {
                 DeleteMarkerSummary content;
-                XMLElement *node;
                 node = contents_node->FirstChildElement("Key");
                 if (node && node->GetText()) content.key_ = useUrlDecode ? UrlDecode(node->GetText()) : node->GetText();
 

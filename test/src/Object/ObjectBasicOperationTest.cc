@@ -1703,9 +1703,9 @@ TEST_F(ObjectBasicOperationTest, DeleteObjectsWithInvalidResponseBodyTest)
     DeleteObjectsRequest delRequest(BucketName);
     delRequest.addKey(key);
     delRequest.setResponseStreamFactory([=]() {
-        auto content = std::make_shared<std::stringstream>();
-        content->write("invlid data", 11);
-        return content;
+        auto data = std::make_shared<std::stringstream>();
+        data->write("invlid data", 11);
+        return data;
     });    
     auto delOutcome = Client->DeleteObjects(delRequest);
     EXPECT_EQ(delOutcome.isSuccess(), false);
@@ -1720,9 +1720,9 @@ TEST_F(ObjectBasicOperationTest, ListObjectsWithInvalidResponseBodyTest)
 
     ListObjectsRequest lsRequest(BucketName);
     lsRequest.setResponseStreamFactory([=]() {
-        auto content = std::make_shared<std::stringstream>();
-        content->write("invlid data", 11);
-        return content;
+        auto data = std::make_shared<std::stringstream>();
+        data->write("invlid data", 11);
+        return data;
     });
     auto listOutcome = Client->ListObjects(lsRequest);
     EXPECT_EQ(listOutcome.isSuccess(), false);

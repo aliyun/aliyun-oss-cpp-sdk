@@ -1447,12 +1447,12 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
     if (!request.VersionId().empty()) {
         getObjectMetaReq.setVersionId(request.VersionId());
     }
-    auto outcome = GetObjectMeta(getObjectMetaReq);
-    if (!outcome.isSuccess()) {
-        return GetObjectOutcome(outcome.error());
+    auto hOutcome = GetObjectMeta(getObjectMetaReq);
+    if (!hOutcome.isSuccess()) {
+        return GetObjectOutcome(hOutcome.error());
     }
 
-    auto objectSize = outcome.result().ContentLength();
+    auto objectSize = hOutcome.result().ContentLength();
     if (objectSize < (int64_t)request.PartSize()) {
         auto getObjectReq = GetObjectRequest(request.Bucket(), request.Key(), request.ModifiedSinceConstraint(), request.UnmodifiedSinceConstraint(),request.MatchingETagsConstraint(), request.NonmatchingETagsConstraint(), request.ResponseHeaderParameters());
         if (request.RangeIsSet()) {
