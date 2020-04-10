@@ -110,6 +110,12 @@ cmake .. -DBUILD_SHARED_LIBS=ON
 cmake .. -DBUILD_TESTS=ON
 ```
 
+#### ENABLE_RTTI
+(默认为开，即ON) 如果关闭, 构建的库不会添加运行时类型信息.
+```
+cmake .. -DENABLE_RTTI=OFF
+```
+
 ## 如何使用 C++ SDK
 
 以下代码展示了如何获取请求者拥有的Bucket。

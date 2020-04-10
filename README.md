@@ -110,6 +110,12 @@ cmake .. -DBUILD_SHARED_LIBS=ON
 cmake .. -DBUILD_TESTS=ON
 ```
 
+#### ENABLE_RTTI
+(Default ON) If turned off, the SDK is built without RTTI information.
+```
+cmake .. -DENABLE_RTTI=OFF
+```
+
 ## Use the C++ SDK
 
 The following code shows how to list buckets owned by the requester. 
