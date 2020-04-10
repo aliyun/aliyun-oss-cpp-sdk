@@ -158,8 +158,8 @@ int LiveChannelSample::GetLiveChannelHistory()
     {
         if(i>MAX_LOOP_TIMES)
             break;
-        GetLiveChannelHistoryRequest request(bucket_, channelName_);
-        auto getOutcome = client->GetLiveChannelHistory(request);
+
+        auto getOutcome = client->GetLiveChannelHistory(GetLiveChannelHistoryRequest(bucket_, channelName_));
         if(getOutcome.isSuccess())
         {
             std::vector<LiveRecord> vec = getOutcome.result().LiveRecordList();
@@ -168,12 +168,12 @@ int LiveChannelSample::GetLiveChannelHistory()
                 isSuccess_ = true;
                 result = getOutcome.result();
                 std::cout << "LiveRecordList size " << vec.size() << std::endl;
-                for(size_t i=0; i<vec.size(); i++)
+                for(size_t j=0; j <vec.size(); j++)
                 {
                     std::cout << "    LiveRecord: " << std::endl;
-                    std::cout << "       startTime: " << vec[i].startTime << std::endl;
-                    std::cout << "       endTime: " << vec[i].endTime << std::endl;
-                    std::cout << "       remoteAddr: " << vec[i].remoteAddr << std::endl;
+                    std::cout << "       startTime: " << vec[j].startTime << std::endl;
+                    std::cout << "       endTime: " << vec[j].endTime << std::endl;
+                    std::cout << "       remoteAddr: " << vec[j].remoteAddr << std::endl;
                 }
                 waitTimeinSec(30);
                 break;

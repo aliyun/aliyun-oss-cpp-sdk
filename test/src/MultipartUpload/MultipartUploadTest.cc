@@ -731,8 +731,8 @@ TEST_F(MultipartUploadTest, MultipartUploadComplexStepTest)
     //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadComplexStepTest");
 
-    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, targetObjectKey);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
     EXPECT_FALSE(initOutcome.result().RequestId().empty());
 
@@ -812,8 +812,8 @@ TEST_F(MultipartUploadTest, MultipartUploadComplexStepTestWithoutCrc)
     //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadComplexStepTestWithoutCrc");
 
-    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
-    auto initOutcome = XClient->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, targetObjectKey);
+    auto initOutcome = XClient->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
     // Set the part size 
@@ -886,8 +886,8 @@ TEST_F(MultipartUploadTest, CompleteMultipartUploadWithListParts)
     //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("CompleteMultipartUploadWithListParts");
 
-    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, targetObjectKey);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
     // Set the part size 
@@ -960,8 +960,8 @@ TEST_F(MultipartUploadTest, MultipartUploadAbortInMiddleTest)
     //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadAbortInMiddleTest");
 
-    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, targetObjectKey);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
     // Set the part size 
@@ -1026,8 +1026,8 @@ TEST_F(MultipartUploadTest, MultipartUploadPartCopyComplexStepTest)
     //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadPartCopyComplexStepTest");
 
-    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, targetObjectKey);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
     // Set the part size 
@@ -1098,8 +1098,8 @@ TEST_F(MultipartUploadTest, MultipartUploadPartCopyWithSpecialKeyNameTest)
     //get target object name
     auto targetObjectKey = TestUtils::GetObjectKey("MultipartUploadPartCopyComplexStepTest");
 
-    InitiateMultipartUploadRequest request(BucketName, targetObjectKey);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, targetObjectKey);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
     // Set the part size 
@@ -1665,8 +1665,8 @@ TEST_F(MultipartUploadTest, ListPartsTest)
     const size_t TestLoop = 10;
     //get target object name
     auto key = TestUtils::GetObjectKey("ListPartsTest");
-    InitiateMultipartUploadRequest request(BucketName, key);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, key);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
 
@@ -1690,8 +1690,8 @@ TEST_F(MultipartUploadTest, ListPartsSetpTest)
     const size_t TestLoop = 10;
     //get target object name
     auto key = TestUtils::GetObjectKey("ListPartsSetpTest");
-    InitiateMultipartUploadRequest request(BucketName, key);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, key);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
 
@@ -1727,8 +1727,8 @@ TEST_F(MultipartUploadTest, ListPartsSetpUseEncodingTypeTest)
     auto key = TestUtils::GetObjectKey("ListPartsSetpUseEncodingTypeTest");
     key.push_back(0x1c); key.push_back(0x1a); key.append(".1.cd");
 
-    InitiateMultipartUploadRequest request(BucketName, key);
-    auto initOutcome = Client->InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(BucketName, key);
+    auto initOutcome = Client->InitiateMultipartUpload(imuRequest);
     EXPECT_EQ(initOutcome.isSuccess(), true);
 
     for (int i = 0; i < static_cast<int>(TestLoop); i++) {
@@ -1799,9 +1799,9 @@ TEST_F(MultipartUploadTest, MultipartUploadWithInvalidResponseBodyTest)
     //test listParts
     ListPartsRequest listRequest(BucketName, key, initOutcome.result().UploadId());
     listRequest.setResponseStreamFactory([=]() {
-        auto content = std::make_shared<std::stringstream>();
-        content->write("invlid data", 11);
-        return content;
+        auto data = std::make_shared<std::stringstream>();
+        data->write("invlid data", 11);
+        return data;
     });
     auto listOutcome = Client->ListParts(listRequest);
     EXPECT_EQ(listOutcome.isSuccess(), false);
@@ -1810,9 +1810,9 @@ TEST_F(MultipartUploadTest, MultipartUploadWithInvalidResponseBodyTest)
     //test listUploads
     ListMultipartUploadsRequest lmuRequest(BucketName);
     lmuRequest.setResponseStreamFactory([=]() {
-        auto content = std::make_shared<std::stringstream>();
-        content->write("invlid data", 11);
-        return content;
+        auto data = std::make_shared<std::stringstream>();
+        data->write("invlid data", 11);
+        return data;
     });
     auto lmuOutcome = Client->ListMultipartUploads(lmuRequest);
     EXPECT_EQ(lmuOutcome.isSuccess(), false);
@@ -1827,9 +1827,9 @@ TEST_F(MultipartUploadTest, MultipartUploadWithInvalidResponseBodyTest)
     completeRequest.setPartList(partList);
     completeRequest.setUploadId(initOutcome.result().UploadId());
     completeRequest.setResponseStreamFactory([=]() {
-        auto content = std::make_shared<std::stringstream>();
-        content->write("invlid data", 11);
-        return content;
+        auto data = std::make_shared<std::stringstream>();
+        data->write("invlid data", 11);
+        return data;
     });
     auto cOutcome = Client->CompleteMultipartUpload(completeRequest);
     EXPECT_EQ(cOutcome.isSuccess(), false);

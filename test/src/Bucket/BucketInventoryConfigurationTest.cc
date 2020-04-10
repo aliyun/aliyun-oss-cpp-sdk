@@ -357,9 +357,9 @@ TEST_F(BucketInventoryConfigurationTest, ListBucketInventoryConfigurationTest)
     EXPECT_EQ(listOutcome.result().IsTruncated(), true);
     EXPECT_EQ(listOutcome.result().InventoryConfigurationList().size(), 100U);
     for (const auto conf : listOutcome.result().InventoryConfigurationList()) {
-        int i = std::strtol(conf.Id().c_str(), nullptr, 10);
-        EXPECT_EQ(conf.IsEnabled(), ((i % 4) ? true : false));
-        EXPECT_EQ(conf.Filter().Prefix(), ((i % 5) ? "filterPrefix" : ""));
+        int j = std::strtol(conf.Id().c_str(), nullptr, 10);
+        EXPECT_EQ(conf.IsEnabled(), ((j % 4) ? true : false));
+        EXPECT_EQ(conf.Filter().Prefix(), ((j % 5) ? "filterPrefix" : ""));
         EXPECT_EQ(conf.Destination().OSSBucketDestination().AccountId(), Config::AccountId);
         EXPECT_EQ(conf.Destination().OSSBucketDestination().RoleArn(), Config::OssStsArn);
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Bucket(), DstBucketName);
@@ -368,7 +368,7 @@ TEST_F(BucketInventoryConfigurationTest, ListBucketInventoryConfigurationTest)
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), "keyId");
         EXPECT_EQ(conf.Schedule(), InventoryFrequency::Daily);
         EXPECT_EQ(conf.IncludedObjectVersions(), InventoryIncludedObjectVersions::All);
-        EXPECT_EQ(conf.OptionalFields().size(), ((i % 7)? 6U : 1U));
+        EXPECT_EQ(conf.OptionalFields().size(), ((j % 7)? 6U : 1U));
         EXPECT_EQ(conf.OptionalFields()[0], InventoryOptionalField::Size);
         if(conf.OptionalFields().size() > 1U) {
             EXPECT_EQ(conf.OptionalFields()[1], InventoryOptionalField::LastModifiedDate);

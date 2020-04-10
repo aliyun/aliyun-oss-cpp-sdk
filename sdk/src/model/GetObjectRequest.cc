@@ -40,7 +40,7 @@ GetObjectRequest::GetObjectRequest(const std::string &bucket, const std::string 
 GetObjectRequest::GetObjectRequest(const std::string& bucket, const std::string& key,
     const std::string &modifiedSince, const std::string &unmodifiedSince,
     const std::vector<std::string> &matchingETags, const std::vector<std::string> &nonmatchingETags,
-    const std::map<std::string, std::string> &responseHeaderParameters_) : 
+    const std::map<std::string, std::string> &responseHeaderParameters) : 
     OssObjectRequest(bucket, key),
     rangeIsSet_(false), 
     modifiedSince_(modifiedSince), 
@@ -48,7 +48,7 @@ GetObjectRequest::GetObjectRequest(const std::string& bucket, const std::string&
     matchingETags_(matchingETags),
     nonmatchingETags_(nonmatchingETags), 
     process_(""),
-    responseHeaderParameters_(responseHeaderParameters_),
+    responseHeaderParameters_(responseHeaderParameters),
     trafficLimit_(0)
 {
 }

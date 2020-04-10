@@ -285,8 +285,8 @@ static taskResult upload_multipart(const OssClient &client, const std::string &k
     bool failed = false;
     std::string code;
     std::string message;
-    InitiateMultipartUploadRequest request(Config::BucketName, key);
-    auto initOutcome = client.InitiateMultipartUpload(request);
+    InitiateMultipartUploadRequest imuRequest(Config::BucketName, key);
+    auto initOutcome = client.InitiateMultipartUpload(imuRequest);
     if (initOutcome.isSuccess()) {
         while (!SubTaskInfos.empty() && !failed) {
             if (outcomes.size() < static_cast<size_t>(Config::Parallel)) {

@@ -83,12 +83,11 @@ ListBucketsResult& ListBucketsResult::operator =(const std::string& result)
 
             Owner owner(owner_ID, owner_DisplayName);
             //buckets
-            node = root->FirstChildElement("Buckets");
-            if (node) {
-                XMLElement *bucket_node = node->FirstChildElement("Bucket");
+            XMLElement *buckets_node = root->FirstChildElement("Buckets");
+            if (buckets_node) {
+                XMLElement *bucket_node = buckets_node->FirstChildElement("Bucket");
                 for (; bucket_node; bucket_node = bucket_node->NextSiblingElement()) {
                     Bucket bucket;
-                    XMLElement *node;
                     node = bucket_node->FirstChildElement("CreationDate");
                     if (node && node->GetText()) bucket.creationDate_ = node->GetText();
 

@@ -94,7 +94,7 @@ ListPartsResult& ListPartsResult::operator =(const std::string& result)
             for( ; partNode ; partNode = partNode->NextSiblingElement("Part"))
             {
                 Part part;
-                XMLElement * node = partNode->FirstChildElement("PartNumber");
+                node = partNode->FirstChildElement("PartNumber");
                 if(node && node->GetText())
                 {
                     part.partNumber_ = std::atoi(node->GetText());

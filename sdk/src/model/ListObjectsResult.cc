@@ -99,7 +99,6 @@ ListObjectsResult& ListObjectsResult::operator =(const std::string& result)
             XMLElement *contents_node = root->FirstChildElement("Contents");
             for (; contents_node; contents_node = contents_node->NextSiblingElement("Contents")) {
                 ObjectSummary content;
-                XMLElement *node;
                 node = contents_node->FirstChildElement("Key");
                 if (node && node->GetText()) content.key_ = useUrlDecode ? UrlDecode(node->GetText()) : node->GetText();
 
