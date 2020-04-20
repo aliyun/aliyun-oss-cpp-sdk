@@ -30,7 +30,7 @@ public:
     static std::string PayerAccessKeyId;
     static std::string PayerAccessKeySecret;
     static std::string PayerUID;
-    static std::string OssStsArn;
-    static std::string AccountId;
+    static std::string RamRoleArn;
+    static std::string RamUID;
 };
 

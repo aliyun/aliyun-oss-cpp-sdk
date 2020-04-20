@@ -35,8 +35,8 @@ std::string Config::CfgFilePath = "oss.ini";
 std::string Config::PayerAccessKeyId = "";
 std::string Config::PayerAccessKeySecret = "";
 std::string Config::PayerUID = "";
-std::string Config::OssStsArn = "";
-std::string Config::AccountId = "";
+std::string Config::RamRoleArn = "";
+std::string Config::RamUID = "";
 
 static std::string LeftTrim(const char* source)
 {
@@ -124,11 +124,11 @@ static void LoadCfgFromFile()
         else if (!strncmp(buffer, "PayerUID", 8)) {
             Config::PayerUID = TrimQuotes(Trim(ptr + 1).c_str());
         }
-        else if (!strncmp(buffer, "OssStsArn", 9)) {
-            Config::OssStsArn = TrimQuotes(Trim(ptr + 1).c_str());
+        else if (!strncmp(buffer, "RamRoleArn", 10)) {
+            Config::RamRoleArn = TrimQuotes(Trim(ptr + 1).c_str());
         }
-        else if (!strncmp(buffer, "AccountId", 9)) {
-            Config::AccountId = TrimQuotes(Trim(ptr + 1).c_str());
+        else if (!strncmp(buffer, "RamUID", 6)) {
+            Config::RamUID = TrimQuotes(Trim(ptr + 1).c_str());
         }
     }
     in.close();
@@ -177,12 +177,12 @@ static void LoadCfgFromEnv()
 
     value = std::getenv("TEST_OSS_STS_ARN");
     if (value) {
-        Config::OssStsArn = TrimQuotes(Trim(value).c_str());
+        Config::RamRoleArn = TrimQuotes(Trim(value).c_str());
     }
 
     value = std::getenv("TEST_OSS_ACCOUNT_ID");
     if (value) {
-        Config::AccountId = TrimQuotes(Trim(value).c_str());
+        Config::RamUID = TrimQuotes(Trim(value).c_str());
     }
 }
 
