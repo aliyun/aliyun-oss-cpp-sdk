@@ -93,7 +93,7 @@ GetObjectOutcome ResumableDownloader::Download()
                 if (!request_.VersionId().empty()) {
                     getObjectReq.setVersionId(request_.VersionId());
                 }
-                auto outcome = client_->GetObject(getObjectReq);
+                auto outcome = GetObjectWrap(getObjectReq);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && part.partNumber == 2) {
                     const char* TAG = "ResumableDownloadObjectClient";
@@ -492,5 +492,10 @@ bool ResumableDownloader::renameTempFile()
     {
         return RenameFile(request_.TempFilePath(), request_.FilePath());
     }
+}
+
+GetObjectOutcome ResumableDownloader::GetObjectWrap(const GetObjectRequest &request) const
+{
+    return client_->GetObject(request);
 }
 

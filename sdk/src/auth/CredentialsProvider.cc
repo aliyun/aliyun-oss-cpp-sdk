@@ -15,3 +15,9 @@
  */
 
 #include <alibabacloud/oss/auth/CredentialsProvider.h>
+
+using namespace AlibabaCloud::OSS;
+
+CredentialsProvider::~CredentialsProvider()
+{
+}

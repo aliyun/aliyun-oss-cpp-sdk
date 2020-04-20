@@ -30,6 +30,7 @@ static std::string dataPath_;
 std::string Config::AccessKeyId = "";
 std::string Config::AccessKeySecret = "";
 std::string Config::Endpoint = "";
+std::string Config::SecondEndpoint = "";
 std::string Config::CallbackServer = "";
 std::string Config::CfgFilePath = "oss.ini";
 std::string Config::PayerAccessKeyId = "";
@@ -111,6 +112,9 @@ static void LoadCfgFromFile()
         }
         else if (!strncmp(buffer, "Endpoint", 8)) {
             Config::Endpoint = TrimQuotes(Trim(ptr + 1).c_str());
+        }
+        else if (!strncmp(buffer, "SecondEndpoint", 14)) {
+            Config::SecondEndpoint = TrimQuotes(Trim(ptr + 1).c_str());
         }
         else if (!strncmp(buffer, "CallbackServer", 14)) {
             Config::CallbackServer = TrimQuotes(Trim(ptr + 1).c_str());

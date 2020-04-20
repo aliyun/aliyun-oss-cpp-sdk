@@ -6,6 +6,8 @@
 #include "object/ObjectSample.h"
 #include "presignedurl/PresignedUrlSample.h"
 #include "LiveChannel/LiveChannelSample.h"
+#include "encryption/EncryptionSample.h"
+
 
 using namespace AlibabaCloud::OSS;
 
@@ -64,9 +66,9 @@ int main(void)
 
 
     ObjectSample objectSample(bucketName);
-	objectSample.UploadObjectProgress();
-	objectSample.MultiCopyObjectProcess();
-	objectSample.DownloadObjectProcess();
+    objectSample.UploadObjectProgress();
+    objectSample.MultiCopyObjectProcess();
+    objectSample.DownloadObjectProcess();
     objectSample.PutObjectFromBuffer();
     objectSample.PutObjectFromFile();
     objectSample.GetObjectToBuffer();
@@ -101,6 +103,17 @@ int main(void)
     liveChannelSample.GetVodPlayList();
     liveChannelSample.PutLiveChannelStatus();
     liveChannelSample.DeleteLiveChannel();
+
+    // Encryption
+    EncryptionSample encryptionSample(bucketName);
+    encryptionSample.PutObjectFromBuffer();
+    encryptionSample.PutObjectFromFile();
+    encryptionSample.GetObjectToBuffer();
+    encryptionSample.GetObjectToFile();
+    encryptionSample.UploadObjectProgress();
+    encryptionSample.DownloadObjectProcess();
+    encryptionSample.MultipartUploadObject();
+
     ShutdownSdk();
     return 0;
 }

@@ -170,9 +170,11 @@ TEST_F(AccessKeyTest, GenerateRTMPSignatureUrlCredentialsProviderTest)
     EXPECT_EQ(outcome.isSuccess(), generateOutcome.isSuccess());
     EXPECT_EQ(outcome.result(), generateOutcome.result());
 
+#ifndef __clang__
     outcome = std::move(outcome);
     EXPECT_EQ(outcome.isSuccess(), generateOutcome.isSuccess());
     EXPECT_EQ(outcome.result(), generateOutcome.result());
+#endif
 }
 
 }

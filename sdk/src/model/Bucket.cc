@@ -17,6 +17,8 @@
 
 #include <alibabacloud/oss/model/Bucket.h>
 
-
 using namespace AlibabaCloud::OSS;
 
+Bucket::~Bucket()
+{
+}

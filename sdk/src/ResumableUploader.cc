@@ -112,7 +112,7 @@ PutObjectOutcome ResumableUploader::Upload()
                 if (request_.TrafficLimit() != 0) {
                     uploadPartRequest.setTrafficLimit(request_.TrafficLimit());
                 }
-                auto outcome = client_->UploadPart(uploadPartRequest);
+                auto outcome = UploadPartWrap(uploadPartRequest);
 #ifdef ENABLE_OSS_TEST
                 if (!!(request_.Flags() & 0x40000000) && part.PartNumber() == 2) {
                     const char* TAG = "ResumableUploadObjectClient";
@@ -181,7 +181,7 @@ PutObjectOutcome ResumableUploader::Upload()
     if (request_.RequestPayer() == RequestPayer::Requester) {
         completeMultipartUploadReq.setRequestPayer(request_.RequestPayer());
     }
-    auto outcome = client_->CompleteMultipartUpload(completeMultipartUploadReq);
+    auto outcome = CompleteMultipartUploadWrap(completeMultipartUploadReq);
     if (!outcome.isSuccess()) {
         return PutObjectOutcome(outcome.error());
     }
@@ -219,7 +219,7 @@ int ResumableUploader::prepare(OssError& err)
     if (request_.RequestPayer() == RequestPayer::Requester) {
         initMultipartUploadReq.setRequestPayer(request_.RequestPayer());
     }
-    auto outcome = client_->InitiateMultipartUpload(initMultipartUploadReq);
+    auto outcome = InitiateMultipartUploadWrap(initMultipartUploadReq);
     if(!outcome.isSuccess()){
         err = outcome.error();
         return -1;
@@ -229,17 +229,10 @@ int ResumableUploader::prepare(OssError& err)
     uploadID_ = outcome.result().UploadId();
 
     if (hasRecordPath()) {
-        initRecord(uploadID_);
-		
         Json::Value root;
-        root["opType"] = record_.opType;
-        root["uploadID"] = record_.uploadID;
-        root["filePath"] = record_.filePath;
-        root["bucket"] = record_.bucket;
-        root["key"] = record_.key;
-        root["mtime"] = record_.mtime;
-        root["size"] = record_.size;
-        root["partSize"] = record_.partSize;
+
+        initRecordInfo();
+        dumpRecordInfo(root);
 
         std::stringstream ss;
         ss << root;
@@ -262,14 +255,9 @@ int ResumableUploader::validateRecord()
     }
 
     Json::Value root;
-    root["opType"] = record_.opType;
-    root["uploadID"] = record_.uploadID;
-    root["filePath"] = record_.filePath;
-    root["bucket"] = record_.bucket;
-    root["key"] = record_.key;
-    root["mtime"] = record_.mtime;
-    root["size"] = record_.size;
-    root["partSize"] = record_.partSize;
+
+    dumpRecordInfo(root);
+
     std::stringstream recordStream;
     recordStream << root;
 
@@ -292,15 +280,7 @@ int ResumableUploader::loadRecord()
             return ARG_ERROR_PARSE_UPLOAD_RECORD_FILE;
         }
 
-        record_.opType = root["opType"].asString();
-        record_.uploadID = root["uploadID"].asString();
-        record_.filePath = root["filePath"].asString();
-        record_.bucket = root["bucket"].asString();
-        record_.key = root["key"].asString();
-        record_.size = root["size"].asUInt64();
-        record_.mtime =root["mtime"].asString();
-        record_.partSize = root["partSize"].asUInt64();
-        record_.md5Sum = root["md5Sum"].asString();
+        buildRecordInfo(root);
 
         partSize_ = record_.partSize;
         uploadID_ = record_.uploadID;
@@ -350,7 +330,7 @@ int ResumableUploader::getPartsToUpload(OssError &err, PartList &partsUploaded, 
         }
         while(true){
             listPartsRequest.setPartNumberMarker(marker);
-            auto outcome = client_->ListParts(listPartsRequest);
+            auto outcome = ListPartsWrap(listPartsRequest);
             if(!outcome.isSuccess()){
                 err = outcome.error();
                 return -1;
@@ -390,21 +370,41 @@ int ResumableUploader::getPartsToUpload(OssError &err, PartList &partsUploaded, 
     return 0;
 }
 
-void ResumableUploader::initRecord(const std::string &uploadID) 
+void ResumableUploader::initRecordInfo()
 {
-    auto filePath = request_.FilePath();
-    if (!request_.FilePathW().empty()) {
-        filePath = toString(request_.FilePathW());
-    }
-
     record_.opType = "ResumableUpload";
-    record_.uploadID = uploadID;
-    record_.filePath = filePath;
+    record_.uploadID = uploadID_;
+    record_.filePath = request_.FilePath();
     record_.bucket = request_.Bucket();
     record_.key = request_.Key();
     record_.mtime = request_.ObjectMtime();
     record_.size = objectSize_;
     record_.partSize = partSize_;
+}
+
+void ResumableUploader::buildRecordInfo(const AlibabaCloud::OSS::Json::Value& root)
+{
+    record_.opType = root["opType"].asString();
+    record_.uploadID = root["uploadID"].asString();
+    record_.filePath = root["filePath"].asString();
+    record_.bucket = root["bucket"].asString();
+    record_.key = root["key"].asString();
+    record_.size = root["size"].asUInt64();
+    record_.mtime = root["mtime"].asString();
+    record_.partSize = root["partSize"].asUInt64();
+    record_.md5Sum = root["md5Sum"].asString();
+}
+
+void ResumableUploader::dumpRecordInfo(AlibabaCloud::OSS::Json::Value& root)
+{
+    root["opType"] = record_.opType;
+    root["uploadID"] = record_.uploadID;
+    root["filePath"] = record_.filePath;
+    root["bucket"] = record_.bucket;
+    root["key"] = record_.key;
+    root["mtime"] = record_.mtime;
+    root["size"] = record_.size;
+    root["partSize"] = record_.partSize;
 }
 
 void ResumableUploader::UploadPartProcessCallback(size_t increment, int64_t transfered, int64_t total, void *userData) 
@@ -421,3 +421,25 @@ void ResumableUploader::UploadPartProcessCallback(size_t increment, int64_t tran
         process.Handler(increment, uploader->consumedSize_, uploader->objectSize_, process.UserData);
     }
 }
+
+InitiateMultipartUploadOutcome ResumableUploader::InitiateMultipartUploadWrap(const InitiateMultipartUploadRequest &request) const
+{
+    return client_->InitiateMultipartUpload(request);
+}
+
+PutObjectOutcome ResumableUploader::UploadPartWrap(const UploadPartRequest &request) const
+{
+    return client_->UploadPart(request);
+}
+
+ListPartsOutcome ResumableUploader::ListPartsWrap(const ListPartsRequest &request) const
+{
+    return client_->ListParts(request);
+}
+
+CompleteMultipartUploadOutcome ResumableUploader::CompleteMultipartUploadWrap(const CompleteMultipartUploadRequest &request) const
+{
+    return client_->CompleteMultipartUpload(request);
+}
+
+

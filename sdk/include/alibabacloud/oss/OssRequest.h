@@ -24,6 +24,7 @@ namespace AlibabaCloud
 namespace OSS
 {
     class OssClientImpl;
+    class OssEncryptionClient;
     class  ALIBABACLOUD_OSS_EXPORT OssRequest : public ServiceRequest
     {
     public:
@@ -35,6 +36,7 @@ namespace OSS
     protected:
         OssRequest(const std::string& bucket, const std::string& key);
         friend class OssClientImpl;
+        friend class OssEncryptionClient;
 
         virtual int validate() const;
         const char *validateMessage(int code) const;
@@ -67,7 +69,7 @@ namespace OSS
     public:
         OssObjectRequest(const std::string& bucket, const std::string& key) :
             OssRequest(bucket, key),
-            requestPayer_(RequestPayer::NotSet),
+            requestPayer_(AlibabaCloud::OSS::RequestPayer::NotSet),
             versionId_()
         {}
         void setBucket(const std::string& bucket);
@@ -76,15 +78,15 @@ namespace OSS
         void setKey(const std::string& key);
         const std::string& Key() const;
 
-        void setRequestPayer(RequestPayer value);
-
+        void setRequestPayer(AlibabaCloud::OSS::RequestPayer value);
+        AlibabaCloud::OSS::RequestPayer RequestPayer() const;
         void setVersionId(const std::string& versionId);
         const std::string& VersionId() const;
     protected:
         virtual int validate() const;
         virtual HeaderCollection specialHeaders() const;
         virtual ParameterCollection specialParameters() const;
-        RequestPayer requestPayer_;
+        AlibabaCloud::OSS::RequestPayer requestPayer_;
         std::string versionId_;
     };
 
@@ -152,6 +154,7 @@ namespace OSS
 
     protected:
         friend class OssClientImpl;
+        friend class OssEncryptionClient;
         virtual int validate() const;
         const char *validateMessage(int code) const;
 
