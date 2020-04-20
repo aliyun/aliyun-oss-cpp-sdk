@@ -1729,5 +1729,34 @@ TEST_F(ObjectBasicOperationTest, ListObjectsWithInvalidResponseBodyTest)
     EXPECT_EQ(listOutcome.error().Code(), "ParseXMLError");
 }
 
+TEST_F(ObjectBasicOperationTest, GetObjectRequestStandardModeTest)
+{
+    std::string key = TestUtils::GetObjectKey("GetObjectRequestStandardModeTest");
+    auto content = TestUtils::GetRandomStream(100);
+    auto outcome = Client->PutObject(BucketName, key, content);
+
+    auto getRequet = GetObjectRequest(BucketName, key);
+    getRequet.setRange(10, 200);
+    auto getOutcome = Client->GetObject(getRequet);
+    EXPECT_EQ(getOutcome.result().Metadata().ContentLength(), 100);
+
+    getRequet = GetObjectRequest(BucketName, key);
+    getRequet.setRange(10, 200, true);
+    getOutcome = Client->GetObject(getRequet);
+    EXPECT_EQ(getOutcome.result().Metadata().ContentLength(), 90);
+
+    std::vector<std::string> etags;
+    std::map<std::string, std::string> maps;
+    getRequet = GetObjectRequest(BucketName, key, "", "", etags, etags, maps);
+    getRequet.setRange(10, 200);
+    getOutcome = Client->GetObject(getRequet);
+    EXPECT_EQ(getOutcome.result().Metadata().ContentLength(), 100);
+
+    getRequet = GetObjectRequest(BucketName, key, "", "", etags, etags, maps);
+    getRequet.setRange(10, 200, true);
+    getOutcome = Client->GetObject(getRequet);
+    EXPECT_EQ(getOutcome.result().Metadata().ContentLength(), 90);
+}
+
 }
 }

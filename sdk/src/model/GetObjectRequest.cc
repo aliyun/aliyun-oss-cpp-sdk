@@ -32,7 +32,8 @@ GetObjectRequest::GetObjectRequest(const std::string &bucket, const std::string 
     OssObjectRequest(bucket, key),
     rangeIsSet_(false),
     process_(process),
-    trafficLimit_(0)
+    trafficLimit_(0),
+    rangeIsStandardMode_(false)
 {
     setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
 }
@@ -49,7 +50,8 @@ GetObjectRequest::GetObjectRequest(const std::string& bucket, const std::string&
     nonmatchingETags_(nonmatchingETags), 
     process_(""),
     responseHeaderParameters_(responseHeaderParameters),
-    trafficLimit_(0)
+    trafficLimit_(0),
+    rangeIsStandardMode_(false)
 {
 }
 
@@ -58,6 +60,15 @@ void GetObjectRequest::setRange(int64_t start, int64_t end)
     range_[0] = start;
     range_[1] = end;
     rangeIsSet_ = true;
+    rangeIsStandardMode_ = false;
+}
+
+void GetObjectRequest::setRange(int64_t start, int64_t end, bool standard)
+{
+    range_[0] = start;
+    range_[1] = end;
+    rangeIsSet_ = true;
+    rangeIsStandardMode_ = standard;
 }
 
 void GetObjectRequest::setModifiedSinceConstraint(const std::string &gmt)
@@ -128,6 +139,10 @@ HeaderCollection GetObjectRequest::specialHeaders() const
         ss << "bytes=" << range_[0] << "-";
         if (range_[1] != -1) ss << range_[1];
         headers[Http::RANGE] = ss.str();
+
+        if (rangeIsStandardMode_) {
+            headers["x-oss-range-behavior"] = "standard";
+        }
     }
 
     if (!modifiedSince_.empty())

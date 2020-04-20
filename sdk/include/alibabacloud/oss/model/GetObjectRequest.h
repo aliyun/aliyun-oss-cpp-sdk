@@ -36,6 +36,7 @@ namespace OSS
             const std::vector<std::string> &matchingETags, const std::vector<std::string> &nonmatchingETags, 
             const std::map<std::string, std::string> &responseHeaderParameters_);
         void setRange(int64_t start, int64_t end);
+        void setRange(int64_t start, int64_t end, bool standard);
         void setModifiedSinceConstraint(const std::string& gmt);
         void setUnmodifiedSinceConstraint(const std::string& gmt);
         void setMatchingETagConstraints(const std::vector<std::string>& match);
@@ -60,6 +61,7 @@ namespace OSS
         std::string process_;
         std::map<std::string, std::string> responseHeaderParameters_;
         uint64_t trafficLimit_;
+        bool rangeIsStandardMode_;
     };
 } 
 }
