@@ -19,6 +19,7 @@
 #include <alibabacloud/oss/model/Part.h>
 #include <alibabacloud/oss/OssError.h>
 #include "ResumableBaseWorker.h"
+#include "external/json/json.h"
 
 namespace AlibabaCloud
 {
@@ -42,15 +43,24 @@ namespace OSS
         ResumableUploader(const UploadObjectRequest& request, const OssClientImpl *client);
 	
         PutObjectOutcome Upload();
-        
+
+    protected:
+        virtual InitiateMultipartUploadOutcome InitiateMultipartUploadWrap(const InitiateMultipartUploadRequest &request) const;
+        virtual PutObjectOutcome UploadPartWrap(const UploadPartRequest &request) const;
+        virtual ListPartsOutcome ListPartsWrap(const ListPartsRequest &request) const;
+        virtual CompleteMultipartUploadOutcome CompleteMultipartUploadWrap(const CompleteMultipartUploadRequest &request) const;
+
+        virtual void initRecordInfo();
+        virtual void buildRecordInfo(const AlibabaCloud::OSS::Json::Value& value);
+        virtual void dumpRecordInfo(AlibabaCloud::OSS::Json::Value& value);
+        virtual int validateRecord();
+
     private:
         int getPartsToUpload(OssError &err, PartList &partsUploaded, PartList &partsToUpload);
-        void genRecordPath();
-        int loadRecord();
-        int validateRecord();
-        int prepare(OssError& err);
-        void initRecord(const std::string &uploadID);
-		
+        virtual void genRecordPath();
+        virtual int loadRecord();
+        virtual int prepare(OssError& err);
+
         const UploadObjectRequest& request_;
         UploadRecord record_;
         const OssClientImpl *client_;

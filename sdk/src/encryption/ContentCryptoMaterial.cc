@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-#pragma once
 
-// version = (major << 16) + (minor << 8) + patch
-#define ALIBABACLOUD_OSS_VERSION ((1 << 16) + (7 << 8) + 0)
+#include <alibabacloud/oss/encryption/ContentCryptoMaterial.h>
 
-#define ALIBABACLOUD_OSS_VERSION_STR "1.7.0"
+using namespace AlibabaCloud::OSS;
 
+ContentCryptoMaterial::ContentCryptoMaterial()
+{
+}
+
+ContentCryptoMaterial::~ContentCryptoMaterial()
+{
+}

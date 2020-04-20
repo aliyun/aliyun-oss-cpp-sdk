@@ -553,3 +553,33 @@ std::string TestUtils::Base64Decode(std::string const& data)
 
     return ret;
 }
+
+bool TestUtils::IsByteBufferEQ(const char *src, const char *pat, int len)
+{
+    for (int i = 0; i < len; i++) {
+        if (src[i] != pat[i])
+            return false;
+    }
+    return true;
+}
+
+bool TestUtils::IsByteBufferEQ(const unsigned char *src, const unsigned char *pat, int len)
+{
+    return TestUtils::IsByteBufferEQ(reinterpret_cast<const char*>(src),
+        reinterpret_cast<const char*>(pat), len);
+}
+
+bool TestUtils::IsByteBufferEQ(const ByteBuffer& src, const ByteBuffer& pat)
+{
+    return (src == pat);
+}
+
+
+ByteBuffer TestUtils::GetRandomByteBuffer(int length)
+{
+    ByteBuffer buff(length);
+    for (int i = 0; i < length; i++) {
+        buff[i] = static_cast<char>(rand()%256);
+    }
+    return buff;
+}

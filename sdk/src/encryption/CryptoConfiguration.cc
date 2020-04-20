@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <alibabacloud/oss/encryption/CryptoConfiguration.h>
 
-#pragma once
+using namespace AlibabaCloud::OSS;
 
-// version = (major << 16) + (minor << 8) + patch
-#define ALIBABACLOUD_OSS_VERSION ((1 << 16) + (7 << 8) + 0)
+CryptoConfiguration::CryptoConfiguration():
+    cryptoMode(CryptoMode::ENCRYPTION_AESCTR),
+    cryptoStorageMethod(CryptoStorageMethod::METADATA)
+{
+}
 
-#define ALIBABACLOUD_OSS_VERSION_STR "1.7.0"
-
+CryptoConfiguration::~CryptoConfiguration()
+{
+}

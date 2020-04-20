@@ -65,6 +65,8 @@ namespace OSS
         bool renameTempFile();
         static void DownloadPartProcessCallback(size_t increment, int64_t transfered, int64_t total, void *userData);
 
+        virtual GetObjectOutcome GetObjectWrap(const GetObjectRequest &request) const;
+
         const DownloadObjectRequest request_;
         DownloadRecord record_;
         const OssClientImpl *client_;

@@ -74,6 +74,32 @@ TEST_F(UtilsFunctionTest, Base64EncodeTest)
     EXPECT_TRUE((i == ori.size()));
 }
 
+TEST_F(UtilsFunctionTest, Base64DecodeTest)
+{
+    std::vector<std::string> ori = { "YWJj" , "YWJjZA==" , "YWJjZGU=", "", "YWJjZA" , "YWJjZGU" };
+    std::vector<std::string> pat = { "abc" , "abcd" , "abcde", "", "abcd" , "abcde" };
+
+    auto i = ori.size();
+    for (i = 0; i < ori.size(); i++) {
+        auto result = Base64Decode(ori[i]);
+        EXPECT_EQ(result.size(), pat[i].size());
+        EXPECT_TRUE(TestUtils::IsByteBufferEQ(reinterpret_cast<const char *>(result.data()), pat[i].data(), result.size()));
+    }
+    EXPECT_TRUE((i == ori.size()));
+}
+
+TEST_F(UtilsFunctionTest, Base64EncodeAndDecodeTest)
+{
+    for (int i = 1; i < 256; i++) {
+        ByteBuffer data = TestUtils::GetRandomByteBuffer(i);
+        EXPECT_EQ(data.size(), static_cast<size_t>(i));
+        auto result = Base64Encode(data);
+        auto data1 = Base64Decode(result.c_str(), result.size());
+        EXPECT_EQ(data1.size(), static_cast<size_t>(i));
+        EXPECT_TRUE(TestUtils::IsByteBufferEQ(data.data(), data1.data(), i));
+    }
+}
+
 static std::vector<std::string> urlOri = 
 {
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_~",
@@ -931,6 +957,51 @@ TEST_F(UtilsFunctionTest, ToTierTypeTest)
     EXPECT_EQ(ToTierType("expedited"), TierType::Expedited);
     EXPECT_EQ(ToTierType("Bulk"), TierType::Bulk);
     EXPECT_EQ(ToTierType("bulk"), TierType::Bulk);
+}
+
+TEST_F(UtilsFunctionTest, JsonStringToMapTest)
+{
+    std::string jsonStr1 = R"({"comment":"rsa test","provider":"aliclould"})";
+    std::string jsonStr2 = R"({"provider":"aliclould","comment":"rsa test"})";
+    std::string jsonStr3 = R"({"comment":"kms test","provider":"aliclould"})";
+
+    auto map1 = JsonStringToMap(jsonStr1);
+    auto map2 = JsonStringToMap(jsonStr2);
+    auto map3 = JsonStringToMap(jsonStr3);
+
+    EXPECT_EQ(map1, map2);
+    EXPECT_NE(map1, map3);
+
+    EXPECT_EQ(map1["comment"], "rsa test");
+    EXPECT_EQ(map1["provider"], "aliclould");
+
+    EXPECT_EQ(map3["comment"], "kms test");
+    EXPECT_EQ(map3["provider"], "aliclould");
+}
+
+TEST_F(UtilsFunctionTest, MapToJsonStringTest)
+{
+    std::string jsonStr1 = R"({"comment":"rsa test","provider":"aliclould"})";
+    std::string jsonStr3 = R"({"comment":"kms test","provider":"aliclould"})";
+
+    std::map<std::string, std::string> map1;
+    map1["comment"] = "rsa test";
+    map1["provider"] = "aliclould";
+    auto json1 = MapToJsonString(map1);
+
+    std::map<std::string, std::string> map2;
+    map2["provider"] = "aliclould";
+    map2["comment"] = "rsa test";
+    auto json2 = MapToJsonString(map2);
+
+    std::map<std::string, std::string> map3;
+    map3["provider"] = "aliclould";
+    map3["comment"] = "kms test";
+    auto json3 = MapToJsonString(map3);
+       
+    EXPECT_EQ(json1, jsonStr1);
+    EXPECT_EQ(json3, jsonStr3);
+    EXPECT_EQ(json1, json2);
 }
 
 }

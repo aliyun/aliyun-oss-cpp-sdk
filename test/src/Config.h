@@ -25,6 +25,7 @@ public:
     static std::string AccessKeyId;
     static std::string AccessKeySecret;
     static std::string Endpoint;
+    static std::string SecondEndpoint;
     static std::string CallbackServer;
     static std::string CfgFilePath;
     static std::string PayerAccessKeyId;

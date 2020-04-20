@@ -74,6 +74,11 @@ public:
 
     static std::string Base64Decode(std::string const& encoded_string);
 
+    static bool IsByteBufferEQ(const char *src, const char *pat, int len);
+    static bool IsByteBufferEQ(const unsigned char *src, const unsigned char *pat, int len);
+    static bool IsByteBufferEQ(const ByteBuffer& src, const ByteBuffer& pat);
+
+    static ByteBuffer GetRandomByteBuffer(int length);
 };
 
 }

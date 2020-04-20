@@ -15,9 +15,34 @@
  */
 
 #pragma once
+#include <alibabacloud/oss/auth/CredentialsProvider.h>
+#include <alibabacloud/oss/http/HttpType.h>
+#include <string>
+#include <vector>
 
-// version = (major << 16) + (minor << 8) + patch
-#define ALIBABACLOUD_OSS_VERSION ((1 << 16) + (7 << 8) + 0)
+namespace AlibabaCloud
+{
+namespace OSS
+{
+    enum class CryptoStorageMethod
+    {
+        METADATA,
+    };
 
-#define ALIBABACLOUD_OSS_VERSION_STR "1.7.0"
+    enum class CryptoMode
+    {
+        ENCRYPTION_AESCTR,
+    };
 
+    class ALIBABACLOUD_OSS_EXPORT CryptoConfiguration
+    {
+    public:
+        CryptoConfiguration();
+        ~CryptoConfiguration();
+
+    public:
+        CryptoMode cryptoMode;
+        CryptoStorageMethod cryptoStorageMethod;
+    };
+}
+}
