@@ -959,9 +959,7 @@ TEST_F(BucketLifecycleSettingsTest, SetAndGetLifecycleRuleWithVersioningTest)
     auto bucketName = BucketName;
     bucketName.append("-lc-version");
 
-    std::string endpoint = "http://oss-ap-south-1.aliyuncs.com";
-
-    auto client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+    auto client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
 
     auto cOutcome = client->CreateBucket(bucketName);
     EXPECT_EQ(cOutcome.isSuccess(), true);

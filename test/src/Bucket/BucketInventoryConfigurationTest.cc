@@ -35,7 +35,8 @@ protected:
     // Sets up the stuff shared by all tests in this test case.
     static void SetUpTestCase()
     {
-        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        std::string endpoint = "http://oss-ap-southeast-2.aliyuncs.com";
+        Client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
         BucketName = TestUtils::GetBucketName("cpp-sdk-inventory");
         DstBucketName = TestUtils::GetBucketName("cpp-sdk-inventory-dst");
         Client->CreateBucket(CreateBucketRequest(BucketName));
@@ -79,8 +80,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
 
     InventoryOSSBucketDestination dest;
     dest.setFormat(InventoryFormat::CSV);
-    dest.setAccountId(Config::AccountId);
-    dest.setRoleArn(Config::OssStsArn);
+    dest.setAccountId(Config::RamUID);
+    dest.setRoleArn(Config::RamRoleArn);
     dest.setBucket(DstBucketName);
     dest.setPrefix("prefix1");
     dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
@@ -104,8 +105,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), true);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "filterPrefix");
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::AccountId);
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::OssStsArn);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
@@ -129,8 +130,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
     conf.setFilter(InventoryFilter("filterPrefix2"));
     InventoryOSSBucketDestination dest1;
     dest1.setFormat(InventoryFormat::CSV);
-    dest1.setAccountId(Config::AccountId);
-    dest1.setRoleArn(Config::OssStsArn);
+    dest1.setAccountId(Config::RamUID);
+    dest1.setRoleArn(Config::RamRoleArn);
     dest1.setBucket(DstBucketName);
     dest1.setPrefix("prefix2");
     dest1.setEncryption(InventoryEncryption(InventorySSEOSS()));
@@ -151,8 +152,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report2");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), false);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "filterPrefix2");
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::AccountId);
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::OssStsArn);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix2");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), false);
@@ -177,8 +178,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutFilt
 
     InventoryOSSBucketDestination dest;
     dest.setFormat(InventoryFormat::CSV);
-    dest.setAccountId(Config::AccountId);
-    dest.setRoleArn(Config::OssStsArn);
+    dest.setAccountId(Config::RamUID);
+    dest.setRoleArn(Config::RamRoleArn);
     dest.setBucket(DstBucketName);
     dest.setPrefix("prefix1");
     dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
@@ -202,8 +203,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutFilt
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), true);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "");
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::AccountId);
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::OssStsArn);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
@@ -230,8 +231,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutEncr
 
     InventoryOSSBucketDestination dest;
     dest.setFormat(InventoryFormat::CSV);
-    dest.setAccountId(Config::AccountId);
-    dest.setRoleArn(Config::OssStsArn);
+    dest.setAccountId(Config::RamUID);
+    dest.setRoleArn(Config::RamRoleArn);
     dest.setBucket(DstBucketName);
     dest.setPrefix("prefix1");
     conf.setDestination(dest);
@@ -254,8 +255,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutEncr
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), true);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "");
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::AccountId);
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::OssStsArn);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), false);
@@ -282,8 +283,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutOpti
 
     InventoryOSSBucketDestination dest;
     dest.setFormat(InventoryFormat::CSV);
-    dest.setAccountId(Config::AccountId);
-    dest.setRoleArn(Config::OssStsArn);
+    dest.setAccountId(Config::RamUID);
+    dest.setRoleArn(Config::RamRoleArn);
     dest.setBucket(DstBucketName);
     dest.setPrefix("prefix1");
     conf.setDestination(dest);
@@ -299,8 +300,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutOpti
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), true);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "");
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::AccountId);
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::OssStsArn);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), false);
@@ -324,8 +325,8 @@ TEST_F(BucketInventoryConfigurationTest, ListBucketInventoryConfigurationTest)
 
         InventoryOSSBucketDestination dest;
         dest.setFormat(InventoryFormat::CSV);
-        dest.setAccountId(Config::AccountId);
-        dest.setRoleArn(Config::OssStsArn);
+        dest.setAccountId(Config::RamUID);
+        dest.setRoleArn(Config::RamRoleArn);
         dest.setBucket(DstBucketName);
         dest.setPrefix("prefix1");
         dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
@@ -360,8 +361,8 @@ TEST_F(BucketInventoryConfigurationTest, ListBucketInventoryConfigurationTest)
         int j = std::strtol(conf.Id().c_str(), nullptr, 10);
         EXPECT_EQ(conf.IsEnabled(), ((j % 4) ? true : false));
         EXPECT_EQ(conf.Filter().Prefix(), ((j % 5) ? "filterPrefix" : ""));
-        EXPECT_EQ(conf.Destination().OSSBucketDestination().AccountId(), Config::AccountId);
-        EXPECT_EQ(conf.Destination().OSSBucketDestination().RoleArn(), Config::OssStsArn);
+        EXPECT_EQ(conf.Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+        EXPECT_EQ(conf.Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Bucket(), DstBucketName);
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Prefix(), "prefix1");
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
@@ -402,8 +403,8 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationNegativeTes
 
     InventoryOSSBucketDestination dest;
     dest.setFormat(InventoryFormat::CSV);
-    dest.setAccountId(Config::AccountId);
-    dest.setRoleArn(Config::OssStsArn);
+    dest.setAccountId(Config::RamUID);
+    dest.setRoleArn(Config::RamRoleArn);
     dest.setBucket("not-exist-bucket");
     dest.setPrefix("prefix1");
     conf.setDestination(dest);

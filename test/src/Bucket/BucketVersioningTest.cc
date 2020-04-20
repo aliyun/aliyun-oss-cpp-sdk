@@ -35,8 +35,7 @@ namespace OSS {
         // Sets up the stuff shared by all tests in this test case.
         static void SetUpTestCase()
         {
-            std::string endpoint = "http://oss-ap-south-1.aliyuncs.com";
-            Client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+            Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
             BucketName = TestUtils::GetBucketName("cpp-sdk-versioning");
             Client->CreateBucket(CreateBucketRequest(BucketName));
         }
