@@ -100,7 +100,7 @@ ListObjectVersionsResult& ListObjectVersionsResult::operator =(const std::string
             node = root->FirstChildElement("CommonPrefixes");
             for (; node; node = node->NextSiblingElement("CommonPrefixes")) {
                 XMLElement *prefix_node = node->FirstChildElement("Prefix");
-                if (prefix_node->GetText()) commonPrefixes_.push_back(
+                if (prefix_node && prefix_node->GetText()) commonPrefixes_.push_back(
                     (useUrlDecode ? UrlDecode(prefix_node->GetText()) : prefix_node->GetText()));
             }
 
