@@ -23,23 +23,14 @@ static void waitTimeinSec(int time)
 LiveChannelSample::LiveChannelSample(const std::string& bucket, const std::string& channelName):bucket_(bucket),channelName_(channelName),
     timeStart_(0),timeEnd_(0),isSuccess_(false)
 {
-    
     ClientConfiguration conf;
     client = new OssClient(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
-    CreateBucketRequest request(bucket_);
-    client->CreateBucket(request);
+    //CreateBucketRequest request(bucket_);
+    //client->CreateBucket(request);
 }
 
 LiveChannelSample::~LiveChannelSample()
 {
-    DeleteBucketRequest request(bucket_);
-    auto deleteOutcome = client->DeleteBucket(request);
-
-    if(!deleteOutcome.isSuccess())
-    {
-        std::cerr<<"delete bucket "+bucket_+" fail";
-    }
-
     if(nullptr != client)
     {
         delete client;

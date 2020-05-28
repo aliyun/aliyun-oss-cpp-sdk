@@ -19,7 +19,7 @@
 #include <sstream>
 #include "../utils/FileSystemUtils.h"
 #include "../utils/Utils.h"
-#include "ModelError.h"
+#include "../model/ModelError.h"
 
 using namespace AlibabaCloud::OSS;
 static const std::string strEmpty = "";

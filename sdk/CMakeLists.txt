@@ -44,13 +44,70 @@ file(GLOB sdk_auth_src "src/auth/*.cc")
 file(GLOB sdk_client_src "src/client/*.cc")
 file(GLOB sdk_http_src "src/http/*.cc")
 file(GLOB sdk_utils_src "src/utils/*.cc")
-file(GLOB sdk_model_src "src/model/*.cc")
-file(GLOB sdk_encryption_src "src/encryption/*.cc")
 file(GLOB sdk_public_src "src/*.cc")
 
+#add source by DISABLE_XX option
+file(GLOB sdk_model_common_src 
+	"src/model/ModelError.cc"
+)
+
+if (NOT OSS_DISABLE_BUCKET)
+file(GLOB sdk_model_bucket_src 
+	"src/model/*Bucket*.cc"
+	"src/model/GetUserQos*.cc"
+	"src/model/LifecycleRule.cc"
+	"src/model/InventoryConfiguration.cc"
+	"src/model/Tagging.cc"
+)
+endif()
+
+file(GLOB sdk_model_object_src 
+	"src/model/*Object*.cc"
+	"src/model/*Symlink*.cc"
+	"src/model/InputFormat.cc"
+	"src/model/OutputFormat.cc"
+	"src/model/Tagging.cc"
+	"src/model/GeneratePresignedUrlRequest.cc"
+)
+
+file(GLOB sdk_model_multipart_src 
+	"src/model/*MultipartUpload*.cc"
+	"src/model/UploadPart*.cc"
+	"src/model/ListPart*.cc"
+)
+
+if (NOT OSS_DISABLE_LIVECHANNEL)
+file(GLOB sdk_model_livechannel_src 
+	"src/model/*LiveChannel*.cc"
+	"src/model/GetVod*.cc"
+	"src/model/PostVod*.cc"
+	"src/model/GenerateRTMPSignedUrlRequest.cc"
+)
+endif()
+
+file(GLOB sdk_model_src
+	${sdk_model_common_src}
+	${sdk_model_bucket_src}
+	${sdk_model_object_src}
+	${sdk_model_multipart_src}
+	${sdk_model_livechannel_src}
+)
+
+if (NOT OSS_DISABLE_RESUAMABLE)
+file(GLOB sdk_resumable_src "src/resumable/*.cc")
+endif()
+
+if (NOT OSS_DISABLE_ENCRYPTION)
+file(GLOB sdk_encryption_src "src/encryption/*.cc")
+endif()
+
 #external source
-file(GLOB sdk_external_json_src "src/external/json/*.cpp")
 file(GLOB sdk_external_tinnyxml2_src "src/external/tinyxml2/*.cpp")
+
+if (NOT OSS_DISABLE_ENCRYPTION OR NOT OSS_DISABLE_RESUAMABLE)
+file(GLOB sdk_external_json_src "src/external/json/*.cpp")
+endif()
+
 
 #all source
 file(GLOB sdk_src
@@ -59,8 +116,9 @@ file(GLOB sdk_src
     ${sdk_http_src}
     ${sdk_utils_src}
     ${sdk_model_src}
-    ${sdk_encryption_src}
     ${sdk_public_src}
+    ${sdk_resumable_src}
+    ${sdk_encryption_src}
     ${sdk_external_json_src}
     ${sdk_external_tinnyxml2_src}
 )

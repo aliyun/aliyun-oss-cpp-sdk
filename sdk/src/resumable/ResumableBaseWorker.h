@@ -19,7 +19,7 @@
 #include <mutex>
 #include <alibabacloud/oss/OssError.h>
 #include <alibabacloud/oss/OssRequest.h>
-#include "utils/Utils.h"
+#include "../OssClientImpl.h"
 
 namespace AlibabaCloud
 {

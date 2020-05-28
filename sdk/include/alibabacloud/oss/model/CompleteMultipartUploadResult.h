@@ -19,7 +19,6 @@
 #include <iostream>
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/OssResult.h>
-#include <alibabacloud/oss/model/LifecycleRule.h>
 
 namespace AlibabaCloud
 {

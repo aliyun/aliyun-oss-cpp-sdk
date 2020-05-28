@@ -15,11 +15,8 @@
  */
 
 #pragma once
-#include <alibabacloud/oss/model/UploadObjectRequest.h>
-#include <alibabacloud/oss/model/Part.h>
-#include <alibabacloud/oss/OssError.h>
 #include "ResumableBaseWorker.h"
-#include "external/json/json.h"
+#include "../external/json/json.h"
 
 namespace AlibabaCloud
 {

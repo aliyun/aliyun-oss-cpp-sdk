@@ -124,8 +124,9 @@ namespace OSS
     const char * ToTierTypeName(TierType status);
     TierType ToTierType(const char *name);
 
+#if !defined(OSS_DISABLE_RESUAMABLE) || !defined(OSS_DISABLE_ENCRYPTION)
     std::map<std::string, std::string> JsonStringToMap(const std::string& jsonStr);
     std::string MapToJsonString(const std::map<std::string, std::string>& map);
-
+#endif
 }
 }

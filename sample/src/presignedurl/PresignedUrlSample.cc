@@ -13,12 +13,11 @@ PresignedUrlSample::PresignedUrlSample(const std::string &bucket) :
 {
     ClientConfiguration conf;
     client = new OssClient(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
-    CreateBucketRequest request(bucket_);
-    client->CreateBucket(request);
+    //CreateBucketRequest request(bucket_);
+    //client->CreateBucket(request);
 
     key_ = "PresignedUrlSample";
-    auto content = std::make_shared<std::stringstream>();
-    *content << "PresignedUrlSample For Test";
+    auto content = std::make_shared<std::stringstream>("PresignedUrlSample For Test");
     client->PutObject(PutObjectRequest(bucket_, key_, content));
 }
 

@@ -18,14 +18,14 @@
 #include <algorithm>
 #include <set>
 #include <alibabacloud/oss/Const.h>
-#include "utils/Utils.h"
-#include "utils/Crc64.h"
-#include "utils/LogUtils.h"
-#include "utils/FileSystemUtils.h"
-#include "external/json/json.h"
-#include "OssClientImpl.h"
+#include "../utils/Utils.h"
+#include "../utils/Crc64.h"
+#include "../utils/LogUtils.h"
+#include "../utils/FileSystemUtils.h"
+#include "../external/json/json.h"
+//#include "OssClientImpl.h"
 #include "ResumableDownloader.h"
-#include "model/ModelError.h"
+#include "../model/ModelError.h"
 
 using namespace AlibabaCloud::OSS;
 

@@ -21,8 +21,8 @@
 #endif
 #include <alibabacloud/oss/Const.h>
 #include "ResumableBaseWorker.h"
-#include "utils/FileSystemUtils.h"
-#include "utils/Utils.h"
+#include "../utils/FileSystemUtils.h"
+#include "../utils/Utils.h"
 
 using namespace AlibabaCloud::OSS;
 

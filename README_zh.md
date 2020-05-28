@@ -116,6 +116,29 @@ cmake .. -DBUILD_TESTS=ON
 cmake .. -DENABLE_RTTI=OFF
 ```
 
+#### OSS_DISABLE_BUCKET
+(默认为关，即OFF) 如果打开, 构建的库不会包含和 bucket 有关的接口.
+```
+cmake .. -DOSS_DISABLE_BUCKET=ON
+```
+#### OSS_DISABLE_LIVECHANNEL
+(默认为关，即OFF) 如果打开, 构建的库不会包含和 livechannel 有关的接口.
+```
+cmake .. -DOSS_DISABLE_LIVECHANNEL=ON
+```
+
+#### OSS_DISABLE_RESUAMABLE
+(默认为关，即OFF) 如果打开, 构建的库不会包含断点续传功能.
+```
+cmake .. -DOSS_DISABLE_RESUAMABLE=ON
+```
+
+#### OSS_DISABLE_ENCRYPTION
+(默认为关，即OFF) 如果打开, 构建的库不会包含客户端加密功能.
+```
+cmake .. -DOSS_DISABLE_ENCRYPTION=ON
+```
+
 ## 如何使用 C++ SDK
 
 以下代码展示了如何获取请求者拥有的Bucket。

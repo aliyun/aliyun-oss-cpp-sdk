@@ -16,7 +16,6 @@
  */
 
 #pragma once
-#include <alibabacloud/oss/model/DownloadObjectRequest.h>
 #include "ResumableBaseWorker.h"
 
 namespace AlibabaCloud

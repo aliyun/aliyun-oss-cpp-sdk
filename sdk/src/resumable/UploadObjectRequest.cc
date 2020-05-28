@@ -20,7 +20,7 @@
 #include <fstream>
 #include "../utils/Utils.h"
 #include "../utils/FileSystemUtils.h"
-#include "ModelError.h"
+#include "../model/ModelError.h"
 
 using namespace AlibabaCloud::OSS;
 
