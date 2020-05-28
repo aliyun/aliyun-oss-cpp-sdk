@@ -14,14 +14,14 @@
 * limitations under the License.
 */
 
-#include <alibabacloud/oss/OssEncryptionClient.h>
-#include "auth/SimpleCredentialsProvider.h"
-#include "encryption/CryptoModule.h"
-#include "utils/Utils.h"
-#include "utils/FileSystemUtils.h"
-#include "ResumableDownloader.h"
-#include "ResumableUploader.h"
 #include <fstream>
+#include <alibabacloud/oss/OssEncryptionClient.h>
+#include "../auth/SimpleCredentialsProvider.h"
+#include "../encryption/CryptoModule.h"
+#include "../utils/Utils.h"
+#include "../utils/FileSystemUtils.h"
+#include "../resumable/ResumableDownloader.h"
+#include "../resumable/ResumableUploader.h"
 
 using namespace AlibabaCloud::OSS;
 
@@ -30,7 +30,7 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-
+#if !defined(DISABLE_RESUAMABLE)
 static GetObjectRequest ConvertToGetObjectRequest(const DownloadObjectRequest& request)
 {
     auto gRequest = GetObjectRequest(request.Bucket(), request.Key(), request.ModifiedSinceConstraint(), request.UnmodifiedSinceConstraint(), request.MatchingETagsConstraint(), request.NonmatchingETagsConstraint(), request.ResponseHeaderParameters());
@@ -190,7 +190,7 @@ private:
     mutable MultipartUploadCryptoContext cryptoContext_;
     ByteBuffer encryptionCheckData_;
 };
-
+#endif
 }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -330,6 +330,7 @@ CompleteMultipartUploadOutcome OssEncryptionClient::CompleteMultipartUpload(cons
     return OssClient::CompleteMultipartUpload(request);
 }
 
+#if !defined(DISABLE_RESUAMABLE)
 /*Resumable Operation*/
 PutObjectOutcome OssEncryptionClient::ResumableUploadObject(const UploadObjectRequest& request) const
 {
@@ -393,6 +394,7 @@ GetObjectOutcome OssEncryptionClient::ResumableDownloadObject(const DownloadObje
         }
     }
 }
+#endif
 
 /*Aysnc APIs*/
 void OssEncryptionClient::GetObjectAsync(const GetObjectRequest& request, const GetObjectAsyncHandler& handler, const std::shared_ptr<const AsyncCallerContext>& context) const

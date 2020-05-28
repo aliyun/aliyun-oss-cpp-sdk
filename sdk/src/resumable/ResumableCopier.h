@@ -15,9 +15,6 @@
  */
 
 #pragma once
-#include <alibabacloud/oss/model/MultiCopyObjectRequest.h>
-#include <alibabacloud/oss/OssError.h>
-#include <alibabacloud/oss/model/Part.h>
 #include "ResumableBaseWorker.h"
 
 namespace AlibabaCloud

@@ -10,9 +10,12 @@ public:
     void PutObjectFromFile();
     void GetObjectToBuffer();
     void GetObjectToFile();
+    void MultipartUploadObject();
+
+#if !defined(OSS_DISABLE_RESUAMABLE)
     void UploadObjectProgress();
     void DownloadObjectProcess();
-    void MultipartUploadObject();
+#endif
 
 private:
     void PrintError(const std::string &funcName, const AlibabaCloud::OSS::OssError &error);

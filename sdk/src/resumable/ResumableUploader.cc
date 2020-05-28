@@ -24,14 +24,14 @@
 #include <algorithm>
 #include <iostream>
 #include <set>
-#include "external/json/json.h"
-#include "utils/FileSystemUtils.h"
-#include "utils/Utils.h"
-#include "utils/LogUtils.h"
-#include "utils/Crc64.h"
-#include "OssClientImpl.h"
+#include "../external/json/json.h"
+#include "../utils/FileSystemUtils.h"
+#include "../utils/Utils.h"
+#include "../utils/LogUtils.h"
+#include "../utils/Crc64.h"
+#include "../OssClientImpl.h"
+#include "../model/ModelError.h"
 #include "ResumableUploader.h"
-#include "model/ModelError.h"
 
 using namespace AlibabaCloud::OSS;
 

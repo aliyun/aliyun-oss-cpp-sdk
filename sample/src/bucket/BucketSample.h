@@ -22,10 +22,6 @@ public:
     void DeleteBucketLifecycle();
     void DeleteBucketCors();
 
-    void ListObjects();
-    void ListObjectWithMarker();
-    void ListObjectWithEncodeType();
-
     void GetBucketAcl();
     void GetBucketLocation();
     void GetBucketLogging();

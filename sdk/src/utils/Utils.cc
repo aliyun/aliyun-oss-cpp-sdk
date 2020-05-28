@@ -1100,6 +1100,7 @@ TierType AlibabaCloud::OSS::ToTierType(const char *name)
     else return TierType::Standard;
 }
 
+#if !defined(OSS_DISABLE_RESUAMABLE) || !defined(OSS_DISABLE_ENCRYPTION)
 std::map<std::string, std::string> AlibabaCloud::OSS::JsonStringToMap(const std::string& jsonStr)
 {
     std::map<std::string, std::string> valueMap;
@@ -1133,3 +1134,4 @@ std::string AlibabaCloud::OSS::MapToJsonString(const std::map<std::string, std::
     builder["indentation"] = "";
     return Json::writeString(builder, root);
 }
+#endif

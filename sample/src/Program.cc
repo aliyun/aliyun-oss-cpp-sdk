@@ -1,13 +1,22 @@
 #include <alibabacloud/oss/OssClient.h>
 #include <iostream>
 #include "Config.h"
+
+#if !defined(OSS_DISABLE_BUCKET)
 #include "service/ServiceSample.h"
 #include "bucket/BucketSample.h"
+#endif
+
 #include "object/ObjectSample.h"
 #include "presignedurl/PresignedUrlSample.h"
-#include "LiveChannel/LiveChannelSample.h"
-#include "encryption/EncryptionSample.h"
 
+#if !defined(OSS_DISABLE_LIVECHANNEL)
+#include "LiveChannel/LiveChannelSample.h"
+#endif
+
+#if !defined(OSS_DISABLE_ENCRYPTION)
+#include "encryption/EncryptionSample.h"
+#endif
 
 using namespace AlibabaCloud::OSS;
 
@@ -29,6 +38,7 @@ int main(void)
     SetLogLevel(LogLevel::LogDebug);
     SetLogCallback(LogCallbackFunc);
 
+#if !defined(OSS_DISABLE_BUCKET)
     ServiceSample serviceSample;
     serviceSample.ListBuckets();
     serviceSample.ListBucketsWithMarker();
@@ -50,11 +60,6 @@ int main(void)
     bucketSample.DeleteBucketLifecycle();
     bucketSample.DeleteBucketCors();
 
-
-    bucketSample.ListObjects();
-    bucketSample.ListObjectWithMarker();
-    bucketSample.ListObjectWithEncodeType();
-
     bucketSample.GetBucketAcl();
     bucketSample.GetBucketLocation();
     bucketSample.GetBucketLogging();
@@ -63,12 +68,9 @@ int main(void)
     bucketSample.GetBucketStat();
     bucketSample.GetBucketLifecycle();
     //bucketSample.DeleteBucketsByPrefix();
-
+#endif
 
     ObjectSample objectSample(bucketName);
-    objectSample.UploadObjectProgress();
-    objectSample.MultiCopyObjectProcess();
-    objectSample.DownloadObjectProcess();
     objectSample.PutObjectFromBuffer();
     objectSample.PutObjectFromFile();
     objectSample.GetObjectToBuffer();
@@ -85,6 +87,16 @@ int main(void)
     objectSample.CopyObject();
     //objectSample.RestoreArchiveObject("your-archive", "oss_archive_object.PNG", 1);
 
+    objectSample.ListObjects();
+    objectSample.ListObjectWithMarker();
+    objectSample.ListObjectWithEncodeType();
+
+#if !defined(OSS_DISABLE_RESUAMABLE)
+    objectSample.UploadObjectProgress();
+    objectSample.MultiCopyObjectProcess();
+    objectSample.DownloadObjectProcess();
+#endif
+
     PresignedUrlSample signedUrlSample(bucketName);
     signedUrlSample.GenGetPresignedUrl();
     signedUrlSample.PutObjectByUrlFromBuffer();
@@ -92,6 +104,8 @@ int main(void)
     signedUrlSample.GetObjectByUrlToBuffer();
     signedUrlSample.GetObjectByUrlToFile();
 
+
+#if !defined(OSS_DISABLE_LIVECHANNEL)
     // LiveChannel
     LiveChannelSample liveChannelSample(bucketName, "test_channel");
     liveChannelSample.PutLiveChannel();
@@ -103,16 +117,21 @@ int main(void)
     liveChannelSample.GetVodPlayList();
     liveChannelSample.PutLiveChannelStatus();
     liveChannelSample.DeleteLiveChannel();
+#endif
 
+#if !defined(OSS_DISABLE_ENCRYPTION)
     // Encryption
     EncryptionSample encryptionSample(bucketName);
     encryptionSample.PutObjectFromBuffer();
     encryptionSample.PutObjectFromFile();
     encryptionSample.GetObjectToBuffer();
     encryptionSample.GetObjectToFile();
+#if !defined(DISABLE_RESUAMABLE)
     encryptionSample.UploadObjectProgress();
     encryptionSample.DownloadObjectProcess();
     encryptionSample.MultipartUploadObject();
+#endif
+#endif
 
     ShutdownSdk();
     return 0;

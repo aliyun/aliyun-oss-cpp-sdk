@@ -29,10 +29,11 @@
 #include "OssClientImpl.h"
 #include "utils/LogUtils.h"
 #include "utils/FileSystemUtils.h"
-#include "ResumableUploader.h"
-#include "ResumableDownloader.h"
-#include "ResumableCopier.h"
-
+#if !defined(OSS_DISABLE_RESUAMABLE)
+#include "resumable/ResumableUploader.h"
+#include "resumable/ResumableDownloader.h"
+#include "resumable/ResumableCopier.h"
+#endif
 using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
 
@@ -325,6 +326,8 @@ OssOutcome OssClientImpl::MakeRequest(const OssRequest &request, Http::Method me
         return OssOutcome(buildError(outcome.error()));
     }
 }
+
+#if !defined(OSS_DISABLE_BUCKET)
 
 ListBucketsOutcome OssClientImpl::ListBuckets(const ListBucketsRequest &request) const
 {
@@ -659,34 +662,6 @@ VoidOutcome OssClientImpl::DeleteBucketInventoryConfiguration(const DeleteBucket
     }
 }
 
-ListObjectOutcome OssClientImpl::ListObjects(const ListObjectsRequest &request) const
-{
-    auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess()) {
-        ListObjectsResult result(outcome.result().payload());
-        result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListObjectOutcome(std::move(result)) :
-            ListObjectOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
-    }
-    else {
-        return ListObjectOutcome(outcome.error());
-    }
-}
-
-ListObjectVersionsOutcome OssClientImpl::ListObjectVersions(const ListObjectVersionsRequest &request) const
-{
-    auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess()) {
-        ListObjectVersionsResult result(outcome.result().payload());
-        result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListObjectVersionsOutcome(std::move(result)) :
-            ListObjectVersionsOutcome(OssError("ParseXMLError", "Parsing ListObjectVersions result fail."));
-    }
-    else {
-        return ListObjectVersionsOutcome(outcome.error());
-    }
-}
-
 GetBucketAclOutcome OssClientImpl::GetBucketAcl(const GetBucketAclRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
@@ -949,6 +924,35 @@ ListBucketInventoryConfigurationsOutcome OssClientImpl::ListBucketInventoryConfi
     }
     else {
         return ListBucketInventoryConfigurationsOutcome(outcome.error());
+    }
+}
+#endif
+
+ListObjectOutcome OssClientImpl::ListObjects(const ListObjectsRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        ListObjectsResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? ListObjectOutcome(std::move(result)) :
+            ListObjectOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+    }
+    else {
+        return ListObjectOutcome(outcome.error());
+    }
+}
+
+ListObjectVersionsOutcome OssClientImpl::ListObjectVersions(const ListObjectVersionsRequest &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        ListObjectVersionsResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? ListObjectVersionsOutcome(std::move(result)) :
+            ListObjectVersionsOutcome(OssError("ParseXMLError", "Parsing ListObjectVersions result fail."));
+    }
+    else {
+        return ListObjectVersionsOutcome(outcome.error());
     }
 }
 
@@ -1360,6 +1364,7 @@ ListPartsOutcome OssClientImpl::ListParts(const ListPartsRequest &request) const
     }
 }
 
+#if !defined(OSS_DISABLE_RESUAMABLE)
 /*Resumable Operation*/
 PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest& request) const 
 {
@@ -1491,7 +1496,9 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
     ResumableDownloader downloader(request, this, objectSize);
     return downloader.Download();
 }
+#endif
 
+#if !defined(OSS_DISABLE_LIVECHANNEL)
 /*Live Channel*/
 VoidOutcome OssClientImpl::PutLiveChannelStatus(const PutLiveChannelStatusRequest& request) const
 {
@@ -1660,7 +1667,7 @@ StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRe
 
     return StringOutcome(ss.str());
 }
-
+#endif
 
 /*Requests control*/
 void OssClientImpl::DisableRequest()

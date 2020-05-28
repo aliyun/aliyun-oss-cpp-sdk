@@ -29,8 +29,8 @@ ObjectSample::ObjectSample(const std::string &bucket) :
 {
     ClientConfiguration conf;
     client = new OssClient(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
-    CreateBucketRequest request(bucket_);
-    client->CreateBucket(request);
+    //CreateBucketRequest request(bucket_);
+    //client->CreateBucket(request);
 }
 
 ObjectSample::~ObjectSample() {
@@ -315,6 +315,7 @@ void ObjectSample::PutObjectProgress()
     }
 }
 
+#if !defined(OSS_DISABLE_RESUAMABLE)
 void ObjectSample::UploadObjectProgress() 
 {
     //case 1: checkpoint dir is not enabled
@@ -458,6 +459,7 @@ void ObjectSample::DownloadObjectProcess()
         }
     }
 }
+#endif
 
 void ObjectSample::GetObjectProgress()
 {
@@ -679,4 +681,73 @@ void ObjectSample::PutObjectCallback()
     else {
         PrintError(__FUNCTION__, outcome.error());
     }
+}
+
+void ObjectSample::ListObjects()
+{
+    ListObjectsRequest request(bucket_);
+    auto outcome = client->ListObjects(request);
+    if (outcome.isSuccess()) {
+        std::cout << __FUNCTION__ << " success " <<
+            "and object count is " << outcome.result().ObjectSummarys().size() << std::endl;
+    }
+    else {
+        PrintError(__FUNCTION__, outcome.error());
+    }
+}
+
+void ObjectSample::ListObjectWithMarker()
+{
+    ListObjectsRequest request(bucket_);
+    request.setMaxKeys(1);
+    bool IsTruncated = false;
+    size_t total = 0;
+    do {
+        auto outcome = client->ListObjects(request);
+
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << " success, " <<
+                "and object count is " << outcome.result().ObjectSummarys().size() <<
+                "next marker is " << outcome.result().NextMarker() << std::endl;
+            total += outcome.result().ObjectSummarys().size();
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+            break;
+        }
+
+        request.setMarker(outcome.result().NextMarker());
+        IsTruncated = outcome.result().IsTruncated();
+    } while (IsTruncated);
+
+    std::cout << __FUNCTION__ << " done, and total is " << total << std::endl;
+}
+
+void ObjectSample::ListObjectWithEncodeType()
+{
+    ListObjectsRequest request(bucket_);
+    request.setEncodingType("url");
+    bool IsTruncated = false;
+    size_t total = 0;
+    request.setMaxKeys(1);
+    ListObjectOutcome outcome;
+    do {
+        outcome = client->ListObjects(request);
+
+        if (outcome.isSuccess()) {
+            std::cout << __FUNCTION__ << " success, " <<
+                "and object count is " << outcome.result().ObjectSummarys().size() <<
+                "next marker is " << outcome.result().NextMarker() << std::endl;
+            total += outcome.result().ObjectSummarys().size();
+        }
+        else {
+            PrintError(__FUNCTION__, outcome.error());
+            break;
+        }
+
+        request.setMarker(outcome.result().NextMarker());
+        IsTruncated = outcome.result().IsTruncated();
+    } while (IsTruncated);
+
+    std::cout << __FUNCTION__ << " done, and total is " << total << std::endl;
 }

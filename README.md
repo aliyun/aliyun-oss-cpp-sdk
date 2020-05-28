@@ -116,6 +116,29 @@ cmake .. -DBUILD_TESTS=ON
 cmake .. -DENABLE_RTTI=OFF
 ```
 
+#### OSS_DISABLE_BUCKET
+(Default OFF) If turned ON, the SDK is built without the bucket's API.
+```
+cmake .. -DOSS_DISABLE_BUCKET=ON
+```
+#### OSS_DISABLE_LIVECHANNEL
+(Default OFF) If turned ON, the SDK is built without the livechannel's API.
+```
+cmake .. -DOSS_DISABLE_LIVECHANNEL=ON
+```
+
+#### OSS_DISABLE_RESUAMABLE
+(Default OFF) If turned ON, the SDK is built without the resumable operation feature.
+```
+cmake .. -DOSS_DISABLE_RESUAMABLE=ON
+```
+
+#### OSS_DISABLE_ENCRYPTION
+(Default OFF) If turned ON, the SDK is built without the client-side encryption feature.
+```
+cmake .. -DOSS_DISABLE_ENCRYPTION=ON
+```
+
 ## Use the C++ SDK
 
 The following code shows how to list buckets owned by the requester. 

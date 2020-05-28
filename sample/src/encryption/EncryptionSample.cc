@@ -36,7 +36,7 @@ EncryptionSample::EncryptionSample(const std::string &bucket) :
     auto materials = std::make_shared<SimpleRSAEncryptionMaterials>(publicKey, privateKey);
     client = new OssEncryptionClient(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, 
         conf, materials, cryptoConf);
-    CreateBucketRequest request(bucket_);
+    //CreateBucketRequest request(bucket_);
 }
 
 EncryptionSample::~EncryptionSample() {
@@ -109,6 +109,7 @@ static void ProgressCallback(size_t increment, int64_t transfered, int64_t total
                  increment <<" ," << transfered << "," << total << std::endl;
 }
 
+#if !defined(DISABLE_RESUAMABLE)
 void EncryptionSample::UploadObjectProgress()
 {
     //case 1: checkpoint dir is not enabled
@@ -204,6 +205,7 @@ void EncryptionSample::DownloadObjectProcess()
         }
     }
 }
+#endif
 
 void EncryptionSample::MultipartUploadObject()
 {

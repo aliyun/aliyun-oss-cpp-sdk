@@ -26,14 +26,20 @@ public:
     void PutObjectCallable();
     void GetObjectCallable();
 
+#if !defined(OSS_DISABLE_RESUAMABLE)
     void UploadObjectProgress();
     void MultiCopyObjectProcess();
     void DownloadObjectProcess();
+#endif
 
     void CopyObject();
     void RestoreArchiveObject(const std::string bucket, const std::string key, int maxWaitTimeInSeconds);
 
     void PutObjectCallback();
+
+    void ListObjects();
+    void ListObjectWithMarker();
+    void ListObjectWithEncodeType();
 
 private:
     void PrintError(const std::string &funcName, const AlibabaCloud::OSS::OssError &error);

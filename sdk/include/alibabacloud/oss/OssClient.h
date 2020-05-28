@@ -81,6 +81,7 @@ namespace OSS
         OssClient(const std::string& endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration& configuration);
         virtual ~OssClient();
 
+#if !defined(OSS_DISABLE_BUCKET)
         /*Service*/
         ListBucketsOutcome ListBuckets() const;
         ListBucketsOutcome ListBuckets(const ListBucketsRequest& request) const;
@@ -90,12 +91,6 @@ namespace OSS
         CreateBucketOutcome CreateBucket(const std::string& bucket, StorageClass storageClass, CannedAccessControlList acl) const;
         CreateBucketOutcome CreateBucket(const CreateBucketRequest& request) const;
 
-        ListObjectOutcome ListObjects(const std::string& bucket) const;
-        ListObjectOutcome ListObjects(const std::string& bucket, const std::string& prefix) const;
-        ListObjectOutcome ListObjects(const ListObjectsRequest& request) const;
-        ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket) const;
-        ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket, const std::string& prefix) const;
-        ListObjectVersionsOutcome ListObjectVersions(const ListObjectVersionsRequest& request) const;
         ListBucketInventoryConfigurationsOutcome ListBucketInventoryConfigurations(const ListBucketInventoryConfigurationsRequest& request) const;
 
         VoidOutcome SetBucketAcl(const std::string& bucket, CannedAccessControlList acl) const;
@@ -164,8 +159,16 @@ namespace OSS
         GetUserQosInfoOutcome GetUserQosInfo(const GetUserQosInfoRequest& request) const;
         GetBucketVersioningOutcome GetBucketVersioning(const GetBucketVersioningRequest& request) const;
         GetBucketInventoryConfigurationOutcome GetBucketInventoryConfiguration(const GetBucketInventoryConfigurationRequest& request) const;
+#endif
 
         /*Object*/
+        ListObjectOutcome ListObjects(const std::string& bucket) const;
+        ListObjectOutcome ListObjects(const std::string& bucket, const std::string& prefix) const;
+        ListObjectOutcome ListObjects(const ListObjectsRequest& request) const;
+        ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket) const;
+        ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket, const std::string& prefix) const;
+        ListObjectVersionsOutcome ListObjectVersions(const ListObjectVersionsRequest& request) const;
+
         GetObjectOutcome GetObject(const std::string& bucket, const std::string& key) const;
         GetObjectOutcome GetObject(const std::string& bucket, const std::string& key, const std::shared_ptr<std::iostream>& content) const;
         GetObjectOutcome GetObject(const std::string& bucket, const std::string& key, const std::string& fileToSave) const;
@@ -228,10 +231,13 @@ namespace OSS
         /*Generate Post Policy*/
 
         /*Resumable Operation*/
+#if !defined(OSS_DISABLE_RESUAMABLE)
         PutObjectOutcome ResumableUploadObject(const UploadObjectRequest& request) const;
         CopyObjectOutcome ResumableCopyObject(const MultiCopyObjectRequest& request) const;
         GetObjectOutcome ResumableDownloadObject(const DownloadObjectRequest& request) const;
+#endif
 
+#if !defined(OSS_DISABLE_LIVECHANNEL)
         /*Live Channel*/
         VoidOutcome PutLiveChannelStatus(const PutLiveChannelStatusRequest& request) const;
         PutLiveChannelOutcome PutLiveChannel(const PutLiveChannelRequest& request) const;
@@ -243,7 +249,8 @@ namespace OSS
         ListLiveChannelOutcome ListLiveChannel(const ListLiveChannelRequest& request) const;
         VoidOutcome DeleteLiveChannel(const DeleteLiveChannelRequest& request) const;
         StringOutcome GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRequest& request) const;
-        
+#endif
+
         /*Aysnc APIs*/
         void ListObjectsAsync(const ListObjectsRequest& request, const ListObjectAsyncHandler& handler, const std::shared_ptr<const AsyncCallerContext>& context = nullptr) const;
         void GetObjectAsync(const GetObjectRequest& request, const GetObjectAsyncHandler& handler, const std::shared_ptr<const AsyncCallerContext>& context = nullptr) const;
@@ -259,7 +266,9 @@ namespace OSS
         UploadPartCopyOutcomeCallable UploadPartCopyCallable(const UploadPartCopyRequest& request) const;
 
         /*Extended APIs*/
+#if !defined(OSS_DISABLE_BUCKET)
         bool DoesBucketExist(const std::string& bucket) const;
+#endif
         bool DoesObjectExist(const std::string& bucket, const std::string& key) const;
         CopyObjectOutcome ModifyObjectMeta(const std::string& bucket, const std::string& key, const ObjectMetaData& meta);
 
