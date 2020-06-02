@@ -405,8 +405,8 @@ void CurlHttpClient::cleanupGlobalState()
 CurlHttpClient::CurlHttpClient(const ClientConfiguration &configuration) :
     HttpClient(),
     curlContainer_(new CurlContainer(configuration.maxConnections, 
-                                                       configuration.connectTimeoutMs, 
-                                                       configuration.requestTimeoutMs)),
+                                                       configuration.requestTimeoutMs,
+                                                       configuration.connectTimeoutMs)),
     userAgent_(configuration.userAgent),
     proxyScheme_(configuration.proxyScheme),
     proxyHost_(configuration.proxyHost),
