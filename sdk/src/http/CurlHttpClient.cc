@@ -441,6 +441,8 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         str.append(": ").append(p.second);
         list = curl_slist_append(list, str.c_str());
     }
+    // Disable Expect: 100-continue
+    list = curl_slist_append(list, "Expect:");
 
     auto response = std::make_shared<HttpResponse>(request);
     
