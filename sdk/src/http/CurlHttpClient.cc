@@ -541,6 +541,11 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, debugCallback);
     }
 
+    //Error Buffer
+    char errbuf[CURL_ERROR_SIZE];
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
+    errbuf[0] = 0;
+
     //progress Callback
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &transferState);
@@ -587,7 +592,11 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         }
             break;
         default:
-            response->setStatusMsg(curl_easy_strerror(res));
+        {
+            std::string msg(curl_easy_strerror(res));
+            msg.append(".").append(errbuf);
+            response->setStatusMsg(msg);
+        }
             break;
         };
     }
