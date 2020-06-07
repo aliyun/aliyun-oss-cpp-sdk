@@ -59,7 +59,7 @@ const std::list<std::string>& TestUtils::InvalidObjectKeyNamesList()
 {
     const static std::list<std::string> nameList =
     {
-        "/abc", "\\123", ""
+        "\\123", ""
     };
     return nameList;
 }

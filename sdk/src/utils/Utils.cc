@@ -569,7 +569,7 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
 
  bool AlibabaCloud::OSS::IsValidObjectKey(const std::string & key)
 {
-    if (key.empty() || !key.compare(0, 1, "/", 1) || !key.compare(0, 1, "\\", 1))
+    if (key.empty() || !key.compare(0, 1, "\\", 1))
          return false;
 
     return key.size() <= ObjectNameLengthLimit;
