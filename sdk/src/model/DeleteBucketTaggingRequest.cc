@@ -23,10 +23,22 @@ DeleteBucketTaggingRequest::DeleteBucketTaggingRequest(const std::string& bucket
 {
 }
 
+void DeleteBucketTaggingRequest::setTagging(const Tagging& tagging)
+{
+    tagging_ = tagging;
+}
+
 ParameterCollection DeleteBucketTaggingRequest::specialParameters() const
 {
     ParameterCollection parameters;
-    parameters["tagging"] = "";
+    std::string str;
+    for (const Tag& tag : tagging_.Tags())
+    {
+        if (!str.empty())
+            str += ",";
+        str += tag.Key();
+    }
+    parameters["tagging"] = str;
     return parameters;
 }
 
