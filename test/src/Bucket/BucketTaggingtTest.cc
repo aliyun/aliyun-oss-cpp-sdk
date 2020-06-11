@@ -254,5 +254,42 @@ namespace OSS
         auto getoutcome = Client->GetBucketTagging(GetBucketTaggingRequest("INVALIDNAME"));
         EXPECT_EQ(getoutcome.isSuccess(), false);
     }
+
+    TEST_F(BucketTaggingTest, SetBucketTaggingKeyTest)
+    {
+        SetBucketTaggingRequest setrequest(BucketName);
+        Tag tag1("project", "projectone");
+        Tag tag2("user", "jsmith");
+        TagSet tagset;
+        tagset.push_back(tag1);
+        tagset.push_back(tag2);
+        Tagging taging;
+        taging.setTags(tagset);
+        setrequest.setTagging(taging);
+        auto setoutcome = Client->SetBucketTagging(setrequest);
+        EXPECT_EQ(setoutcome.isSuccess(), true);
+
+        DeleteBucketTaggingRequest delrequest(BucketName);
+        Tagging taging1;
+        TagSet tagset1;
+        tagset1.push_back(tag1);
+        taging1.setTags(tagset1);
+        delrequest.setTagging(taging1);
+        auto deloutcome = Client->DeleteBucketTagging(delrequest);
+        EXPECT_EQ(deloutcome.isSuccess(), true);
+
+        auto getoutcome = Client->GetBucketTagging(GetBucketTaggingRequest(BucketName));
+        EXPECT_EQ(getoutcome.isSuccess(), true);
+        EXPECT_EQ(getoutcome.result().Tagging().Tags().size(), 1U);
+        EXPECT_EQ(getoutcome.result().Tagging().Tags()[0].Key(), tag2.Key());
+
+        delrequest.setTagging(taging);
+        deloutcome = Client->DeleteBucketTagging(delrequest);
+        EXPECT_EQ(deloutcome.isSuccess(), true);
+
+        getoutcome = Client->GetBucketTagging(GetBucketTaggingRequest(BucketName));
+        EXPECT_EQ(getoutcome.isSuccess(), true);
+        EXPECT_EQ(getoutcome.result().Tagging().Tags().size(), 0U);
+    }
 }
 }
