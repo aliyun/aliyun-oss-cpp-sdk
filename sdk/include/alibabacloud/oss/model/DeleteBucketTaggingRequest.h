@@ -17,6 +17,7 @@
 #pragma once
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/OssRequest.h>
+#include <alibabacloud/oss/model/Tagging.h>
 
 namespace AlibabaCloud
 {
@@ -26,8 +27,12 @@ namespace OSS
     {
     public:
         DeleteBucketTaggingRequest(const std::string& bucket);
+        void setTagging(const Tagging& tagging);
+
     protected:
         virtual ParameterCollection specialParameters() const;
+    private:
+        Tagging tagging_;
     };
 }
 }
