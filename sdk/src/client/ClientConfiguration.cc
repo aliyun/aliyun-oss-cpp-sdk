@@ -107,7 +107,7 @@ ClientConfiguration::ClientConfiguration() :
     retryStrategy(std::make_shared<DefaultRetryStrategy>()),
     proxyScheme(Http::Scheme::HTTP),
     proxyPort(0),
-    verifySSL(false),
+    verifySSL(true),
     isCname(false),
     enableCrc64(true),
     enableDateSkewAdjustment(true),

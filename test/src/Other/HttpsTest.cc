@@ -37,7 +37,9 @@ protected:
     static void SetUpTestCase() 
     {
         std::string endpoint = TestUtils::GetHTTPSEndpoint(Config::Endpoint);
-        Client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        ClientConfiguration conf;
+        conf.verifySSL = false;
+        Client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
         BucketName = TestUtils::GetBucketName("cpp-sdk-httpstest");
         Client->CreateBucket(CreateBucketRequest(BucketName));
     }
@@ -373,11 +375,12 @@ TEST_F(HttpsTest, CacertPositiveTest)
     SetLogCallback(nullptr);
 }
 
-#if _WIN32
 TEST_F(HttpsTest, CacertNegativeTest)
 {
     ClientConfiguration conf;
     conf.verifySSL = true;
+    conf.caFile = "none";
+    conf.caPath = "none";
     std::string endpoint = TestUtils::GetHTTPSEndpoint(Config::Endpoint);
     OssClient client(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
     SetLogLevel(LogLevel::LogAll);
@@ -387,14 +390,12 @@ TEST_F(HttpsTest, CacertNegativeTest)
     auto content = TestUtils::GetRandomStream(1024);
     auto outcome = client.PutObject(BucketName, key, content);
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ClientError:200060");
-    EXPECT_EQ(outcome.error().Message(), "Peer certificate cannot be authenticated with given CA certificates");
+    EXPECT_EQ(outcome.error().Code(), "ClientError:200077");
+    EXPECT_TRUE(outcome.error().Message().find("Problem with the SSL CA cert") != std::string::npos);
 
     SetLogLevel(LogLevel::LogOff);
     SetLogCallback(nullptr);
 }
-#endif
-
 
 
 }
