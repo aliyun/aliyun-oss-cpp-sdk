@@ -40,6 +40,7 @@ namespace OSS
         int64_t Size() const { return size_; }
         bool IsLatest() const { return isLatest_; }
         const AlibabaCloud::OSS::Owner& Owner() const { return owner_; }
+        const std::string& RestoreInfo() const { return restoreInfo_; }
     private:
         friend class ListObjectVersionsResult;
         std::string key_;
@@ -51,6 +52,7 @@ namespace OSS
         int64_t size_;
         bool isLatest_;
         AlibabaCloud::OSS::Owner owner_;
+        std::string restoreInfo_;
     };
     using ObjectVersionSummaryList = std::vector<ObjectVersionSummary>;
 

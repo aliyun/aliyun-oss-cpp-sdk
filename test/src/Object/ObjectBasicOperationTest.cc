@@ -1111,6 +1111,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
                             <Type>Normal</Type>
                             <Size>5368709120</Size>
                             <StorageClass>Standard</StorageClass>
+                            <RestoreInfo>ongoing-request="true"</RestoreInfo>
                             <Owner>
                                 <ID>00220120222</ID>
                                 <DisplayName>user-example</DisplayName>
@@ -1157,6 +1158,9 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
     EXPECT_EQ(result.ObjectSummarys().size(), 4UL);
     EXPECT_EQ(result.ObjectSummarys()[0].ETag(), "5B3C1A2E053D763E1B002CC607C5A0FE");
     EXPECT_EQ(result.ObjectSummarys()[0].Size(), 5368709120LL);
+    EXPECT_EQ(result.ObjectSummarys()[0].RestoreInfo(), "ongoing-request=\"true\"");
+
+    EXPECT_EQ(result.ObjectSummarys()[1].RestoreInfo(), "");
 }
 
 TEST_F(ObjectBasicOperationTest, ListObjectsResultWithEncodingType)

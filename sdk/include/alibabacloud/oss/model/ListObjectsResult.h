@@ -38,6 +38,7 @@ namespace OSS
         const std::string& StorageClass() const { return storageClass_; }
         const std::string& Type() const { return type_; }
         const AlibabaCloud::OSS::Owner& Owner() const { return owner_; }
+        const std::string& RestoreInfo() const { return restoreInfo_; }
     private:
         friend class ListObjectsResult;
         std::string key_;
@@ -47,6 +48,7 @@ namespace OSS
         std::string storageClass_;
         std::string type_;
         AlibabaCloud::OSS::Owner owner_;
+        std::string restoreInfo_;
     };
 
     using ObjectSummaryList = std::vector<ObjectSummary>;

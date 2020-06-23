@@ -1714,6 +1714,7 @@ TEST_F(ObjectVersioningTest, ListObjectVersionsResultTest)
                 <Type>Normal</Type>
                 <Size>93731</Size>
                 <StorageClass>Standard</StorageClass>
+                <RestoreInfo>ongoing-request="true"</RestoreInfo>
                 <Owner>
                   <ID>12345125285864390</ID>
                   <DisplayName>12345125285864390</DisplayName>
@@ -1722,6 +1723,8 @@ TEST_F(ObjectVersioningTest, ListObjectVersionsResultTest)
         </ListVersionsResult>
         )";
     auto result = ListObjectVersionsResult(std::make_shared<std::stringstream>(xml));
+    EXPECT_EQ(result.ObjectVersionSummarys()[0].RestoreInfo(), "ongoing-request=\"true\"");
+
 
     xml = R"(
         <?xml version="1.0" encoding="UTF-8"?>
@@ -1760,6 +1763,7 @@ TEST_F(ObjectVersioningTest, ListObjectVersionsResultTest)
         </ListVersionsResult>
         )";
     result = ListObjectVersionsResult(xml);
+    EXPECT_EQ(result.ObjectVersionSummarys()[0].RestoreInfo(), "");
 
     xml = R"(
         <?xml version="1.0" encoding="UTF-8"?>
