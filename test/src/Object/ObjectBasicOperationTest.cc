@@ -46,7 +46,7 @@ protected:
     // Tears down the stuff shared by all tests in this test case.
     static void TearDownTestCase() 
     {
-        TestUtils::CleanBucket(*Client, BucketName);
+        TestUtils::CleanBucketsByPrefix(*Client, BucketName);
         Client = nullptr;
     }
 
@@ -1756,6 +1756,263 @@ TEST_F(ObjectBasicOperationTest, GetObjectRequestStandardModeTest)
     getRequet.setRange(10, 200, true);
     getOutcome = Client->GetObject(getRequet);
     EXPECT_EQ(getOutcome.result().Metadata().ContentLength(), 90);
+}
+
+//listobject2V2
+TEST_F(ObjectBasicOperationTest, ListObjectsV2Test)
+{
+    auto bucketName = BucketName + "-v2";
+    Client->CreateBucket(CreateBucketRequest(bucketName));
+
+    std::vector<std::string> keyArray;
+    //create test file
+    for (int i = 0; i < 10; i++) {
+        std::string key = TestUtils::GetObjectKey("folder/ListAllObjectsV2Test");
+        auto content = TestUtils::GetRandomStream(100);
+        auto outcome = Client->PutObject(bucketName, key, content);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        keyArray.push_back(key);
+    }
+
+    for (int i = 0; i < 8; i++) {
+        std::string key = TestUtils::GetObjectKey("sub/ListAllObjectsV2Test");
+        auto content = TestUtils::GetRandomStream(100);
+        auto outcome = Client->PutObject(bucketName, key, content);
+        EXPECT_EQ(outcome.isSuccess(), true);
+    }
+
+    for (int i = 0; i < 5; i++) {
+        std::string key = TestUtils::GetObjectKey("list/ListAllObjectsV2Test");
+        auto content = TestUtils::GetRandomStream(100);
+        auto outcome = Client->PutObject(bucketName, key, content);
+        EXPECT_EQ(outcome.isSuccess(), true);
+    }
+
+    //list object use default
+    auto request = ListObjectsV2Request(bucketName);
+    auto listOutcome = Client->ListObjectsV2(request);
+    EXPECT_EQ(listOutcome.isSuccess(), true);
+    EXPECT_EQ(listOutcome.result().ObjectSummarys().size(), 23UL);
+    EXPECT_EQ(listOutcome.result().KeyCount(), 23L);
+    EXPECT_EQ(listOutcome.result().MaxKeys(), 100L);
+    EXPECT_EQ(listOutcome.result().Prefix(), "");
+    EXPECT_EQ(listOutcome.result().Delimiter(), "");
+    EXPECT_EQ(listOutcome.result().IsTruncated(), false);
+
+    int i = 0;
+    for (auto const &obj : listOutcome.result().ObjectSummarys()) {
+        EXPECT_EQ(obj.Size(), 100LL);
+        i++;
+    }
+    EXPECT_EQ(i, 23UL);
+
+    //list object with prefix
+    request = ListObjectsV2Request(bucketName);
+    request.setMaxKeys(2);
+    request.setPrefix("folder");
+
+    bool IsTruncated = false;
+    size_t total = 0;
+    do {
+        auto outcome = Client->ListObjectsV2(request);
+        EXPECT_EQ(outcome.isSuccess(), true);
+        request.setContinuationToken(outcome.result().NextContinuationToken());
+        IsTruncated = outcome.result().IsTruncated();
+        total += outcome.result().ObjectSummarys().size();
+        EXPECT_EQ(outcome.result().KeyCount(), 2L);
+        EXPECT_EQ(outcome.result().MaxKeys(), 2L);
+        EXPECT_EQ(outcome.result().Prefix(), "folder");
+    } while (IsTruncated);
+
+    EXPECT_EQ(total, 10UL);
+
+    //with Delimiter
+    request = ListObjectsV2Request(bucketName);
+    request.setDelimiter("/");
+    listOutcome = Client->ListObjectsV2(request);
+    EXPECT_EQ(listOutcome.isSuccess(), true);
+    EXPECT_EQ(listOutcome.result().CommonPrefixes().size(), 3UL);
+    EXPECT_EQ(listOutcome.result().KeyCount(), 3L);
+
+    //start-After
+    request = ListObjectsV2Request(bucketName);
+    request.setStartAfter(keyArray.at(3));
+    request.setPrefix("folder");
+    listOutcome = Client->ListObjectsV2(request);
+    EXPECT_EQ(listOutcome.isSuccess(), true);
+    EXPECT_EQ(listOutcome.result().KeyCount(), 6L);
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Key(), keyArray.at(4));
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Owner().DisplayName().empty(), true);
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Owner().Id().empty(), true);
+
+    //Fetch Owner
+    request = ListObjectsV2Request(bucketName);
+    request.setStartAfter(keyArray.at(4));
+    request.setPrefix("folder");
+    request.setFetchOwner(true);
+    listOutcome = Client->ListObjectsV2(request);
+    EXPECT_EQ(listOutcome.isSuccess(), true);
+    EXPECT_EQ(listOutcome.result().KeyCount(), 5L);
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Key(), keyArray.at(5));
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Owner().DisplayName().empty(), false);
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Owner().Id().empty(), false);
+
+    //encoding type
+    request = ListObjectsV2Request(bucketName);
+    request.setStartAfter(keyArray.at(5));
+    request.setPrefix("folder/ListAllObjectsV2Test");
+    request.setEncodingType("url");
+    listOutcome = Client->ListObjectsV2(request);
+    EXPECT_EQ(listOutcome.isSuccess(), true);
+    EXPECT_EQ(listOutcome.result().EncodingType(), "url");
+    EXPECT_EQ(listOutcome.result().KeyCount(), 4L);
+    EXPECT_EQ(listOutcome.result().Prefix(), "folder/ListAllObjectsV2Test");
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Key(), keyArray.at(6));
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Owner().DisplayName().empty(), true);
+    EXPECT_EQ(listOutcome.result().ObjectSummarys()[0].Owner().Id().empty(), true);
+}
+
+TEST_F(ObjectBasicOperationTest, ListObjectsV2ResultTest)
+{
+    ListObjectsV2Result result("test");
+
+    std::string xml = R"(
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ListBucket xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            </ListBucket>
+            )";
+    ListObjectsV2Result result1(xml);
+
+    xml = R"(
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            </ListBucketResult>
+            )";
+    ListObjectsV2Result result2(xml);
+
+    xml = R"(
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Contents>
+            </Contents>
+            </ListBucketResult>
+            )";
+    ListObjectsV2Result result3(xml);
+
+    xml = R"(
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name></Name>
+            <Prefix></Prefix>
+            <StartAfter></StartAfter>
+            <MaxKeys></MaxKeys>
+            <Delimiter></Delimiter>
+            <IsTruncated></IsTruncated>
+            <NextContinuationToken></NextContinuationToken>
+            <EncodingType></EncodingType>
+            <CommonPrefixes>
+            <Prefix></Prefix>
+            </CommonPrefixes>
+            <Contents>
+                <Key></Key>
+                <LastModified></LastModified>
+                <ETag></ETag>
+                <Type></Type>
+                <Size></Size>
+                <StorageClass></StorageClass>
+                <Owner>
+                    <ID></ID>
+                    <DisplayName></DisplayName>
+                </Owner>
+            </Contents>
+            <Contents>
+                <Key></Key>
+                <LastModified></LastModified>
+                <ETag></ETag>
+                <Type></Type>
+                <Size></Size>
+                <StorageClass></StorageClass>
+                <Owner>
+                    <ID></ID>
+                    <DisplayName></DisplayName>
+                </Owner>
+            </Contents>
+        </ListBucketResult>
+        )";
+    ListObjectsV2Result result4(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
+    ListObjectsV2Result result5(xml);
+
+    xml = R"(
+        <?xml version="1.0" encoding="UTF-8"?>
+        <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <CommonPrefixes>
+            </CommonPrefixes>
+            <Contents>
+                <Key></Key>
+                <LastModified></LastModified>
+                <ETag></ETag>
+                <Type></Type>
+                <Size></Size>
+                <StorageClass></StorageClass>
+                <Owner>
+                </Owner>
+            </Contents>
+        </ListBucketResult>
+        )";
+    ListObjectsV2Result result6(xml);
+
+    xml = R"(
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name>name</Name>
+            <Prefix>prefix</Prefix>
+            <StartAfter>start</StartAfter>
+            <MaxKeys>20</MaxKeys>
+            <Delimiter>/</Delimiter>
+            <IsTruncated>true</IsTruncated>
+            <NextContinuationToken>next</NextContinuationToken>
+            <ContinuationToken>current</ContinuationToken>
+            <EncodingType>type</EncodingType>
+            <CommonPrefixes>
+                <Prefix>com-prefix</Prefix>
+            </CommonPrefixes>
+            <Contents>
+                <Key>key</Key>
+                <LastModified>last</LastModified>
+                <ETag>tag</ETag>
+                <Type>type</Type>
+                <Size>100</Size>
+                <StorageClass>class</StorageClass>
+                <Owner>
+                    <ID>id</ID>
+                    <DisplayName>display</DisplayName>
+                </Owner>
+            </Contents>
+            <KeyCount>3</KeyCount>
+        </ListBucketResult>
+        )";
+    ListObjectsV2Result result7(xml);
+    EXPECT_EQ(result7.Name(), "name");
+    EXPECT_EQ(result7.Prefix(), "prefix");
+    EXPECT_EQ(result7.MaxKeys(), 20L);
+    EXPECT_EQ(result7.Delimiter(), "/");
+    EXPECT_EQ(result7.IsTruncated(), true);
+    EXPECT_EQ(result7.NextContinuationToken(), "next");
+    EXPECT_EQ(result7.ContinuationToken(), "current");
+    EXPECT_EQ(result7.EncodingType(), "type");
+    EXPECT_EQ(result7.CommonPrefixes().size(), 1UL);
+    EXPECT_EQ(result7.CommonPrefixes()[0], "com-prefix");
+    EXPECT_EQ(result7.ObjectSummarys().size(), 1UL);
+    EXPECT_EQ(result7.ObjectSummarys()[0].Key(), "key");
+    EXPECT_EQ(result7.ObjectSummarys()[0].LastModified(), "last");
+    EXPECT_EQ(result7.ObjectSummarys()[0].ETag(), "tag");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Type(), "type");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Size(), 100LL);
+    EXPECT_EQ(result7.ObjectSummarys()[0].StorageClass(), "class");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Owner().DisplayName(), "display");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Owner().Id(), "id");
 }
 
 }

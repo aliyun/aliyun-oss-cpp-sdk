@@ -499,6 +499,11 @@ ListObjectOutcome OssClient::ListObjects(const ListObjectsRequest &request) cons
     return client_->ListObjects(request);
 }
 
+ListObjectsV2Outcome OssClient::ListObjectsV2(const ListObjectsV2Request& request) const
+{
+    return client_->ListObjectsV2(request);
+}
+
 ListObjectVersionsOutcome OssClient::ListObjectVersions(const std::string &bucket) const
 {
     return client_->ListObjectVersions(ListObjectVersionsRequest(bucket));

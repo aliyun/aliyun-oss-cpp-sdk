@@ -102,6 +102,8 @@
 
 #include <alibabacloud/oss/model/ListObjectsRequest.h>
 #include <alibabacloud/oss/model/ListObjectsResult.h>
+#include <alibabacloud/oss/model/ListObjectsV2Request.h>
+#include <alibabacloud/oss/model/ListObjectsV2Result.h>
 #include <alibabacloud/oss/model/ListObjectVersionsRequest.h>
 #include <alibabacloud/oss/model/ListObjectVersionsResult.h>
 #include <alibabacloud/oss/model/GetObjectRequest.h>
@@ -219,6 +221,7 @@ namespace OSS
 #endif
 
     using ListObjectOutcome = Outcome<OssError, ListObjectsResult>;
+    using ListObjectsV2Outcome = Outcome<OssError, ListObjectsV2Result>;
     using ListObjectVersionsOutcome = Outcome<OssError, ListObjectVersionsResult>;
 
     using GetObjectOutcome = Outcome<OssError, GetObjectResult>;
