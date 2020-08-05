@@ -91,6 +91,13 @@
 #include <alibabacloud/oss/model/GetBucketInventoryConfigurationRequest.h>
 #include <alibabacloud/oss/model/ListBucketInventoryConfigurationsRequest.h>
 #include <alibabacloud/oss/model/ListBucketInventoryConfigurationsResult.h>
+#include <alibabacloud/oss/model/InitiateBucketWormRequest.h>
+#include <alibabacloud/oss/model/InitiateBucketWormResult.h>
+#include <alibabacloud/oss/model/AbortBucketWormRequest.h>
+#include <alibabacloud/oss/model/CompleteBucketWormRequest.h>
+#include <alibabacloud/oss/model/ExtendBucketWormRequest.h>
+#include <alibabacloud/oss/model/GetBucketWormRequest.h>
+#include <alibabacloud/oss/model/GetBucketWormResult.h>
 #endif
 
 #include <alibabacloud/oss/model/ListObjectsRequest.h>
@@ -207,6 +214,8 @@ namespace OSS
     using GetUserQosInfoOutcome = Outcome<OssError, GetUserQosInfoResult>;
     using GetBucketVersioningOutcome = Outcome<OssError, GetBucketVersioningResult>;
     using GetBucketInventoryConfigurationOutcome = Outcome<OssError, GetBucketInventoryConfigurationResult>;
+    using InitiateBucketWormOutcome = Outcome<OssError, InitiateBucketWormResult>;
+    using GetBucketWormOutcome = Outcome<OssError, GetBucketWormResult>;
 #endif
 
     using ListObjectOutcome = Outcome<OssError, ListObjectsResult>;

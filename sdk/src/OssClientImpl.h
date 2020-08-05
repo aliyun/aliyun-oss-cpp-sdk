@@ -91,6 +91,11 @@ namespace OSS
         GetUserQosInfoOutcome GetUserQosInfo(const GetUserQosInfoRequest& request) const;
         GetBucketVersioningOutcome GetBucketVersioning(const GetBucketVersioningRequest& request) const;
         GetBucketInventoryConfigurationOutcome GetBucketInventoryConfiguration(const GetBucketInventoryConfigurationRequest& request) const;
+        InitiateBucketWormOutcome InitiateBucketWorm(const InitiateBucketWormRequest& request) const;
+        VoidOutcome AbortBucketWorm(const AbortBucketWormRequest& request) const;
+        VoidOutcome CompleteBucketWorm(const CompleteBucketWormRequest& request) const;
+        VoidOutcome ExtendBucketWormWorm(const ExtendBucketWormRequest& request) const;
+        GetBucketWormOutcome GetBucketWorm(const GetBucketWormRequest& request) const;
 #endif
 
         /*Object*/

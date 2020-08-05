@@ -455,6 +455,31 @@ GetBucketInventoryConfigurationOutcome OssClient::GetBucketInventoryConfiguratio
     return client_->GetBucketInventoryConfiguration(request);
 }
 
+InitiateBucketWormOutcome OssClient::InitiateBucketWorm(const InitiateBucketWormRequest& request) const
+{
+    return client_->InitiateBucketWorm(request);
+}
+
+VoidOutcome OssClient::AbortBucketWorm(const AbortBucketWormRequest& request) const
+{
+    return client_->AbortBucketWorm(request);
+}
+
+VoidOutcome OssClient::CompleteBucketWorm(const CompleteBucketWormRequest& request) const
+{
+    return client_->CompleteBucketWorm(request);
+}
+
+VoidOutcome OssClient::ExtendBucketWormWorm(const ExtendBucketWormRequest& request) const
+{
+    return client_->ExtendBucketWormWorm(request);
+}
+
+GetBucketWormOutcome OssClient::GetBucketWorm(const GetBucketWormRequest& request) const
+{
+    return client_->GetBucketWorm(request);
+}
+
 #endif
 
 ListObjectOutcome OssClient::ListObjects(const std::string &bucket) const
