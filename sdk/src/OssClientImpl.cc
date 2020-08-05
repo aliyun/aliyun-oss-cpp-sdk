@@ -926,6 +926,70 @@ ListBucketInventoryConfigurationsOutcome OssClientImpl::ListBucketInventoryConfi
         return ListBucketInventoryConfigurationsOutcome(outcome.error());
     }
 }
+
+InitiateBucketWormOutcome OssClientImpl::InitiateBucketWorm(const InitiateBucketWormRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        return InitiateBucketWormOutcome(InitiateBucketWormResult(outcome.result().headerCollection()));
+    }
+    else {
+        return InitiateBucketWormOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::AbortBucketWorm(const AbortBucketWormRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Delete);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::CompleteBucketWorm(const CompleteBucketWormRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
+VoidOutcome OssClientImpl::ExtendBucketWormWorm(const ExtendBucketWormRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Post);
+    if (outcome.isSuccess()) {
+        VoidResult result;
+        result.requestId_ = outcome.result().RequestId();
+        return VoidOutcome(result);
+    }
+    else {
+        return VoidOutcome(outcome.error());
+    }
+}
+
+GetBucketWormOutcome OssClientImpl::GetBucketWorm(const GetBucketWormRequest& request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        GetBucketWormResult result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? GetBucketWormOutcome(std::move(result)) :
+            GetBucketWormOutcome(OssError("ParseXMLError", "Parsing GetBucketWorm result fail."));
+    }
+    else {
+        return GetBucketWormOutcome(outcome.error());
+    }
+}
 #endif
 
 ListObjectOutcome OssClientImpl::ListObjects(const ListObjectsRequest &request) const
