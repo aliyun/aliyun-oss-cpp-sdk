@@ -1006,6 +1006,20 @@ ListObjectOutcome OssClientImpl::ListObjects(const ListObjectsRequest &request) 
     }
 }
 
+ListObjectsV2Outcome OssClientImpl::ListObjectsV2(const ListObjectsV2Request &request) const
+{
+    auto outcome = MakeRequest(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        ListObjectsV2Result result(outcome.result().payload());
+        result.requestId_ = outcome.result().RequestId();
+        return result.ParseDone() ? ListObjectsV2Outcome(std::move(result)) :
+            ListObjectsV2Outcome(OssError("ParseXMLError", "Parsing ListObjectV2 result fail."));
+    }
+    else {
+        return ListObjectsV2Outcome(outcome.error());
+    }
+}
+
 ListObjectVersionsOutcome OssClientImpl::ListObjectVersions(const ListObjectVersionsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);

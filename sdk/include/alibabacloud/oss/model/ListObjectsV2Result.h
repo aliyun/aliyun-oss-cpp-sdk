@@ -16,6 +16,7 @@
 
 #pragma once
 #include <alibabacloud/oss/model/Bucket.h>
+#include <alibabacloud/oss/model/ListObjectsResult.h>
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -26,59 +27,36 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    class ListObjectsResult;
-    class ListObjectsV2Result;
-    class ALIBABACLOUD_OSS_EXPORT ObjectSummary
+    class ALIBABACLOUD_OSS_EXPORT ListObjectsV2Result : public OssResult
     {
     public:
-        ObjectSummary() = default;
-        const std::string& Key() const { return key_; }
-        const std::string& ETag()const { return eTag_; }
-        int64_t Size() const { return size_; }
-        const std::string& LastModified() const { return lastModified_; }
-        const std::string& StorageClass() const { return storageClass_; }
-        const std::string& Type() const { return type_; }
-        const AlibabaCloud::OSS::Owner& Owner() const { return owner_; }
-    private:
-        friend class ListObjectsResult;
-        friend class ListObjectsV2Result;
-        std::string key_;
-        std::string eTag_;
-        int64_t size_;
-        std::string lastModified_;
-        std::string storageClass_;
-        std::string type_;
-        AlibabaCloud::OSS::Owner owner_;
-    };
-
-    using ObjectSummaryList = std::vector<ObjectSummary>;
-
-    class ALIBABACLOUD_OSS_EXPORT ListObjectsResult : public OssResult
-    {
-    public:
-        ListObjectsResult();
-        ListObjectsResult(const std::string& data);
-        ListObjectsResult(const std::shared_ptr<std::iostream>& data);
-        ListObjectsResult& operator=(const std::string& data);
+        ListObjectsV2Result();
+        ListObjectsV2Result(const std::string& data);
+        ListObjectsV2Result(const std::shared_ptr<std::iostream>& data);
+        ListObjectsV2Result& operator=(const std::string& data);
         const std::string& Name() const { return name_; }
         const std::string& Prefix() const { return prefix_; }
-        const std::string& Marker() const { return marker_; }
-        const std::string& NextMarker() const { return nextMarker_; }
+        const std::string& StartAfter() const { return startAfter_; }
+        const std::string& ContinuationToken() const { return continuationToken_; }
+        const std::string& NextContinuationToken() const { return nextContinuationToken_; }
         const std::string& Delimiter() const { return delimiter_; }
         const std::string& EncodingType() const { return encodingType_; }
         int MaxKeys() const { return maxKeys_; }
+        int KeyCount() const { return keyCount_; }
         bool IsTruncated() const { return isTruncated_; }
         const CommonPrefixeList& CommonPrefixes() const { return commonPrefixes_; }
         const ObjectSummaryList& ObjectSummarys() const { return objectSummarys_; }
     private:
         std::string name_;
         std::string prefix_;
-        std::string marker_;
+        std::string startAfter_;
+        std::string continuationToken_;
+        std::string nextContinuationToken_;
         std::string delimiter_;
-        std::string nextMarker_;
         std::string encodingType_;
-        bool        isTruncated_;
         int         maxKeys_;
+        int         keyCount_;
+        bool        isTruncated_;
         CommonPrefixeList commonPrefixes_;
         ObjectSummaryList objectSummarys_;
     };

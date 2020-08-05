@@ -170,6 +170,7 @@ namespace OSS
         ListObjectOutcome ListObjects(const std::string& bucket) const;
         ListObjectOutcome ListObjects(const std::string& bucket, const std::string& prefix) const;
         ListObjectOutcome ListObjects(const ListObjectsRequest& request) const;
+        ListObjectsV2Outcome ListObjectsV2(const ListObjectsV2Request& request) const;
         ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket) const;
         ListObjectVersionsOutcome ListObjectVersions(const std::string& bucket, const std::string& prefix) const;
         ListObjectVersionsOutcome ListObjectVersions(const ListObjectVersionsRequest& request) const;

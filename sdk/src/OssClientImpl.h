@@ -100,6 +100,7 @@ namespace OSS
 
         /*Object*/
         ListObjectOutcome ListObjects(const ListObjectsRequest &request) const;
+        ListObjectsV2Outcome ListObjectsV2(const ListObjectsV2Request &request) const;
         ListObjectVersionsOutcome ListObjectVersions(const ListObjectVersionsRequest &request) const;
 
         GetObjectOutcome GetObject(const GetObjectRequest &request) const;
