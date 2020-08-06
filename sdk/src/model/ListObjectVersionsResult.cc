@@ -127,7 +127,7 @@ ListObjectVersionsResult& ListObjectVersionsResult::operator =(const std::string
                 if (node && node->GetText()) content.size_ = std::atoll(node->GetText());
 
                 node = contents_node->FirstChildElement("StorageClass");
-                if (node && node->GetText()) content.storageClass_ = ToStorageClassType(node->GetText());
+                if (node && node->GetText()) content.storageClass_ = node->GetText();
 
                 node = contents_node->FirstChildElement("Type");
                 if (node && node->GetText()) content.type_ = node->GetText();
