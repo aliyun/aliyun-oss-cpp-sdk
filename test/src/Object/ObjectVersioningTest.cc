@@ -1722,6 +1722,7 @@ TEST_F(ObjectVersioningTest, ListObjectVersionsResultTest)
         </ListVersionsResult>
         )";
     auto result = ListObjectVersionsResult(std::make_shared<std::stringstream>(xml));
+    EXPECT_EQ(result.ObjectVersionSummarys()[0].StorageClass(), "Standard");
 
     xml = R"(
         <?xml version="1.0" encoding="UTF-8"?>

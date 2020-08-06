@@ -132,6 +132,7 @@ TEST_F(ObjectBasicOperationTest, ListAllObjectsTest)
     int i = 0;
     for (auto const &obj : listOutcome.result().ObjectSummarys()) {
         EXPECT_EQ(obj.Size(), 100LL);
+        EXPECT_EQ(obj.StorageClass(), "Standard");
         i++;
     }
     EXPECT_EQ(i, 20);
@@ -1122,7 +1123,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
                             <ETag>&quot;5B3C1A2E053D763E1B002CC607C5A0FE&quot;</ETag>
                             <Type>Normal</Type>
                             <Size>344606</Size>
-                            <StorageClass>Standard</StorageClass>
+                            <StorageClass>IA</StorageClass>
                             <Owner>
                                 <ID>00220120222</ID>
                                 <DisplayName>user-example</DisplayName>
@@ -1157,6 +1158,8 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
     EXPECT_EQ(result.ObjectSummarys().size(), 4UL);
     EXPECT_EQ(result.ObjectSummarys()[0].ETag(), "5B3C1A2E053D763E1B002CC607C5A0FE");
     EXPECT_EQ(result.ObjectSummarys()[0].Size(), 5368709120LL);
+    EXPECT_EQ(result.ObjectSummarys()[0].StorageClass(), "Standard");
+    EXPECT_EQ(result.ObjectSummarys()[1].StorageClass(), "IA");
 }
 
 TEST_F(ObjectBasicOperationTest, ListObjectsResultWithEncodingType)
