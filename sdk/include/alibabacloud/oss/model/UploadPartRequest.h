@@ -36,10 +36,12 @@ namespace OSS
         virtual std::shared_ptr<std::iostream> Body() const;
         void setPartNumber(int partNumber);
         void setUploadId(const std::string& uploadId);
+        void setContent(const std::shared_ptr<std::iostream>& content);
         void setConetent(const std::shared_ptr<std::iostream>& content);
         void setContentLength(uint64_t length);
         void setTrafficLimit(uint64_t value);
         void setUserAgent(const std::string& ua);
+        void setContentMd5(const std::string& value);
         int PartNumber() const;
     protected:
         virtual HeaderCollection specialHeaders() const;
@@ -53,6 +55,8 @@ namespace OSS
         bool contentLengthIsSet_;
         uint64_t trafficLimit_;
         std::string userAgent_;
+        std::string contentMd5_;
+        bool contentMd5IsSet_;
     };
 } 
 }

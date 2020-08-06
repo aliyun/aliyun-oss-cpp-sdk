@@ -36,7 +36,8 @@ UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::strin
     content_(content),
     contentLengthIsSet_(false),
     trafficLimit_(0),
-    userAgent_()
+    userAgent_(),
+    contentMd5IsSet_(false)
 {
     setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
 }
@@ -49,6 +50,11 @@ void UploadPartRequest::setPartNumber(int partNumber)
 void UploadPartRequest::setUploadId(const std::string &uploadId)
 {
     uploadId_ = uploadId;
+}
+
+void UploadPartRequest::setContent(const std::shared_ptr<std::iostream> &content)
+{
+    content_ = content;
 }
 
 void UploadPartRequest::setConetent(const std::shared_ptr<std::iostream> &content)
@@ -70,6 +76,12 @@ void UploadPartRequest::setTrafficLimit(uint64_t value)
 void UploadPartRequest::setUserAgent(const std::string& ua)
 {
     userAgent_ = ua;
+}
+
+void UploadPartRequest::setContentMd5(const std::string& value)
+{
+    contentMd5_ = value;
+    contentMd5IsSet_ = true;
 }
 
 int UploadPartRequest::PartNumber() const
@@ -95,7 +107,9 @@ HeaderCollection UploadPartRequest::specialHeaders() const
     if (!userAgent_.empty()) {
         headers[Http::USER_AGENT] = userAgent_;
     }
-
+    if (contentMd5IsSet_) {
+        headers[Http::CONTENT_MD5] = contentMd5_;
+    }
     return headers;
 }
 

@@ -2086,5 +2086,34 @@ TEST_F(MultipartUploadTest, MultiUploadWithSequentialTest)
 
 }
 
+TEST_F(MultipartUploadTest, UploadPartWithContentMd5Test)
+{
+    std::string key = TestUtils::GetObjectKey("UploadPartWithContentMd5Test");
+    InitiateMultipartUploadRequest initUploadRequest(BucketName, key);
+    auto ulOutcome = Client->InitiateMultipartUpload(initUploadRequest);
+    EXPECT_EQ(ulOutcome.isSuccess(), true);
+    auto uploadId = ulOutcome.result().UploadId();
+    PartList partETagList;
+
+    // Upload multiparts to bucket
+    std::shared_ptr<std::iostream> content = std::make_shared<std::stringstream>("hello");
+
+    UploadPartRequest uploadPartRequest(BucketName, key, content);
+    uploadPartRequest.setUploadId(uploadId);
+    uploadPartRequest.setPartNumber(1);
+    uploadPartRequest.setContentMd5(ComputeContentMD5("hello", 5));
+    auto upOutcome = Client->UploadPart(uploadPartRequest);
+    EXPECT_EQ(upOutcome.isSuccess(), true);
+
+    partETagList.push_back(Part(1, upOutcome.result().ETag()));
+
+    // Complete to upload multiparts
+    CompleteMultipartUploadRequest request(BucketName, key);
+    request.setUploadId(uploadId);
+    request.setPartList(partETagList);
+    auto cmOutcome = Client->CompleteMultipartUpload(request);
+    EXPECT_EQ(cmOutcome.isSuccess(), true);
+}
+
 }
 }
