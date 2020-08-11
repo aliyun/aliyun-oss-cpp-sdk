@@ -1004,5 +1004,19 @@ TEST_F(UtilsFunctionTest, MapToJsonStringTest)
     EXPECT_EQ(json1, json2);
 }
 
+TEST_F(UtilsFunctionTest, IsValidEndpointTest)
+{
+    EXPECT_EQ(IsValidEndpoint("192.168.1.1"), true);
+    EXPECT_EQ(IsValidEndpoint("192.168.1.1:80"), true);
+    EXPECT_EQ(IsValidEndpoint("www.test-inc.com"), true);
+    EXPECT_EQ(IsValidEndpoint("WWW.test-inc_CN.com"), true);
+    EXPECT_EQ(IsValidEndpoint("http://www.test-inc.com"), true);
+    EXPECT_EQ(IsValidEndpoint("http://www.test-inc_test.com:80"), true);
+    EXPECT_EQ(IsValidEndpoint("https://www.test-inc_test.com:80/test?123=x"), true);
+    EXPECT_EQ(IsValidEndpoint("www.test-inc*test.com"), false);
+    EXPECT_EQ(IsValidEndpoint("www.test-inc.com\\oss-cn-hangzhou.aliyuncs.com"), false);
+    EXPECT_EQ(IsValidEndpoint(""), false);
+}
+
 }
 }

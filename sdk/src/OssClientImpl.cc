@@ -48,7 +48,8 @@ OssClientImpl::OssClientImpl(const std::string &endpoint, const std::shared_ptr<
     endpoint_(endpoint),
     credentialsProvider_(credentialsProvider),
     signer_(std::make_shared<HmacSha1Signer>()),
-    executor_(configuration.executor ? configuration.executor :std::make_shared<ThreadExecutor>())
+    executor_(configuration.executor ? configuration.executor :std::make_shared<ThreadExecutor>()),
+    isValidEndpoint_(IsValidEndpoint(endpoint))
 {
 }
 
@@ -317,6 +318,10 @@ OssOutcome OssClientImpl::MakeRequest(const OssRequest &request, Http::Method me
     int ret = request.validate();
     if (ret != 0) {
         return OssOutcome(OssError("ValidateError", request.validateMessage(ret)));
+    }
+
+    if (!isValidEndpoint_) {
+        return OssOutcome(OssError("ValidateError", "The endpoint is invalid."));
     }
 
     auto outcome = BASE::AttemptRequest(endpoint_, request, method);

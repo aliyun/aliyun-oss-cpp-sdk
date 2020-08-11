@@ -177,5 +177,53 @@ TEST_F(AccessKeyTest, GenerateRTMPSignatureUrlCredentialsProviderTest)
 #endif
 }
 
+TEST_F(AccessKeyTest, EndpointTest)
+{
+    ClientConfiguration conf;
+    auto request = ListBucketsRequest();
+    request.setMaxKeys(1);
+
+    auto endpoint = Config::Endpoint;
+    auto client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    auto outcome = client->ListBuckets(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    endpoint = "http://oss-cn-hangzhou.aliyuncs.com";
+    client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    outcome = client->ListBuckets(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    endpoint = "http://oss-cn-hangzhou.aliyuncs.com:80";
+    client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    outcome = client->ListBuckets(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    endpoint = "http://oss-cn-hangzhou.aliyuncs.com:80/?test=123";
+    client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    outcome = client->ListBuckets(request);
+    EXPECT_EQ(outcome.isSuccess(), true);
+
+    endpoint = "www.test-inc.com\\oss-cn-hangzhou.aliyuncs.com";
+    client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    outcome = client->ListBuckets(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    EXPECT_EQ(outcome.error().Message(), "The endpoint is invalid.");
+
+    endpoint = "www.test-inc*test.com";
+    client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    outcome = client->ListBuckets(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    EXPECT_EQ(outcome.error().Message(), "The endpoint is invalid.");
+
+    endpoint = "";
+    client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    outcome = client->ListBuckets(request);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    EXPECT_EQ(outcome.error().Message(), "The endpoint is invalid.");
+}
+
 }
 }
