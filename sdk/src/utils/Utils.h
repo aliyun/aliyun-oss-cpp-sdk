@@ -71,6 +71,7 @@ namespace OSS
     bool IsValidPlayListName(const std::string &playListName);
     bool IsValidTagKey(const std::string &key);
     bool IsValidTagValue(const std::string &value);
+    bool IsValidEndpoint(const std::string &value);
 
     const std::string &LookupMimeType(const std::string& name);
     std::string CombineHostString(const std::string &endpoint, const std::string &bucket, bool isCname);

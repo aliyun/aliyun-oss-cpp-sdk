@@ -189,6 +189,7 @@ namespace OSS
         std::shared_ptr<CredentialsProvider> credentialsProvider_;
         std::shared_ptr<Signer> signer_;
         std::shared_ptr<Executor> executor_;
+        bool isValidEndpoint_;
     };
 }
 }

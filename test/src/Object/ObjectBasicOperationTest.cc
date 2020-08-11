@@ -1807,7 +1807,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsV2Test)
         EXPECT_EQ(obj.Size(), 100LL);
         i++;
     }
-    EXPECT_EQ(i, 23UL);
+    EXPECT_EQ(i, 23L);
 
     //list object with prefix
     request = ListObjectsV2Request(bucketName);

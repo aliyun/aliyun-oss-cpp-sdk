@@ -658,6 +658,27 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
      return value.size() <= TagValueLengthLimit;
  }
 
+ bool AlibabaCloud::OSS::IsValidEndpoint(const std::string &value)
+ {
+     auto host = Url(value).host();
+
+     if (host.empty())
+         return false;
+
+     for (const auto c : host) {
+         if (!((c >= 'a' && c <= 'z') ||
+             (c >= '0' && c <= '9') ||
+             (c >= 'A' && c <= 'Z') ||
+             (c == '_') ||
+             (c == '-') ||
+             (c == '.'))) {
+             return false;
+        }
+     }
+
+     return true;
+ }
+ 
 const std::string& AlibabaCloud::OSS::LookupMimeType(const std::string &name)
 {
     const static std::map<std::string, std::string> mimeType = {
