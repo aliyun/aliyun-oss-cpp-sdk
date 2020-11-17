@@ -205,7 +205,7 @@ GetObjectOutcome ResumableDownloader::Download()
             for (size_t i = 1; i < downloadedParts.size(); i++) {
                 localCRC64 = CRC64::CombineCRC(localCRC64, downloadedParts[i].crc64, downloadedParts[i].size);
             }
-            if (localCRC64 != outcomes[0].result().Metadata().CRC64()) {
+            if (localCRC64 != meta.CRC64()) {
                 return GetObjectOutcome(OssError("CrcCheckError", "ResumableDownload object CRC checksum fail."));
             }
         }
@@ -225,7 +225,7 @@ GetObjectOutcome ResumableDownloader::Download()
 
     if (meta.HttpMetaData().find("x-oss-hash-crc64ecma-by-client") != meta.HttpMetaData().end()) {
         meta.HttpMetaData().erase("x-oss-hash-crc64ecma-by-client");
-    }
+   }
 
     if (!renameTempFile()) {
         std::stringstream ss;
