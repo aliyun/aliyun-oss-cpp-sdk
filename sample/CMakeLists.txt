@@ -50,6 +50,7 @@ target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})
 if (${TARGET_OS} STREQUAL "LINUX")
 target_link_libraries(${PROJECT_NAME} pthread)	
+target_link_libraries(${PROJECT_NAME} dl)
 endif()
 
 target_compile_options(${PROJECT_NAME} 
