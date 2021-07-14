@@ -81,6 +81,7 @@ bool DefaultRetryStrategy::shouldRetry(const Error & error, long attemptedRetrie
         case (ERROR_CURL_BASE + 52): //CURLE_GOT_NOTHING
         case (ERROR_CURL_BASE + 55): //CURLE_SEND_ERROR
         case (ERROR_CURL_BASE + 56): //CURLE_RECV_ERROR
+        case (ERROR_CURL_BASE + 65): //CURLE_SEND_FAIL_REWIND
             return true;
         default:
             break;
