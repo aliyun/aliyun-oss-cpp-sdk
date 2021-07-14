@@ -29,6 +29,11 @@
 
 using namespace AlibabaCloud::OSS;
 
+struct DownloaderTransferState {
+    int64_t transfered;
+    void *userData;
+};
+
 GetObjectOutcome ResumableDownloader::Download() 
 {
     OssError err;
@@ -79,9 +84,12 @@ GetObjectOutcome ResumableDownloader::Download()
                 getObjectReq.setRange(start, end);
                 getObjectReq.setFlags(getObjectReq.Flags() | REQUEST_FLAG_CHECK_CRC64 | REQUEST_FLAG_SAVE_CLIENT_CRC64);
 
+                DownloaderTransferState transferState;
                 auto process = request_.TransferProgress();
                 if (process.Handler) {
-                    TransferProgress uploadPartProcess = { DownloadPartProcessCallback, (void *)this };
+                    transferState.transfered = 0;
+                    transferState.userData = (void *)this;
+                    TransferProgress uploadPartProcess = { DownloadPartProcessCallback, (void *)&transferState };
                     getObjectReq.setTransferProgress(uploadPartProcess);
                 }
                 if (request_.RequestPayer() == RequestPayer::Requester) {
@@ -468,10 +476,14 @@ void ResumableDownloader::initRecord()
 
 void ResumableDownloader::DownloadPartProcessCallback(size_t increment, int64_t transfered, int64_t total, void *userData) 
 {
-    UNUSED_PARAM(transfered);
     UNUSED_PARAM(total);
+    auto transferState = (DownloaderTransferState *)userData;
+    auto downloader = (ResumableDownloader*)transferState->userData;
+    auto inc = transfered - transferState->transfered;
+    transferState->transfered = std::max(transfered, transferState->transfered);
+    inc = std::max(inc, static_cast<int64_t>(0));
+    increment = static_cast<size_t>(inc);
 
-    auto downloader = (ResumableDownloader*)userData;
     std::lock_guard<std::mutex> lck(downloader->lock_);
     downloader->consumedSize_ += increment;
 

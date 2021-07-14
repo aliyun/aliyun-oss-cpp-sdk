@@ -35,6 +35,10 @@
 
 using namespace AlibabaCloud::OSS;
 
+struct UploaderTransferState {
+    int64_t transfered;
+    void *userData;
+};
 
 ResumableUploader::ResumableUploader(const UploadObjectRequest& request, const OssClientImpl *client) :
     ResumableBaseWorker(request.ObjectSize(), request.PartSize()),
@@ -101,9 +105,12 @@ PutObjectOutcome ResumableUploader::Upload()
                 UploadPartRequest uploadPartRequest(request_.Bucket(), request_.Key(), part.PartNumber(), uploadID_, content);
                 uploadPartRequest.setContentLength(length);
 
+                UploaderTransferState transferState;
                 auto process = request_.TransferProgress();
                 if (process.Handler) {
-                    TransferProgress uploadPartProcess = { UploadPartProcessCallback, (void *)this };
+                    transferState.transfered = 0;
+                    transferState.userData = (void *)this;
+                    TransferProgress uploadPartProcess = { UploadPartProcessCallback, (void *)&transferState };
                     uploadPartRequest.setTransferProgress(uploadPartProcess);
                 }
                 if (request_.RequestPayer() == RequestPayer::Requester) {
@@ -409,10 +416,14 @@ void ResumableUploader::dumpRecordInfo(AlibabaCloud::OSS::Json::Value& root)
 
 void ResumableUploader::UploadPartProcessCallback(size_t increment, int64_t transfered, int64_t total, void *userData) 
 {
-    UNUSED_PARAM(transfered);
     UNUSED_PARAM(total);
+    auto transferState = (UploaderTransferState *)userData;
+    auto uploader = (ResumableUploader*)transferState->userData;
+    auto inc = transfered - transferState->transfered;
+    transferState->transfered = std::max(transfered, transferState->transfered);
+    inc = std::max(inc, static_cast<int64_t>(0));
+    increment = static_cast<size_t>(inc);
 
-    auto uploader = (ResumableUploader*)userData;
     std::lock_guard<std::mutex> lck(uploader->lock_);
     uploader->consumedSize_ += increment;
 
