@@ -1313,9 +1313,16 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
     parameters["Signature"] = signature;
 
+    //host
     std::stringstream ss;
     ss << CombineHostString(endpoint_, request.bucket_, configuration().isCname);
-    ss << CombinePathString(endpoint_, request.bucket_, request.key_);
+    //path
+    auto path = CombinePathString(endpoint_, request.bucket_, request.key_);
+    if (request.unencodedSlash_) {
+        StringReplace(path, "%2F", "/");
+    }
+    ss << path;
+    //query
     ss << "?";
     ss << CombineQueryString(parameters);
 

@@ -590,6 +590,83 @@ TEST_F(ObjectSignedUrlTest, PutObjectByUrlRequestFunctionTest)
     EXPECT_TRUE(paramters.empty());
 }
 
+TEST_F(ObjectSignedUrlTest, UnencodedSlashTest)
+{
+    std::string key = TestUtils::GetObjectKey("UnencodedSlashTest/123/456%2F/123");
+    std::shared_ptr<std::iostream> content = TestUtils::GetRandomStream(2048);
+
+    std::string md5 = ComputeContentMD5(*content.get());
+
+    GeneratePresignedUrlRequest request(BucketName, key, Http::Put);
+    request.setExpires(GetExpiresDelayS(120));
+    request.setContentMd5(md5);
+    request.setContentType("text/rtf");
+    request.UserMetaData()["Author"] = "oss";
+    request.UserMetaData()["Test"] = "test";
+    request.addParameter("x-param-null", "");
+    request.addParameter("x-param-space0", " ");
+    request.addParameter("x-param-value", "value");
+    request.addParameter("x-param-space1", " ");
+
+    auto urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    EXPECT_TRUE(urlOutcome.result().find("UnencodedSlashTest%2F123%2F456%252F%2F123") != std::string::npos);
+
+    ObjectMetaData meta;
+    meta.setContentMd5(md5);
+    meta.setContentType("text/rtf");
+    meta.UserMetaData()["Author"] = "oss";
+    meta.UserMetaData()["Test"] = "test";
+
+    auto pOutcome = Client->PutObjectByUrl(urlOutcome.result(), content, meta);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+    EXPECT_EQ(TestUtils::ObjectExists(*Client, BucketName, key), true);
+
+    auto metaOutcome = Client->HeadObject(BucketName, key);
+    EXPECT_EQ(metaOutcome.isSuccess(), true);
+    EXPECT_STREQ(metaOutcome.result().ContentType().c_str(), "text/rtf");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("Author").c_str(), "oss");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("author").c_str(), "oss");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("Test").c_str(), "test");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("tesT").c_str(), "test");
+
+    //
+    request = GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    request.setExpires(GetExpiresDelayS(120));
+    request.setContentMd5(md5);
+    request.setContentType("text/rtf");
+    request.UserMetaData()["Author"] = "oss1";
+    request.UserMetaData()["Test"] = "test1";
+    request.addParameter("x-param-null", "");
+    request.addParameter("x-param-space0", " ");
+    request.addParameter("x-param-value", "value");
+    request.addParameter("x-param-space1", " ");
+    request.setUnencodedSlash(true);
+
+    urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    EXPECT_TRUE(urlOutcome.result().find("UnencodedSlashTest/123/456%252F/123") != std::string::npos);
+
+    meta = ObjectMetaData();
+    meta.setContentMd5(md5);
+    meta.setContentType("text/rtf");
+    meta.UserMetaData()["Author"] = "oss1";
+    meta.UserMetaData()["Test"] = "test1";
+
+    pOutcome = Client->PutObjectByUrl(urlOutcome.result(), content, meta);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+    EXPECT_EQ(TestUtils::ObjectExists(*Client, BucketName, key), true);
+
+    metaOutcome = Client->HeadObject(BucketName, key);
+    EXPECT_EQ(metaOutcome.isSuccess(), true);
+    EXPECT_STREQ(metaOutcome.result().ContentType().c_str(), "text/rtf");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("Author").c_str(), "oss1");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("author").c_str(), "oss1");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("Test").c_str(), "test1");
+    EXPECT_STREQ(metaOutcome.result().UserMetaData().at("tesT").c_str(), "test1");
+}
+
+
 
 }
 }
