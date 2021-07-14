@@ -664,6 +664,7 @@ public:
         EXPECT_EQ(CreateDirectory(checkpointDir), true);
         EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
 
+        std::cout << "this ptr:" << this << std::endl;
         TransferProgress progressCallback = { ProgressCallback, this };
         UploadObjectRequest request(BucketName, key, tmpFile, checkpointDir, 102400, 1);
         request.setTransferProgress(progressCallback);
@@ -1325,6 +1326,7 @@ public:
         EXPECT_EQ(putObjectOutcome.isSuccess(), true);
         EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
 
+        std::cout << "this ptr:" << this << std::endl;
         TransferProgress progressCallback = { ProgressCallback, this };
         DownloadObjectRequest request(BucketName, sourceKey, targetKey);
         request.setTransferProgress(progressCallback);
@@ -2354,7 +2356,7 @@ public:
         std::string checkpointDir = TestUtils::GetTargetFileName("checkpoint");
         EXPECT_EQ(CreateDirectory(checkpointDir), true);
         EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
-
+        std::cout << "this ptr:" << this << std::endl;
         TransferProgress progressCallback = { ProgressCallback, this };
         UploadObjectRequest request(BucketName, key, tmpFile, checkpointDir, 102400, 1);
         request.setTransferProgress(progressCallback);
