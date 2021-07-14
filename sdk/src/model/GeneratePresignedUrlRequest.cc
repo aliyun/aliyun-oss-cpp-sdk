@@ -30,7 +30,8 @@ GeneratePresignedUrlRequest::GeneratePresignedUrlRequest(const std::string &buck
 GeneratePresignedUrlRequest::GeneratePresignedUrlRequest(const std::string &bucket, const std::string &key, Http::Method method):
     bucket_(bucket),
     key_(key),
-    method_(method)
+    method_(method),
+    unencodedSlash_(false)
 {
     //defalt 15 min
     std::time_t t = std::time(nullptr) + 15*60;
@@ -101,4 +102,9 @@ void GeneratePresignedUrlRequest::addParameter(const std::string&key, const std:
 MetaData &GeneratePresignedUrlRequest::UserMetaData()
 {
     return metaData_.UserMetaData();
+}
+
+void GeneratePresignedUrlRequest::setUnencodedSlash(bool value)
+{
+    unencodedSlash_ = value;
 }

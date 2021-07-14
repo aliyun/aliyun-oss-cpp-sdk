@@ -44,6 +44,7 @@ namespace OSS
         void addResponseHeaders(RequestResponseHeader header, const std::string& value);
         void addParameter(const std::string& key, const std::string& value);
         MetaData& UserMetaData();
+        void setUnencodedSlash(bool value);
     private:
         friend class OssClientImpl;
         std::string bucket_;
@@ -51,6 +52,7 @@ namespace OSS
         Http::Method method_;
         ObjectMetaData metaData_;
         ParameterCollection parameters_;
+        bool unencodedSlash_;
     };
 } 
 }

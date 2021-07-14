@@ -606,6 +606,10 @@ TEST_F(UtilsFunctionTest, StringReplaceTest)
 
     StringReplace(test, "abcd", "A");
     EXPECT_EQ(test, "1234AABCD1234");
+
+    test = "12212";
+    StringReplace(test, "12", "21");
+    EXPECT_EQ(test, "21221");
 }
 
 TEST_F(UtilsFunctionTest, UploadAndDownloadObject)
