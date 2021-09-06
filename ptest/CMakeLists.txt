@@ -21,7 +21,7 @@ file(GLOB ptest_src "src/*")
 add_executable(${PROJECT_NAME} 	${ptest_src})
 
 target_include_directories(${PROJECT_NAME}
-	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include)
+ PRIVATE ${OSS_SDK_ROOT}/sdk/include)
 
 target_link_libraries(${PROJECT_NAME} cpp-sdk${STATIC_LIB_SUFFIX})	
 target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
