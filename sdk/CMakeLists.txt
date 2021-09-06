@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-project(cpp-sdk VERSION ${version})
+project(oss-cpp-sdk VERSION ${version})
 
 configure_file(src/Config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss/Config.h @ONLY)
 

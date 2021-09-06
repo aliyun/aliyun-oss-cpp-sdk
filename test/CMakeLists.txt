@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-project(cpp-sdk-test VERSION ${version})
+project(oss-cpp-sdk-test VERSION ${version})
 	
 file(GLOB test_gtest_src "external/gtest/*")
 file(GLOB test_main_src "src/*")
@@ -52,7 +52,7 @@ target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/third_party/include)
 endif()	
 	
-target_link_libraries(${PROJECT_NAME} cpp-sdk${STATIC_LIB_SUFFIX})	
+target_link_libraries(${PROJECT_NAME} oss-cpp-sdk${STATIC_LIB_SUFFIX})	
 target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})
 if (${TARGET_OS} STREQUAL "LINUX")
