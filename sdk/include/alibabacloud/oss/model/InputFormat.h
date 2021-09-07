@@ -59,6 +59,7 @@ namespace OSS
 
     protected:
         InputFormat();
+	virtual ~InputFormat() = default;
         friend SelectObjectRequest;
         friend CreateSelectObjectMetaRequest;
         virtual int validate() const;
