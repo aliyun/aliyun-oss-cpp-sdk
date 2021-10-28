@@ -213,12 +213,12 @@ GetObjectOutcome ResumableDownloader::Download()
     }
     else {
         std::stringstream ss;
-        ss << "bytes " << request_.RangeStart() << "-";
+        ss << "bytes " << std::to_string(request_.RangeStart()) << "-";
         if (request_.RangeEnd() != -1) { 
-            ss << request_.RangeEnd() << "/" << objectSize_; 
+            ss << std::to_string(request_.RangeEnd()) << "/" << std::to_string(objectSize_);
         } 
         else {
-            ss << (objectSize_ - 1) << "/" << objectSize_;
+            ss << std::to_string(objectSize_ - 1) << "/" << std::to_string(objectSize_);
         }
         meta.HttpMetaData()["Content-Range"] = ss.str();
     }

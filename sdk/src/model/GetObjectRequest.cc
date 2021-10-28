@@ -158,8 +158,8 @@ HeaderCollection GetObjectRequest::specialHeaders() const
     auto headers = OssObjectRequest::specialHeaders();
     if (rangeIsSet_) {
         std::stringstream ss;
-        ss << "bytes=" << range_[0] << "-";
-        if (range_[1] != -1) ss << range_[1];
+        ss << "bytes=" << std::to_string(range_[0]) << "-";
+        if (range_[1] != -1) ss << std::to_string(range_[1]);
         headers[Http::RANGE] = ss.str();
 
         if (rangeIsStandardMode_) {
