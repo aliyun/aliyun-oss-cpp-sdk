@@ -437,7 +437,7 @@ void BucketSample::GetBucketLifecycle()
     auto outcome = client->GetBucketLifecycle(bucket_);
     if (outcome.isSuccess()) {
         std::cout << __FUNCTION__ << " success, rule size:%d, rules:" << std::endl;
-        for (auto const rule : outcome.result().LifecycleRules()) {
+        for (auto const& rule : outcome.result().LifecycleRules()) {
             std::cout << "rule:" << rule.ID() << "," << rule.Prefix() << "," << rule.Status() << ","
                 "hasExpiration:" << rule.hasExpiration() << "," <<
                 "hasTransitionList:" << rule.hasTransitionList() << "," <<
@@ -468,9 +468,9 @@ void BucketSample::GetBucketCors()
     auto outcome = client->GetBucketCors(bucket_);
     if (outcome.isSuccess()) {
         std::cout << __FUNCTION__ << " success" << std::endl;
-        for (auto const rule : outcome.result().CORSRules()) {
+        for (auto const& rule : outcome.result().CORSRules()) {
             std::cout << "Get Bucket Cors List:" << std::endl;
-            for (auto const origin : rule.AllowedOrigins()) {
+            for (auto const& origin : rule.AllowedOrigins()) {
                 std::cout << "Allowed origin:" << origin << std::endl;
             }
         }
