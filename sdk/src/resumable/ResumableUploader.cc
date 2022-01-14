@@ -345,7 +345,7 @@ int ResumableUploader::getPartsToUpload(OssError &err, PartList &partsUploaded, 
 
             auto parts = outcome.result().PartList();
             for(auto iter = parts.begin(); iter != parts.end(); iter++){
-                if (iter->Size() != partSize_) {
+                if (iter->Size() != static_cast<int64_t>(partSize_)) {
                     continue;
                 }
                 partNumbersUploaded.insert(iter->PartNumber());
