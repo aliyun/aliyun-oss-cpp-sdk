@@ -529,7 +529,7 @@ TEST_F(BucketBasicOperationTest, GetBucketStatResultEnhancedTest)
     EXPECT_EQ(result.ObjectCount(), 230ULL);
     EXPECT_EQ(result.Storage(), 1600ULL);
     EXPECT_EQ(result.LiveChannelCount(), 4ULL);
-    EXPECT_EQ(result.LastModifiedTime(), "153221331");
+    EXPECT_EQ(result.LastModifiedTime(), 153221331ULL);
     EXPECT_EQ(result.StandardStorage(), 430ULL);
     EXPECT_EQ(result.StandardObjectCount(), 66ULL);
     EXPECT_EQ(result.InfrequentAccessStorage(), 2359296ULL);

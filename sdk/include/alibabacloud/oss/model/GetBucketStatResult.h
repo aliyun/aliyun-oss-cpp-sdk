@@ -34,7 +34,7 @@ namespace OSS
         uint64_t ObjectCount() const { return objectCount_; }
         uint64_t MultipartUploadCount() const { return multipartUploadCount_; }
         uint64_t LiveChannelCount() const { return liveChannelCount_; }
-        std::string LastModifiedTime() const { return lastModifiedTime_; }
+        uint64_t LastModifiedTime() const { return lastModifiedTime_; }
         uint64_t StandardStorage() const { return standardStorage_; }
         uint64_t StandardObjectCount() const { return standardObjectCount_; }
         uint64_t InfrequentAccessStorage() const { return infrequentAccessStorage_; }
@@ -49,7 +49,7 @@ namespace OSS
         uint64_t objectCount_;
         uint64_t multipartUploadCount_;
         uint64_t liveChannelCount_;
-        std::string lastModifiedTime_;
+        uint64_t lastModifiedTime_;
         uint64_t standardStorage_;
         uint64_t standardObjectCount_;
         uint64_t infrequentAccessStorage_;

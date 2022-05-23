@@ -28,7 +28,7 @@ GetBucketStatResult::GetBucketStatResult() :
     objectCount_(0),
     multipartUploadCount_(0),
     liveChannelCount_(0),
-    lastModifiedTime_(""),
+    lastModifiedTime_(0),
     standardStorage_(0),
     standardObjectCount_(0),
     infrequentAccessStorage_(0),
@@ -75,7 +75,7 @@ GetBucketStatResult& GetBucketStatResult::operator =(const std::string& result)
             if (node && node->GetText()) liveChannelCount_ = atoll(node->GetText());
 
             node = root->FirstChildElement("LastModifiedTime");
-            if (node && node->GetText()) lastModifiedTime_ = node->GetText();
+            if (node && node->GetText()) lastModifiedTime_ = atoll(node->GetText());
 
             node = root->FirstChildElement("StandardStorage");
             if (node && node->GetText()) standardStorage_ = atoll(node->GetText());
