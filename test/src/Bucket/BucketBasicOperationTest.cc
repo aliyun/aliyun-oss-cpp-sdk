@@ -33,13 +33,13 @@ protected:
     }
 
     // Sets up the stuff shared by all tests in this test case.
-    static void SetUpTestCase() 
+    static void SetUpTestCase()
     {
         Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
     }
 
     // Tears down the stuff shared by all tests in this test case.
-    static void TearDownTestCase() 
+    static void TearDownTestCase()
     {
         Client = nullptr;
     }
@@ -210,7 +210,7 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoTest)
     auto bfOutcome = Client->GetBucketInfo(request);
     EXPECT_EQ(bfOutcome.isSuccess(), true);
     EXPECT_EQ(bfOutcome.result().Acl(), CannedAccessControlList::Private);
-    
+
     Client->SetBucketAcl(SetBucketAclRequest(bucketName, CannedAccessControlList::PublicRead));
     TestUtils::WaitForCacheExpire(5);
     bfOutcome = Client->GetBucketInfo(request);
@@ -505,6 +505,42 @@ TEST_F(BucketBasicOperationTest, GetBucketStatResult)
     EXPECT_EQ(result.Storage(), 1024123ULL);
 }
 
+TEST_F(BucketBasicOperationTest, GetBucketStatResultEnhancedTest)
+{
+    std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+                        <BucketStat>
+                          <Storage>1600</Storage>
+                          <ObjectCount>230</ObjectCount>
+                          <MultipartUploadCount>40</MultipartUploadCount>
+                          <LiveChannelCount>4</LiveChannelCount>
+                          <LastModifiedTime>153221331</LastModifiedTime>
+                          <StandardStorage>430</StandardStorage>
+                          <StandardObjectCount>66</StandardObjectCount>
+                          <InfrequentAccessStorage>2359296</InfrequentAccessStorage>
+                          <InfrequentAccessObjectCount>54</InfrequentAccessObjectCount>
+                          <ArchiveStorage>2949120</ArchiveStorage>
+                          <ArchiveObjectCount>74</ArchiveObjectCount>
+                          <ColdArchiveStorage>2359296</ColdArchiveStorage>
+                          <ColdArchiveObjectCount>36</ColdArchiveObjectCount>
+                        </BucketStat>)";
+
+    GetBucketStatResult result(xml);
+    EXPECT_EQ(result.MultipartUploadCount(), 40ULL);
+    EXPECT_EQ(result.ObjectCount(), 230ULL);
+    EXPECT_EQ(result.Storage(), 1600ULL);
+    EXPECT_EQ(result.LiveChannelCount(), 4ULL);
+    EXPECT_EQ(result.LastModifiedTime(), 153221331ULL);
+    EXPECT_EQ(result.StandardStorage(), 430ULL);
+    EXPECT_EQ(result.StandardObjectCount(), 66ULL);
+    EXPECT_EQ(result.InfrequentAccessStorage(), 2359296ULL);
+    EXPECT_EQ(result.InfrequentAccessObjectCount(), 54ULL);
+    EXPECT_EQ(result.ArchiveStorage(), 2949120ULL);
+    EXPECT_EQ(result.ArchiveObjectCount(), 74ULL);
+    EXPECT_EQ(result.ColdArchiveStorage(), 2359296ULL);
+    EXPECT_EQ(result.ColdArchiveObjectCount(), 36ULL);
+}
+
+
 TEST_F(BucketBasicOperationTest, GetBucketLocationResult)
 {
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
@@ -792,6 +828,24 @@ TEST_F(BucketBasicOperationTest, GetBucketInfoResultBranchTest)
 
     xml = R"(<?xml version="1.0" encoding="UTF-8"?>)";
     GetBucketStatResult result15(xml);
+
+    xml = R"(<?xml version="1.0" encoding="UTF-8"?>
+              <BucketStat>
+                <Storage></Storage>
+                <ObjectCount></ObjectCount>
+                <MultipartUploadCount></MultipartUploadCount>
+                <LiveChannelCount></LiveChannelCount>
+                <LastModifiedTime></LastModifiedTime>
+                <StandardStorage></StandardStorage>
+                <StandardObjectCount></StandardObjectCount>
+                <InfrequentAccessStorage></InfrequentAccessStorage>
+                <InfrequentAccessObjectCount></InfrequentAccessObjectCount>
+                <ArchiveStorage></ArchiveStorage>
+                <ArchiveObjectCount></ArchiveObjectCount>
+                <ColdArchiveStorage></ColdArchiveStorage>
+                <ColdArchiveObjectCount></ColdArchiveObjectCount>
+              </BucketStat>)";
+    GetBucketStatResult result16(xml);
 }
 
 TEST_F(BucketBasicOperationTest, ListBucketsResultBranchTest)
@@ -800,7 +854,7 @@ TEST_F(BucketBasicOperationTest, ListBucketsResultBranchTest)
 
     std::string xml = R"(<?xml version="1.0" encoding="UTF-8"?>
                         <ListAllMyBuckets>
-                          
+
                         </ListAllMyBuckets>)";
     ListBucketsResult result1(xml);
 
@@ -828,9 +882,9 @@ TEST_F(BucketBasicOperationTest, ListBucketsResultBranchTest)
                           </Owner>
                           <Buckets>
                             <Bucket>
-                              
+
                             </Bucket>
-                          
+
                           </Buckets>
                         </ListAllMyBucketsResult>)";
     ListBucketsResult result4(xml);
@@ -856,7 +910,7 @@ TEST_F(BucketBasicOperationTest, ListBucketsResultBranchTest)
                             <Name></Name>
                             <StorageClass></StorageClass>
                             </Bucket>
-                          
+
                           </Buckets>
                         </ListAllMyBucketsResult>)";
     ListBucketsResult result5(xml);
