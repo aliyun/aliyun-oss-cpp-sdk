@@ -121,6 +121,26 @@ namespace OSS
         * Your http client' implement
         */
         std::shared_ptr<HttpClient> httpClient;
+        /**
+         * The version of signature ("1.0"/"2.0"/"4.0"), default is "1.0"
+         */
+        std::string authVersion;
+        /**
+         * "HMAC-SHA1" "HMAC-SHA256", default with version
+         */
+        std::string authAlgorithm;
+        /**
+         * such as "cn-hangzhou". attention: not "oss-cn-hangzhou"
+         */
+        std::string region;
+        /**
+         * cloud box id
+         */
+        std::string cloudBoxId;
+        // /**
+        //  * "oss" or "oss-cloudbox", default is oss
+        //  */
+        // std::string product;
     };
 }
 }

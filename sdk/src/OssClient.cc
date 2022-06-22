@@ -31,11 +31,13 @@ bool AlibabaCloud::OSS::IsSdkInitialized()
     return SdkInitDone;
 }
 
+// 初始化网络等资源
 void AlibabaCloud::OSS::InitializeSdk()
 {
     if (IsSdkInitialized())
         return;
     InitLogInner();
+    // curl global
     CurlHttpClient::initGlobalState();
     SdkInitDone = true;
 }

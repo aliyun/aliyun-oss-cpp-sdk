@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#include "HmacSha1Signer.h"
-#include "../utils/LogUtils.h"
+#include "HmacSha256Signer.h"
 #if 0//def _WIN32
 #include <windows.h>
 #include <wincrypt.h>
@@ -28,18 +27,17 @@
 
 using namespace AlibabaCloud::OSS;
 
-HmacSha1Signer::HmacSha1Signer() :
-    Signer(HmacSha1, "HMAC-SHA1", "1.0")
+HmacSha256Signer::HmacSha256Signer() :
+    Signer(HmacSha256, "HMAC-SHA256", "2.0")
 {
 }
 
-HmacSha1Signer::~HmacSha1Signer()
+HmacSha256Signer::~HmacSha256Signer()
 {
 }
 
-std::string HmacSha1Signer::generate(const std::string & src, const std::string & secret) const
+std::string HmacSha256Signer::generate(const std::string & src, const std::string & secret) const
 {
-    OSS_LOG(LogLevel::LogDebug, "HmacSha1Signer", "\nsrc = %s, secret = %s", src.c_str(), secret.c_str());
     if (src.empty())
         return std::string();
 
@@ -66,7 +64,7 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
     DWORD dwDataLen = 32;
     HMAC_INFO HmacInfo;
     ZeroMemory(&HmacInfo, sizeof(HmacInfo));
-    HmacInfo.HashAlgid = CALG_SHA1;
+    HmacInfo.HashAlgid = CALG_SHA256;
 
     CryptAcquireContext(&hProv, NULL, MS_ENHANCED_PROV, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET);
     CryptImportKey(hProv, (BYTE*)kb, kbLen, 0, CRYPT_IPSEC_HMAC_KEY, &hKey);
@@ -92,7 +90,7 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
     unsigned char md[32];
     unsigned int mdLen = 32;
 
-    if (HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.size()),
+    if (HMAC(EVP_sha256(), secret.c_str(), static_cast<int>(secret.size()),
         reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
         md, &mdLen) == nullptr)
         return std::string();

@@ -24,6 +24,7 @@
 #include <alibabacloud/oss/utils/Executor.h>
 #include <alibabacloud/oss/OssFwd.h>
 #include "auth/Signer.h"
+#include "auth/SignGeneratorV1.h"
 #include "client/Client.h"
 #ifdef GetObject
 #undef GetObject
@@ -189,6 +190,7 @@ namespace OSS
         std::shared_ptr<CredentialsProvider> credentialsProvider_;
         std::shared_ptr<Signer> signer_;
         std::shared_ptr<Executor> executor_;
+        std::shared_ptr<SignGenerator> signGenerator_;
         bool isValidEndpoint_;
     };
 }

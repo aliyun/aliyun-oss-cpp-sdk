@@ -32,15 +32,43 @@ namespace OSS
     public: 
         SignUtils(const std::string &version);
         ~SignUtils();
+        /**
+         * @brief 签名生成
+         * 
+         * @param method HTTP方法
+         * @param resource /<bucket>/<key>
+         * @param date 日期
+         * @param headers HTTP头
+         * @param parameters 请求参数
+         */
         void build(const std::string &method,
                    const std::string &resource,
                    const std::string &date,
                    const HeaderCollection &headers,
-                   const ParameterCollection &parameters);
+                   const ParameterCollection &parameters,
+                   const HeaderSet &additionalHeaders);
+        
         void build(const std::string &expires,
                     const std::string &resource,
                     const ParameterCollection &parameters);
+
+        void genAdditionalHeader(const HeaderCollection &header, HeaderSet &additionalHeaders);
+
         const std::string &CanonicalString() const;
+    private:
+        void buildV4(const std::string &method,
+                const std::string &resource,
+                const HeaderCollection &headers,
+                const ParameterCollection &parameters,
+                const HeaderSet &additionalHeaders);
+
+        void buildV1V2(const std::string &method,
+            const std::string &resource,
+            const std::string &date,
+            const HeaderCollection &headers,
+            const ParameterCollection &parameters,
+            const HeaderSet &additionalHeaders);
+
     private:
         std::string signVersion_;
         std::string canonicalString_;

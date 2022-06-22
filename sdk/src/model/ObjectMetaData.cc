@@ -245,6 +245,7 @@ HeaderCollection ObjectMetaData::toHeaderCollection() const
         headers[header.first] = header.second;
     }
 
+    // x-oss-meta-<user_meta>
     for (auto const&header : userMetaData_) {
         std::string key("x-oss-meta-");
         key.append(header.first);
