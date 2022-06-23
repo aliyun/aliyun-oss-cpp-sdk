@@ -29,7 +29,7 @@ namespace OSS
         HmacSha256Signer();
         ~HmacSha256Signer();
 
-        virtual std::string generate(const std::string &src, const std::string &secret)const override;
+        virtual byteArray generate(const byteArray &src, const std::string &secret)const override;
     };
 }
 }

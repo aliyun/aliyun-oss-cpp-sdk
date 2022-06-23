@@ -8,7 +8,6 @@
 
 using namespace AlibabaCloud::OSS::PTest;
 
-
 std::string Config::Version = "cpp-sdk-perf-test-1.0.0 ";
 std::string Config::Endpoint = "";
 std::string Config::AccessKeyId = "";
@@ -28,46 +27,54 @@ int Config::LoopDurationS = -1;
 bool Config::Persistent = false;
 bool Config::DifferentSource = false;
 bool Config::CrcCheck = true;
-int Config::SpeedKBPerSec = 0;   //
+int Config::SpeedKBPerSec = 0; //
 
 bool Config::Debug = false;
 bool Config::DumpDetail = false;
 bool Config::PrintPercentile = false;
 
-static std::string LeftTrim(const char* source)
+static std::string LeftTrim(const char *source)
 {
     std::string copy(source);
-    copy.erase(copy.begin(), std::find_if(copy.begin(), copy.end(), [](unsigned char ch) { return !::isspace(ch); }));
+    copy.erase(copy.begin(), std::find_if(copy.begin(), copy.end(), [](unsigned char ch)
+                                          { return !::isspace(ch); }));
     return copy;
 }
 
-static std::string RightTrim(const char* source)
+static std::string RightTrim(const char *source)
 {
     std::string copy(source);
-    copy.erase(std::find_if(copy.rbegin(), copy.rend(), [](unsigned char ch) { return !::isspace(ch); }).base(), copy.end());
+    copy.erase(std::find_if(copy.rbegin(), copy.rend(), [](unsigned char ch)
+                            { return !::isspace(ch); })
+                   .base(),
+               copy.end());
     return copy;
 }
 
-static std::string Trim(const char* source)
+static std::string Trim(const char *source)
 {
     return LeftTrim(RightTrim(source).c_str());
 }
 
-static std::string LeftTrimQuotes(const char* source)
+static std::string LeftTrimQuotes(const char *source)
 {
     std::string copy(source);
-    copy.erase(copy.begin(), std::find_if(copy.begin(), copy.end(), [](int ch) { return !(ch == '"'); }));
+    copy.erase(copy.begin(), std::find_if(copy.begin(), copy.end(), [](int ch)
+                                          { return !(ch == '"'); }));
     return copy;
 }
 
-static std::string RightTrimQuotes(const char* source)
+static std::string RightTrimQuotes(const char *source)
 {
     std::string copy(source);
-    copy.erase(std::find_if(copy.rbegin(), copy.rend(), [](int ch) { return !(ch == '"'); }).base(), copy.end());
+    copy.erase(std::find_if(copy.rbegin(), copy.rend(), [](int ch)
+                            { return !(ch == '"'); })
+                   .base(),
+               copy.end());
     return copy;
 }
 
-static std::string TrimQuotes(const char* source)
+static std::string TrimQuotes(const char *source)
 {
     return LeftTrimQuotes(RightTrimQuotes(source).c_str());
 }
@@ -98,7 +105,6 @@ void Config::PrintHelp()
     std::cout << "  --detail            print detail inforamtion for each testcase. \n";
     std::cout << "  --percentile        print the 90th and 95th percentile value. \n";
 
-
     std::cout << "\nExamples :  \n";
     std::cout << "    cpp-sdk-ptest -c upload -f mylocalfilename -k myobjectkeyname \n";
     std::cout << "    cpp-sdk-ptest -c up -f mylocalfilename -k myobjectkeyname -b mybucketname\n";
@@ -127,10 +133,10 @@ void Config::PrintCfgInfo()
     std::cout << "command         : " << Config::Command << std::endl;
     std::cout << "localfile       : " << Config::BaseLocalFile << std::endl;
     std::cout << "remotekey       : " << Config::BaseRemoteKey << std::endl;
-    if (!Config::Command.compare("upload_resumable") || Config::Command.compare("download_resumable")) 
+    if (!Config::Command.compare("upload_resumable") || Config::Command.compare("download_resumable"))
     {
-    std::cout << "parallel        : " << Config::Parallel << std::endl;
-    std::cout << "partSize        : " << Config::PartSize << std::endl;
+        std::cout << "parallel        : " << Config::Parallel << std::endl;
+        std::cout << "partSize        : " << Config::PartSize << std::endl;
     }
     std::cout << "multithread     : " << Config::Multithread << std::endl;
     std::cout << "loopTimes       : " << Config::LoopTimes << std::endl;
@@ -154,15 +160,18 @@ int Config::ParseArg(int argc, char **argv)
     {
         if (argv[i][0] == '-')
         {
-            if (!strcmp("--help", argv[i]) || !strcmp("-h", argv[i])) {
+            if (!strcmp("--help", argv[i]) || !strcmp("-h", argv[i]))
+            {
                 PrintHelp();
                 return -1;
             }
-            else if (!strcmp("-v", argv[i])) {
+            else if (!strcmp("-v", argv[i]))
+            {
                 std::cout << Config::Version << std::endl;
                 return -1;
             }
-            else if (!strcmp("-c", argv[i])) {
+            else if (!strcmp("-c", argv[i]))
+            {
                 Config::Command = argv[i + 1];
                 if (Config::Command == "up")
                 {
@@ -190,58 +199,72 @@ int Config::ParseArg(int argc, char **argv)
                 }
                 i++;
             }
-            else if (!strcmp("-b", argv[i])) {
+            else if (!strcmp("-b", argv[i]))
+            {
                 Config::BucketName = argv[i + 1];
                 i++;
             }
-            else if (!strcmp("-f", argv[i])) {
+            else if (!strcmp("-f", argv[i]))
+            {
                 Config::BaseLocalFile = argv[i + 1];
                 i++;
             }
-            else if (!strcmp("-k", argv[i])) {
+            else if (!strcmp("-k", argv[i]))
+            {
                 Config::BaseRemoteKey = argv[i + 1];
                 i++;
             }
-            else if (!strcmp("-p", argv[i])) {
+            else if (!strcmp("-p", argv[i]))
+            {
                 Config::Parallel = std::atoi(argv[i + 1]);
                 i++;
             }
-            else if (!strcmp("-m", argv[i])) {
+            else if (!strcmp("-m", argv[i]))
+            {
                 Config::Multithread = std::atoi(argv[i + 1]);
                 i++;
             }
-            else if (!strcmp("-d", argv[i])) {
+            else if (!strcmp("-d", argv[i]))
+            {
                 Config::Debug = true;
             }
-            else if (!strcmp("--partSize", argv[i])) {
+            else if (!strcmp("--partSize", argv[i]))
+            {
                 Config::PartSize = std::atoi(argv[i + 1]);
                 i++;
             }
-            else if (!strcmp("--loopTimes", argv[i])) {
+            else if (!strcmp("--loopTimes", argv[i]))
+            {
                 Config::LoopTimes = std::atoi(argv[i + 1]);
                 Config::LoopDurationS = -1;
                 i++;
             }
-            else if (!strcmp("--loopDuration", argv[i])) {
+            else if (!strcmp("--loopDuration", argv[i]))
+            {
                 Config::LoopDurationS = std::atoi(argv[i + 1]);
                 Config::LoopTimes = -1;
                 i++;
             }
-            else if (!strcmp("--persistent", argv[i])) {
+            else if (!strcmp("--persistent", argv[i]))
+            {
                 Config::Persistent = true;
                 i++;
             }
-            else if (!strcmp("--differentsource", argv[i])) {
+            else if (!strcmp("--differentsource", argv[i]))
+            {
                 i++;
             }
-            else if (!strcmp("--limit", argv[i])) {
+            else if (!strcmp("--limit", argv[i]))
+            {
                 Config::SpeedKBPerSec = std::atoi(argv[i + 1]);
                 i++;
             }
-            else if (!strcmp("--detail", argv[i])) {
+            else if (!strcmp("--detail", argv[i]))
+            {
                 Config::DumpDetail = true;
             }
-            else if (!strcmp("--percentile", argv[i])) {
+            else if (!strcmp("--percentile", argv[i]))
+            {
                 Config::PrintPercentile = true;
             }
         }
@@ -250,11 +273,11 @@ int Config::ParseArg(int argc, char **argv)
     return 0;
 }
 
-
 int Config::LoadCfgFile()
 {
     std::fstream in(Config::OssCfgFile, std::ios::in | std::ios::binary);
-    if (!in.good()) {
+    if (!in.good())
+    {
         std::cout << "Open oss.ini file fail." << std::endl;
         return 1;
     }
@@ -262,21 +285,27 @@ int Config::LoadCfgFile()
     char buffer[256];
     char *ptr;
 
-    while (in.getline(buffer, 256)) {
+    while (in.getline(buffer, 256))
+    {
         ptr = strchr(buffer, '=');
-        if (!ptr) {
+        if (!ptr)
+        {
             continue;
         }
-        if (!strncmp(buffer, "AccessKeyId", 11)) {
+        if (!strncmp(buffer, "AccessKeyId", 11))
+        {
             Config::AccessKeyId = TrimQuotes(Trim(ptr + 1).c_str());
-        } 
-        else if (!strncmp(buffer, "AccessKeySecret", 15)) {
+        }
+        else if (!strncmp(buffer, "AccessKeySecret", 15))
+        {
             Config::AccessKeySecret = TrimQuotes(Trim(ptr + 1).c_str());
         }
-        else if (!strncmp(buffer, "Endpoint", 8)) {
+        else if (!strncmp(buffer, "Endpoint", 8))
+        {
             Config::Endpoint = TrimQuotes(Trim(ptr + 1).c_str());
         }
-        else if (!strncmp(buffer, "BucketName", 10)) {
+        else if (!strncmp(buffer, "BucketName", 10))
+        {
             Config::BucketName = TrimQuotes(Trim(ptr + 1).c_str());
         }
     }
@@ -284,10 +313,13 @@ int Config::LoadCfgFile()
     if (Config::AccessKeyId.empty() ||
         Config::AccessKeySecret.empty() ||
         Config::Endpoint.empty() ||
-        Config::BucketName.empty()) {
-        std::cout << "one of AK, SK, endpoint and BucketName is not config, please set the oss.ini file." << std::endl;
+        Config::BucketName.empty())
+    {
+        std::cerr << "one of AK, SK, endpoint and BucketName is not config, please set the oss.ini file." << std::endl;
         return 1;
     }
+
+    std::cerr << "AccessKeyId: " << Config::AccessKeyId << "AccessKeySecret: " << Config::AccessKeySecret << "Endpoint: " << Config::Endpoint << "BucketName: " << Config::BucketName << std::endl;
 
     return 0;
 }

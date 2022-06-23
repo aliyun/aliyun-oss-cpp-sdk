@@ -7,16 +7,16 @@ namespace
   const char *TAG = "SignGeneratorV1";
 }
 
-void SignGeneratorV1::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request, const Credentials &credentials, const std::string &resource, __attribute__((unused)) const ClientConfiguration &config) const
+void SignGeneratorV1::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const
 {
-  if (!credentials.SessionToken().empty())
+  if (!signParam.credentials_.SessionToken().empty())
   {
-    httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
+    httpRequest->addHeader("x-oss-security-token", signParam.credentials_.SessionToken());
   }
 
   // Sort the parameters
   ParameterCollection parameters;
-  for (auto const &param : request.Parameters())
+  for (auto const &param : signParam.params_)
   {
     parameters[param.first] = param.second;
   }
@@ -28,37 +28,33 @@ void SignGeneratorV1::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   SignUtils signUtils(version_);
   HeaderSet additionalHeaders;
   signUtils.genAdditionalHeader(httpRequest->Headers(), additionalHeaders);
-  signUtils.build(method, resource, date, httpRequest->Headers(), parameters, additionalHeaders);
-
-  std::string signature = signAlgo_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
+  signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, additionalHeaders);
+  
+  byteArray signature = signAlgo_->generate(byteArray{signUtils.CanonicalString()}, signParam.credentials_.AccessKeySecret());
   std::stringstream authValue;
   authValue
       << "OSS "
-      << credentials.AccessKeyId()
+      << signParam.credentials_.AccessKeyId()
       << ":"
-      << signature;
-
+      << signature.str_;
   httpRequest->addHeader(Http::AUTHORIZATION, authValue.str());
 
   OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) CanonicalString:%s", this, httpRequest.get(), signUtils.CanonicalString().c_str());
   OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) Authorization:%s", this, httpRequest.get(), authValue.str().c_str());
 }
 
-// std::string signUrl(const GeneratePresignedUrlRequest &request) const {
-//   ;
-// }
-std::string SignGeneratorV1::signUrl(const std::string &method, const std::string &resource, const HeaderCollection &headers, const ParameterCollection &parameters, const std::string &secret) const
+std::string SignGeneratorV1::presign(const SignParam &signParam) const
 {
   SignUtils signUtils(version_);
   HeaderSet additionalHeaders;
-  signUtils.genAdditionalHeader(headers, additionalHeaders);
-  signUtils.build(method, resource, headers.at(Http::EXPIRES), headers, parameters, additionalHeaders);
-  return signAlgo_->generate(signUtils.CanonicalString(), secret);
+  signUtils.genAdditionalHeader(signParam.headers_, additionalHeaders);
+  signUtils.build(signParam.method_, signParam.resource_, signParam.headers_.at(Http::EXPIRES), signParam.headers_, signParam.params_, additionalHeaders);
+  return signAlgo_->generate(byteArray{signUtils.CanonicalString()}, signParam.credentials_.AccessKeySecret());
 }
 
-std::string SignGeneratorV1::signRTMP(const std::string &expires, const std::string &resource, const ParameterCollection &parameters, const std::string &secret) const
+std::string SignGeneratorV1::signRTMP(const SignParam &signParam) const
 {
   SignUtils signUtils(version_);
-  signUtils.build(expires, resource, parameters);
-  return signAlgo_->generate(signUtils.CanonicalString(), secret);
+  signUtils.build(signParam.expires_, signParam.resource_, signParam.params_);
+  return signAlgo_->generate(byteArray{signUtils.CanonicalString()}, signParam.credentials_.AccessKeySecret());
 }

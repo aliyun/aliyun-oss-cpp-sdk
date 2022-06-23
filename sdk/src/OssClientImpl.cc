@@ -52,11 +52,12 @@ OssClientImpl::OssClientImpl(const std::string &endpoint,
                                                                          executor_(configuration.executor ? configuration.executor : std::make_shared<ThreadExecutor>()),
                                                                          isValidEndpoint_(IsValidEndpoint(endpoint))
 {
-    if (configuration.authVersion == "1.0")
+    if (configuration.authVersion == "4.0")
     {
+        signGenerator_ = std::make_shared<SignGeneratorV4>(configuration.authAlgorithm);
+    } else {
         signGenerator_ = std::make_shared<SignGeneratorV1>(configuration.authAlgorithm);
     }
-    // TODO(xly): V2 V4
 }
 
 OssClientImpl::~OssClientImpl()
@@ -198,50 +199,8 @@ void OssClientImpl::addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest,
         resource << ossRequest.key();
     }
 
-    signGenerator_->signHeader(httpRequest, request, credentialsProvider_->getCredentials(), resource.str(), configuration());
-    // const Credentials credentials = credentialsProvider_->getCredentials();
-    // if (!credentials.SessionToken().empty())
-    // {
-    //     httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
-    // }
-
-    // // Sort the parameters
-    // ParameterCollection parameters;
-    // for (auto const &param : request.Parameters())
-    // {
-    //     parameters[param.first] = param.second;
-    // }
-
-    // std::string method = Http::MethodToString(httpRequest->method());
-
-    // const OssRequest &ossRequest = static_cast<const OssRequest &>(request);
-    // std::string resource;
-    // resource.append("/");
-    // if (!ossRequest.bucket().empty())
-    // {
-    //     resource.append(ossRequest.bucket());
-    //     resource.append("/");
-    // }
-    // if (!ossRequest.key().empty())
-    // {
-    //     resource.append(ossRequest.key());
-    // }
-
-    // std::string date = httpRequest->Header(Http::DATE);
-
-    // SignUtils signUtils(signer_->version());
-    // HeaderSet addtionalHeaders;
-    // signUtils.genAdditionalHeader(httpRequest->Headers(), addtionalHeaders);
-    // signUtils.build(method, resource, date, httpRequest->Headers(), parameters, addtionalHeaders);
-
-    // std::string authValue = signer_->genAuthCode(signUtils.CanonicalString(), credentials.AccessKeySecret(),
-    //                                              credentials.AccessKeyId(), addtionalHeaders, date,
-    //                                              configuration());
-
-    // httpRequest->addHeader(Http::AUTHORIZATION, authValue);
-
-    // OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) CanonicalString:%s", this, httpRequest.get(), signUtils.CanonicalString().c_str());
-    // OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) Authorization:%s", this, httpRequest.get(), authValue.c_str());
+    SignParam signParam(configuration(), resource.str(), request.Parameters(), credentialsProvider_->getCredentials());
+    signGenerator_->signHeader(httpRequest, signParam);
 }
 
 void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, const std::string &endpoint, const ServiceRequest &request) const
@@ -1483,13 +1442,11 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
     auto method = Http::MethodToString(request.method_);
     auto resource = std::string().append("/").append(request.bucket_).append("/").append(request.key_);
     auto date = headers[Http::EXPIRES];
-    // SignUtils signUtils(signer_->version());
-    // HeaderSet addtionalHeaders;
-    // signUtils.genAdditionalHeader(headers, addtionalHeaders);
-    // signUtils.build(method, resource, date, headers, parameters, addtionalHeaders);
-    // auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
-    OSS_LOG(LogLevel::LogDebug, TAG, "method(%s) resource(%s) date:%s", method.c_str(), resource.c_str(), date.c_str());
-    parameters["Signature"] = signGenerator_->signUrl(method, resource, headers, parameters, credentials.AccessKeySecret());
+
+    OSS_LOG(LogLevel::LogDebug, TAG, "method(%s) resxource(%s) date:%s", method.c_str(), resource.c_str(), date.c_str());
+
+    SignParam signParam(method, resource, headers, parameters, credentials);
+    parameters["Signature"] = signGenerator_->presign(signParam);
     parameters["Expires"] = date;
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
 
@@ -1969,7 +1926,8 @@ StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRe
     // auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
     parameters["Expires"] = expireStr;
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
-    parameters["Signature"] = signGenerator_->signRTMP(expireStr, resource, parameters, credentials.AccessKeySecret());
+    SignParam signParam(expireStr, resource, parameters, credentials);
+    parameters["Signature"] = signGenerator_->signRTMP(signParam);
 
     ss.str("");
     ss << CombineRTMPString(endpoint_, request.bucket_, configuration().isCname);

@@ -36,10 +36,10 @@ HmacSha256Signer::~HmacSha256Signer()
 {
 }
 
-std::string HmacSha256Signer::generate(const std::string & src, const std::string & secret) const
+byteArray HmacSha256Signer::generate(const byteArray &src, const std::string & secret) const
 {
-    if (src.empty())
-        return std::string();
+    if (src.len_ == 0)
+        return byteArray{};
 
 #if 0//def _WIN32
     typedef struct _my_blob {
@@ -91,12 +91,10 @@ std::string HmacSha256Signer::generate(const std::string & src, const std::strin
     unsigned int mdLen = 32;
 
     if (HMAC(EVP_sha256(), secret.c_str(), static_cast<int>(secret.size()),
-        reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
+        src.str_, src.len_,
         md, &mdLen) == nullptr)
-        return std::string();
+        return byteArray{};
 
-    char encodedData[100];
-    EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md, mdLen);
-    return encodedData;
+    return byteArray{md, mdLen};
 #endif
 }

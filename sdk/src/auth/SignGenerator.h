@@ -14,14 +14,36 @@ namespace AlibabaCloud
 {
   namespace OSS
   {
+    struct SignParam
+    {
+      // expireStr, resource, parameters, credentials
+      SignParam(const std::string &expire, const std::string &resource, const ParameterCollection &params, const Credentials &credentials)
+      : resource_(resource), credentials_(credentials), params_(params), expires_(expire) {}
+      // method, resource, headers, parameters, credentials
+      SignParam(const std::string &method, const std::string &resource, const HeaderCollection &headers, const ParameterCollection &params, const Credentials &credentials)
+          : resource_(resource), credentials_(credentials), params_(params), method_(method), headers_(headers), expires_("") {}
+
+      // request, credentialsProvider_->getCredentials(), resource, configuration()
+      SignParam(const ClientConfiguration &config, const std::string &resource, const ParameterCollection &params, const Credentials &credentials)
+          : config_(config), resource_(resource), credentials_(credentials), params_(params) {}
+
+      ClientConfiguration config_;
+      std::string resource_;
+      Credentials credentials_;
+      ParameterCollection params_;
+      std::string method_;
+      HeaderCollection headers_;
+      std::string expires_;
+    };
+
     class SignGenerator
     {
     public:
       SignGenerator(const std::string &version, const std::string &algoType);
 
-      virtual void signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request, const Credentials &credentials, const std::string &resource, const ClientConfiguration &config) const = 0;
-      virtual std::string signUrl(const std::string &method, const std::string &resource, const HeaderCollection &headers, const ParameterCollection &parameters, const std::string &secret) const = 0;
-      virtual std::string signRTMP(const std::string &expires, const std::string &resource, const ParameterCollection &parameters, const std::string &secret) const = 0;
+      virtual void signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const = 0;
+      virtual std::string presign(const SignParam &signParam) const = 0;
+      virtual std::string signRTMP(const SignParam &signParam) const = 0;
 
     protected:
       std::shared_ptr<Signer> signAlgo_;

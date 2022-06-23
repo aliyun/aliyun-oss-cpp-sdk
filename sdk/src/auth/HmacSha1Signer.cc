@@ -37,11 +37,11 @@ HmacSha1Signer::~HmacSha1Signer()
 {
 }
 
-std::string HmacSha1Signer::generate(const std::string & src, const std::string & secret) const
+byteArray HmacSha1Signer::generate(const byteArray &src, const std::string & secret) const
 {
-    OSS_LOG(LogLevel::LogDebug, "HmacSha1Signer", "\nsrc = %s, secret = %s", src.c_str(), secret.c_str());
-    if (src.empty())
-        return std::string();
+    OSS_LOG(LogLevel::LogDebug, "HmacSha1Signer", "src = %s, secret = %s", src.str_, secret.c_str());
+    if (src.len_ == 0)
+        return byteArray{};
 
 #if 0//def _WIN32
     typedef struct _my_blob {
@@ -93,12 +93,12 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
     unsigned int mdLen = 32;
 
     if (HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.size()),
-        reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
+        src.str_, src.len_,
         md, &mdLen) == nullptr)
-        return std::string();
+        return byteArray{};
 
     char encodedData[100];
     EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md, mdLen);
-    return encodedData;
+    return byteArray{encodedData, strlen(encodedData)};
 #endif
 }

@@ -119,7 +119,7 @@ void AlibabaCloud::OSS::InitLogInner()
     gOssLogLevel = LogLevel::LogOff;
     gLogCallback = nullptr;
     // auto value = std::getenv("OSS_SDK_LOG_LEVEL");
-    auto value = "debug";
+    auto value = "error";
     if (value) {
         auto level = ToLower(Trim(value).c_str());
         const auto size = sizeof(EnvLogLevels)/sizeof(EnvLogLevels[0]);
