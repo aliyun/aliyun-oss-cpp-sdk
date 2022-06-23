@@ -12,6 +12,8 @@ namespace AlibabaCloud
     public:
       SignGeneratorV4(const std::string &algo) : SignGenerator("4.0", algo) {}
 
+      void sha256Hex(const std::string &src, char output[65]) const;
+
       virtual void signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const override;
       virtual std::string presign(const SignParam &signParam) const override;
       virtual std::string signRTMP(const SignParam &signParam) const override;

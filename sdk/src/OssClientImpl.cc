@@ -1921,9 +1921,7 @@ StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRe
     expireStr = ss.str();
 
     auto resource = std::string().append("/").append(request.Bucket()).append("/").append(request.ChannelName());
-    // SignUtils signUtils(signer_->version());
-    // signUtils.build(expireStr, resource, parameters);
-    // auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
+
     parameters["Expires"] = expireStr;
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
     SignParam signParam(expireStr, resource, parameters, credentials);

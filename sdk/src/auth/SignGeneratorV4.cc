@@ -1,10 +1,25 @@
 #include "SignGeneratorV4.h"
+#include <openssl/sha.h>
 
 using namespace AlibabaCloud::OSS;
 
 namespace
 {
   const char *TAG = "SignGeneratorV4";
+}
+
+void SignGeneratorV4::sha256Hex(const std::string &src, char output[65]) const
+{
+  byte hash[SHA256_DIGEST_LENGTH];
+  SHA256_CTX sha256;
+  SHA256_Init(&sha256);
+  SHA256_Update(&sha256, src.c_str(), src.size());
+  SHA256_Final(hash, &sha256);
+  for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+  {
+    sprintf(output + (i * 2), "%02x", hash[i]);
+  }
+  output[64] = '\0';
 }
 
 void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const
@@ -25,13 +40,13 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
 
   std::string date = httpRequest->Header(Http::DATE);
 
-  std::stringstream credential;
+  std::stringstream scope;
   // 生成"20060102"格式的时间
   int y, M, d, h, m;
   float s;
   sscanf(date.c_str(), "%d-%d-%dT%d:%d:%fZ", &y, &M, &d, &h, &m, &s);
-  credential << y << M << d;
-  std::string day = credential.str();
+  scope << y << M << d;
+  std::string day = scope.str();
 
   std::string region;
   std::string product;
@@ -46,11 +61,20 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
     region = signParam.config_.cloudBoxId;
     product = "oss-cloundbox";
   }
-  credential << "/" << region
-             << "/" << product
-             << "/aliyun_v4_request";
+  scope << "/" << region
+        << "/" << product
+        << "/aliyun_v4_request";
 
-  std::string hashedCalRequest = signAlgo_->generate(byteArray{signParam.credentials_.AccessKeyId()}, signParam.credentials_.AccessKeySecret());
+  // Canonical Reuqest
+  SignUtils signUtils(version_);
+  HeaderSet additionalHeaders;
+  signUtils.genAdditionalHeader(httpRequest->Headers(), additionalHeaders);
+  signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, additionalHeaders);
+  std::string canonical = signUtils.CanonicalString();
+
+  // Hex(SHA256Hash(Canonical Reuqest))
+  char hashedCalRequest[65];
+  sha256Hex(canonical, hashedCalRequest);
 
   // string to sign
   // "OSS4-HMAC-SHA256" + "\n" +
@@ -58,23 +82,17 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   // Scope + "\n" +
   // Hex(SHA256Hash(Canonical Reuqest))
   std::stringstream stringToSign;
-  stringToSign << "OSS4-" << signAlgo_->name()
-               << "\n"
+  stringToSign << "OSS4-" << signAlgo_->name() << "\n"
                << date << "\n"
-               << credential.str() << "\n"
+               << scope.str() << "\n"
                << hashedCalRequest;
 
   // HMACSHA256(HMACSHA256(HMACSHA256(HMACSHA256("aliyun_v4"+SK,Date),Region),oss),"aliyun_v4_request");
   std::string signature = signAlgo_->generate(signAlgo_->generate(signAlgo_->generate(signAlgo_->generate(byteArray{"aliyun_v4" + signParam.credentials_.AccessKeySecret()}, day), region), product), "aliyun_v4_request");
 
-  SignUtils signUtils(version_);
-  HeaderSet additionalHeaders;
-  signUtils.genAdditionalHeader(httpRequest->Headers(), additionalHeaders);
-  signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, additionalHeaders);
-
   std::stringstream authValue;
   authValue
-      << "OSS4-HMAC-SHA256 Credential=" << signParam.credentials_.AccessKeyId() << "/" << credential.str();
+      << "OSS4-HMAC-SHA256 Credential=" << signParam.credentials_.AccessKeyId() << "/" << scope.str();
 
   if (!additionalHeaders.empty())
   {
