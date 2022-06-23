@@ -59,9 +59,12 @@ void SignUtils::build(const std::string &method,
                       const ParameterCollection &parameters,
                       const HeaderSet &additionalHeaders)
 {
-    if (signVersion_ == "V4") {
+    if (signVersion_ == "V4")
+    {
         buildV4(method, resource, headers, parameters, additionalHeaders);
-    } else {
+    }
+    else
+    {
         buildV1V2(method, resource, date, headers, parameters, additionalHeaders);
     }
 }
@@ -81,11 +84,11 @@ void SignUtils::build(const std::string &expires,
 }
 
 void SignUtils::buildV1V2(const std::string &method,
-                        const std::string &resource,
-                        const std::string &date,
-                        const HeaderCollection &headers,
-                        const ParameterCollection &parameters,
-                        const HeaderSet &additionalHeaders)
+                          const std::string &resource,
+                          const std::string &date,
+                          const HeaderCollection &headers,
+                          const ParameterCollection &parameters,
+                          const HeaderSet &additionalHeaders)
 {
     std::stringstream ss;
 
@@ -112,9 +115,7 @@ void SignUtils::buildV1V2(const std::string &method,
     // Date or EXPIRES
     ss << date << "\n";
 
-    // 所有以x-oss-为前缀的HTTP Header被称为CanonicalizedOSSHeaders
     // CanonicalizedOSSHeaders, start with x-oss-
-    // 将所有以x-oss-为前缀的HTTP请求头的名称转换为小写的形式
     for (const auto &header : headers)
     {
         std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
@@ -125,14 +126,19 @@ void SignUtils::buildV1V2(const std::string &method,
         }
     }
 
-    // V2版本额外加上AdditionalHeadersNormalizedVal + "\n"
-    if (signVersion_ == "V2") {
+    // for v2 version: AdditionalHeadersNormalizedVal + "\n"
+    if (signVersion_ == "V2")
+    {
         std::stringstream additionalSS;
         bool isFirstHeader = true;
-        for (const auto &addHeader : additionalHeaders) {
-            if (isFirstHeader) {
+        for (const auto &addHeader : additionalHeaders)
+        {
+            if (isFirstHeader)
+            {
                 additionalSS << ";";
-            } else {
+            }
+            else
+            {
                 isFirstHeader = false;
             }
             additionalSS << addHeader.c_str();
@@ -140,7 +146,6 @@ void SignUtils::buildV1V2(const std::string &method,
         ss << additionalSS.str() << "\n";
     }
 
-    // 用户发送请求中想访问的OSS目标资源被称为CanonicalizedResource
     // CanonicalizedResource, the sub resouce in
     ss << resource;
     char separator = '?';
@@ -196,7 +201,9 @@ void SignUtils::buildV4(const std::string &method,
         if (!isFirstParam)
         {
             ss << separator;
-        } else {
+        }
+        else
+        {
             isFirstParam = false;
         }
 
@@ -216,7 +223,8 @@ void SignUtils::buildV4(const std::string &method,
         std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
         std::string value = Trim(header.second.c_str());
         ss << lowerKey << ":" << value << "\n";
-        if (lowerKey == "x-oss-content-sha256") {
+        if (lowerKey == "x-oss-content-sha256")
+        {
             // hashed payload
             playload = value;
         }
@@ -224,22 +232,29 @@ void SignUtils::buildV4(const std::string &method,
 
     std::stringstream additionalSS;
     bool isFirstHeader = true;
-    for (const auto &addHeader : additionalHeaders) {
-        if (isFirstHeader) {
+    for (const auto &addHeader : additionalHeaders)
+    {
+        if (isFirstHeader)
+        {
             additionalSS << ";";
-        } else {
+        }
+        else
+        {
             isFirstHeader = false;
         }
         additionalSS << addHeader.c_str();
     }
 
-    ss << "\n" << additionalSS.str() << "\n" << playload;
+    ss << "\n"
+       << additionalSS.str() << "\n"
+       << playload;
 
     canonicalString_ = ss.str();
 }
 
-void SignUtils::genAdditionalHeader(const HeaderCollection &headers, HeaderSet &additionalHeaders) {
-    // osshead: 包含addtional head、x-oss-、content-md5、content-type
+void SignUtils::genAdditionalHeader(const HeaderCollection &headers, HeaderSet &additionalHeaders)
+{
+    // osshead: include addtional head、x-oss-、content-md5、content-type
     for (const auto &header : headers)
     {
         std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
@@ -247,10 +262,11 @@ void SignUtils::genAdditionalHeader(const HeaderCollection &headers, HeaderSet &
         if (lowerKey.compare(0, 6, "x-oss-", 6) != 0)
         {
             // V4 addtional head不包括content-md5、content-type
-            if (signVersion_ == "V4" && (lowerKey == "content-md5" || lowerKey == "content-type")) {
+            if (signVersion_ == "V4" && (lowerKey == "content-md5" || lowerKey == "content-type"))
+            {
                 continue;
             }
             additionalHeaders.insert(lowerKey);
-        } 
+        }
     }
 }

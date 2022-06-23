@@ -1,19 +1,18 @@
 /*
  * Copyright 2009-2017 Alibaba Cloud All rights reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 #pragma once
 
@@ -25,54 +24,46 @@
 
 namespace AlibabaCloud
 {
-namespace OSS
-{
-    class SignUtils
+    namespace OSS
     {
-    public: 
-        SignUtils(const std::string &version);
-        ~SignUtils();
-        /**
-         * @brief 签名生成
-         * 
-         * @param method HTTP方法
-         * @param resource /<bucket>/<key>
-         * @param date 日期
-         * @param headers HTTP头
-         * @param parameters 请求参数
-         */
-        void build(const std::string &method,
-                   const std::string &resource,
-                   const std::string &date,
-                   const HeaderCollection &headers,
-                   const ParameterCollection &parameters,
-                   const HeaderSet &additionalHeaders);
-        
-        void build(const std::string &expires,
-                    const std::string &resource,
-                    const ParameterCollection &parameters);
+        class SignUtils
+        {
+        public:
+            SignUtils(const std::string &version);
+            ~SignUtils();
 
-        void genAdditionalHeader(const HeaderCollection &header, HeaderSet &additionalHeaders);
+            void build(const std::string &method,
+                       const std::string &resource,
+                       const std::string &date,
+                       const HeaderCollection &headers,
+                       const ParameterCollection &parameters,
+                       const HeaderSet &additionalHeaders);
 
-        const std::string &CanonicalString() const;
-    private:
-        void buildV4(const std::string &method,
-                const std::string &resource,
-                const HeaderCollection &headers,
-                const ParameterCollection &parameters,
-                const HeaderSet &additionalHeaders);
+            void build(const std::string &expires,
+                       const std::string &resource,
+                       const ParameterCollection &parameters);
 
-        void buildV1V2(const std::string &method,
-            const std::string &resource,
-            const std::string &date,
-            const HeaderCollection &headers,
-            const ParameterCollection &parameters,
-            const HeaderSet &additionalHeaders);
+            void genAdditionalHeader(const HeaderCollection &header, HeaderSet &additionalHeaders);
 
-    private:
-        std::string signVersion_;
-        std::string canonicalString_;
-    };
+            const std::string &CanonicalString() const;
+
+        private:
+            void buildV4(const std::string &method,
+                         const std::string &resource,
+                         const HeaderCollection &headers,
+                         const ParameterCollection &parameters,
+                         const HeaderSet &additionalHeaders);
+
+            void buildV1V2(const std::string &method,
+                           const std::string &resource,
+                           const std::string &date,
+                           const HeaderCollection &headers,
+                           const ParameterCollection &parameters,
+                           const HeaderSet &additionalHeaders);
+
+        private:
+            std::string signVersion_;
+            std::string canonicalString_;
+        };
+    }
 }
-}
-

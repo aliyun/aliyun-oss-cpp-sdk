@@ -1,5 +1,9 @@
 #include "SignGeneratorV4.h"
 #include <openssl/sha.h>
+#include <openssl/hmac.h>
+#ifdef OPENSSL_IS_BORINGSSL
+#include <openssl/base64.h>
+#endif
 
 using namespace AlibabaCloud::OSS;
 
@@ -20,6 +24,20 @@ void SignGeneratorV4::sha256Hex(const std::string &src, char output[65]) const
     sprintf(output + (i * 2), "%02x", hash[i]);
   }
   output[64] = '\0';
+  free(hash);
+  // unsigned char digest[SHA256_DIGEST_LENGTH];
+  // unsigned int digestLen = SHA256_DIGEST_LENGTH;
+  // EVP_Digest(src.c_str(), src.size(), digest, &digestLen, EVP_sha256(), NULL);
+}
+
+std::string SignGeneratorV4::getCurrentGmtDate() const
+{
+  char buf[10] = {0};
+  time_t t = time(NULL);
+  tm rs = {0};
+  gmtime_r(&t, &rs);
+  strftime(buf, sizeof(buf), "%Y%m%d", &rs);
+  return buf;
 }
 
 void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const
@@ -28,6 +46,7 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   {
     httpRequest->addHeader("x-oss-security-token", signParam.credentials_.SessionToken());
   }
+  httpRequest->addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
 
   // Sort the parameters
   ParameterCollection parameters;
@@ -41,12 +60,9 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   std::string date = httpRequest->Header(Http::DATE);
 
   std::stringstream scope;
-  // 生成"20060102"格式的时间
-  int y, M, d, h, m;
-  float s;
-  sscanf(date.c_str(), "%d-%d-%dT%d:%d:%fZ", &y, &M, &d, &h, &m, &s);
-  scope << y << M << d;
-  std::string day = scope.str();
+  // convert to "20060102" time format
+  std::string day = getCurrentGmtDate();
+  scope << day;
 
   std::string region;
   std::string product;
@@ -88,7 +104,11 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
                << hashedCalRequest;
 
   // HMACSHA256(HMACSHA256(HMACSHA256(HMACSHA256("aliyun_v4"+SK,Date),Region),oss),"aliyun_v4_request");
-  std::string signature = signAlgo_->generate(signAlgo_->generate(signAlgo_->generate(signAlgo_->generate(byteArray{"aliyun_v4" + signParam.credentials_.AccessKeySecret()}, day), region), product), "aliyun_v4_request");
+  byteArray signingKey = signAlgo_->generate(signAlgo_->generate(signAlgo_->generate(signAlgo_->generate(byteArray{"aliyun_v4" + signParam.credentials_.AccessKeySecret()}, day), region), product), "aliyun_v4_request");
+  // HEX(HMAC-SHA256(SigningKey,StringToSign))
+  byteArray signSrc = signAlgo_->generate(signingKey, stringToSign.str());
+  char signature[65];
+  sha256Hex(signSrc, signature);
 
   std::stringstream authValue;
   authValue
