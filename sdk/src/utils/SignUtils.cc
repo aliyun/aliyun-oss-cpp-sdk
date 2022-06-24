@@ -259,10 +259,10 @@ void SignUtils::genAdditionalHeader(const HeaderCollection &headers, HeaderSet &
     {
         std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
         std::string value = Trim(header.second.c_str());
-        if (lowerKey.compare(0, 6, "x-oss-", 6) != 0)
+        if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "user-agent")
         {
             // V4 addtional head不包括content-md5、content-type
-            if (signVersion_ == "V4" && (lowerKey == "content-md5" || lowerKey == "content-type"))
+            if (signVersion_ == "4.0" && lowerKey.compare(0, 8, "content-", 8) == 0)
             {
                 continue;
             }

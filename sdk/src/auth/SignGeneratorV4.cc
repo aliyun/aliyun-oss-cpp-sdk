@@ -1,5 +1,6 @@
 #include "SignGeneratorV4.h"
 #include <openssl/sha.h>
+#include <time.h>
 #include <openssl/hmac.h>
 #ifdef OPENSSL_IS_BORINGSSL
 #include <openssl/base64.h>
@@ -24,7 +25,6 @@ void SignGeneratorV4::sha256Hex(const std::string &src, char output[65]) const
     sprintf(output + (i * 2), "%02x", hash[i]);
   }
   output[64] = '\0';
-  free(hash);
   // unsigned char digest[SHA256_DIGEST_LENGTH];
   // unsigned int digestLen = SHA256_DIGEST_LENGTH;
   // EVP_Digest(src.c_str(), src.size(), digest, &digestLen, EVP_sha256(), NULL);
@@ -34,7 +34,7 @@ std::string SignGeneratorV4::getCurrentGmtDate() const
 {
   char buf[10] = {0};
   time_t t = time(NULL);
-  tm rs = {0};
+  tm rs;
   gmtime_r(&t, &rs);
   strftime(buf, sizeof(buf), "%Y%m%d", &rs);
   return buf;
@@ -46,7 +46,7 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   {
     httpRequest->addHeader("x-oss-security-token", signParam.credentials_.SessionToken());
   }
-  httpRequest->addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
+  httpRequest->addHeader("X-Oss-Content-Sha256", "UNSIGNED-PAYLOAD");
 
   // Sort the parameters
   ParameterCollection parameters;
@@ -120,7 +120,7 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
     bool isFirstHeader = true;
     for (const auto &addHeader : additionalHeaders)
     {
-      if (isFirstHeader)
+      if (!isFirstHeader)
       {
         authValue << ";";
       }
