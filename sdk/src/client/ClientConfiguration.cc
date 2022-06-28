@@ -116,9 +116,7 @@ ClientConfiguration::ClientConfiguration() :
     recvRateLimiter(nullptr),
     executor(nullptr),
     httpClient(nullptr),
-    authVersion("1.0"),
-    authAlgorithm("HMAC-SHA1"),
-    region("cn-hangzhou")
+    authVersion("1.0")
 {
 
 }

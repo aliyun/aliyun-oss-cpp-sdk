@@ -44,6 +44,22 @@ namespace OSS
         virtual ~OssClientImpl();
         int asyncExecute(Runnable * r) const;
 
+        inline void setAuthAlgorithm(const std::string &authAlgorithm) {
+            authAlgorithm_ = authAlgorithm;
+        }
+
+        inline void setRegion(const std::string &region) {
+            region_ = region;
+        }
+
+        inline void setCloudBoxId(const std::string &cloudBoxId) {
+            cloudBoxId_ = cloudBoxId;
+        }
+
+        void setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders);
+
+        void initSignGernerator();
+
 #if !defined(OSS_DISABLE_BUCKET)
         ListBucketsOutcome ListBuckets(const ListBucketsRequest &request) const;
         CreateBucketOutcome CreateBucket(const CreateBucketRequest &request) const;
@@ -192,7 +208,16 @@ namespace OSS
         std::shared_ptr<Signer> signer_;
         std::shared_ptr<Executor> executor_;
         std::shared_ptr<SignGenerator> signGenerator_;
+        // "HMAC-SHA1" "HMAC-SHA256", default with version
+        std::string authAlgorithm_;
+        HeaderSet additionalHeaders_;
+        // such as "cn-hangzhou". attention: not "oss-cn-hangzhou"
+        std::string region_;
+        // cloud box id
+        std::string cloudBoxId_;
         bool isValidEndpoint_;
+        std::string authVersion_;
+        std::string host_;
     };
 }
 }

@@ -25,9 +25,6 @@ void SignGeneratorV4::sha256Hex(const std::string &src, char output[65]) const
     sprintf(output + (i * 2), "%02x", hash[i]);
   }
   output[64] = '\0';
-  // unsigned char digest[SHA256_DIGEST_LENGTH];
-  // unsigned int digestLen = SHA256_DIGEST_LENGTH;
-  // EVP_Digest(src.c_str(), src.size(), digest, &digestLen, EVP_sha256(), NULL);
 }
 
 std::string SignGeneratorV4::getCurrentGmtDate() const
@@ -46,7 +43,7 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   {
     httpRequest->addHeader("x-oss-security-token", signParam.credentials_.SessionToken());
   }
-  httpRequest->addHeader("X-Oss-Content-Sha256", "UNSIGNED-PAYLOAD");
+  httpRequest->addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
 
   // Sort the parameters
   ParameterCollection parameters;
@@ -57,24 +54,24 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
 
   std::string method = Http::MethodToString(httpRequest->method());
 
-  std::string date = httpRequest->Header(Http::DATE);
+  std::string date = httpRequest->Header("x-oss-date");
 
   std::stringstream scope;
   // convert to "20060102" time format
-  std::string day = getCurrentGmtDate();
+  std::string day = UtcV4ToDay(date);
   scope << day;
 
   std::string region;
   std::string product;
 
-  if (signParam.config_.cloudBoxId.empty())
+  if (signParam.cloudBoxId_.empty())
   {
-    region = signParam.config_.region;
+    region = signParam.region_;
     product = "oss";
   }
   else
   {
-    region = signParam.config_.cloudBoxId;
+    region = signParam.cloudBoxId_;
     product = "oss-cloundbox";
   }
   scope << "/" << region
@@ -83,9 +80,7 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
 
   // Canonical Reuqest
   SignUtils signUtils(version_);
-  HeaderSet additionalHeaders;
-  signUtils.genAdditionalHeader(httpRequest->Headers(), additionalHeaders);
-  signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, additionalHeaders);
+  signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, signParam.additionalHeaders_);
   std::string canonical = signUtils.CanonicalString();
 
   // Hex(SHA256Hash(Canonical Reuqest))
@@ -114,11 +109,11 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   authValue
       << "OSS4-HMAC-SHA256 Credential=" << signParam.credentials_.AccessKeyId() << "/" << scope.str();
 
-  if (!additionalHeaders.empty())
+  if (!signParam.additionalHeaders_.empty())
   {
     authValue << ",AdditionalHeaders=";
     bool isFirstHeader = true;
-    for (const auto &addHeader : additionalHeaders)
+    for (const auto &addHeader : signParam.additionalHeaders_)
     {
       if (!isFirstHeader)
       {
@@ -129,6 +124,9 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
         isFirstHeader = false;
       }
       authValue << addHeader.c_str();
+      // if (addHeader == "host") {
+      //   httpRequest->addHeader("")
+      // }
     }
   }
 
@@ -143,9 +141,7 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
 std::string SignGeneratorV4::presign(const SignParam &signParam) const
 {
   SignUtils signUtils(version_);
-  HeaderSet additionalHeaders;
-  signUtils.genAdditionalHeader(signParam.headers_, additionalHeaders);
-  signUtils.build(signParam.method_, signParam.resource_, signParam.headers_.at(Http::EXPIRES), signParam.headers_, signParam.params_, additionalHeaders);
+  signUtils.build(signParam.method_, signParam.resource_, signParam.headers_.at(Http::EXPIRES), signParam.headers_, signParam.params_, signParam.additionalHeaders_);
   return signAlgo_->generate(byteArray{signUtils.CanonicalString()}, signParam.credentials_.AccessKeySecret());
 }
 

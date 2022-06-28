@@ -26,9 +26,7 @@ void SignGeneratorV1::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
   std::string date = httpRequest->Header(Http::DATE);
 
   SignUtils signUtils(version_);
-  HeaderSet additionalHeaders;
-  signUtils.genAdditionalHeader(httpRequest->Headers(), additionalHeaders);
-  signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, additionalHeaders);
+  signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, signParam.additionalHeaders_);
   
   byteArray signature = signAlgo_->generate(byteArray{signUtils.CanonicalString()}, signParam.credentials_.AccessKeySecret());
   std::stringstream authValue;
@@ -46,9 +44,7 @@ void SignGeneratorV1::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
 std::string SignGeneratorV1::presign(const SignParam &signParam) const
 {
   SignUtils signUtils(version_);
-  HeaderSet additionalHeaders;
-  signUtils.genAdditionalHeader(signParam.headers_, additionalHeaders);
-  signUtils.build(signParam.method_, signParam.resource_, signParam.headers_.at(Http::EXPIRES), signParam.headers_, signParam.params_, additionalHeaders);
+  signUtils.build(signParam.method_, signParam.resource_, signParam.headers_.at(Http::EXPIRES), signParam.headers_, signParam.params_, signParam.additionalHeaders_);
   return signAlgo_->generate(byteArray{signUtils.CanonicalString()}, signParam.credentials_.AccessKeySecret());
 }
 

@@ -50,6 +50,7 @@ const char* Http::ETAG = "ETag";
 const char* Http::LAST_MODIFIED = "Last-Modified";
 const char* Http::RANGE = "Range";
 const char* Http::USER_AGENT = "User-Agent";
+const char* Http::HOST = "Host";
 
 
 HttpRequest::HttpRequest(Http::Method method) :

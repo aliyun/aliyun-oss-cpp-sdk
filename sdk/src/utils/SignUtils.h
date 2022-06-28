@@ -43,8 +43,6 @@ namespace AlibabaCloud
                        const std::string &resource,
                        const ParameterCollection &parameters);
 
-            void genAdditionalHeader(const HeaderCollection &header, HeaderSet &additionalHeaders);
-
             const std::string &CanonicalString() const;
 
         private:

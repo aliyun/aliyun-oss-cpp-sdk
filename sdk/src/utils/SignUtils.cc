@@ -1,12 +1,12 @@
 /*
  * Copyright 2009-2017 Alibaba Cloud All rights reserved.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -250,23 +250,4 @@ void SignUtils::buildV4(const std::string &method,
        << playload;
 
     canonicalString_ = ss.str();
-}
-
-void SignUtils::genAdditionalHeader(const HeaderCollection &headers, HeaderSet &additionalHeaders)
-{
-    // osshead: include addtional head、x-oss-、content-md5、content-type
-    for (const auto &header : headers)
-    {
-        std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
-        std::string value = Trim(header.second.c_str());
-        if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "user-agent")
-        {
-            // V4 addtional head不包括content-md5、content-type
-            if (signVersion_ == "4.0" && lowerKey.compare(0, 8, "content-", 8) == 0)
-            {
-                continue;
-            }
-            additionalHeaders.insert(lowerKey);
-        }
-    }
 }

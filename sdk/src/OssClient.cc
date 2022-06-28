@@ -31,7 +31,6 @@ bool AlibabaCloud::OSS::IsSdkInitialized()
     return SdkInitDone;
 }
 
-// 初始化网络等资源
 void AlibabaCloud::OSS::InitializeSdk()
 {
     if (IsSdkInitialized())
@@ -1009,3 +1008,19 @@ GetObjectOutcome OssClient::ResumableDownloadObject(const DownloadObjectRequest 
     return client_->ResumableDownloadObject(request);
 }
 #endif
+
+void OssClient::setAuthAlgorithm(const std::string &authAlgorithm) {
+    client_->setAuthAlgorithm(authAlgorithm);
+}
+
+void OssClient::setRegion(const std::string &region) {
+    client_->setRegion(region);
+}
+
+void OssClient::setCloudBoxId(const std::string &cloudBoxId) {
+    client_->setCloudBoxId(cloudBoxId);
+}
+
+void OssClient::setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders) {
+    client_->setAdditionalHeaders(additionalHeaders);
+}

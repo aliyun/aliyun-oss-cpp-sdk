@@ -68,7 +68,7 @@ namespace OSS
             static const char* LAST_MODIFIED;
             static const char* RANGE;
             static const char* USER_AGENT;
-
+            static const char* HOST;
     };
 }
 }

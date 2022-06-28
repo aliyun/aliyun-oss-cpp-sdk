@@ -50,7 +50,9 @@ namespace AlibabaCloud
         std::string ALIBABACLOUD_OSS_EXPORT Base64EncodeUrlSafe(const char *src, int len);
         std::string ALIBABACLOUD_OSS_EXPORT ToGmtTime(std::time_t &t);
         std::string ALIBABACLOUD_OSS_EXPORT ToUtcTime(std::time_t &t);
+        std::string ALIBABACLOUD_OSS_EXPORT ToUtcV4Time(std::time_t &t);
         std::time_t ALIBABACLOUD_OSS_EXPORT UtcToUnixTime(const std::string &t);
+        std::string ALIBABACLOUD_OSS_EXPORT UtcV4ToDay(const std::string &t);
         uint64_t ALIBABACLOUD_OSS_EXPORT ComputeCRC64(uint64_t crc, void *buf, size_t len);
         uint64_t ALIBABACLOUD_OSS_EXPORT CombineCRC64(uint64_t crc1, uint64_t crc2, uintmax_t len2);
 
@@ -223,15 +225,6 @@ namespace AlibabaCloud
             StringOutcome GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const;
             StringOutcome GeneratePresignedUrl(const std::string &bucket, const std::string &key) const;
             StringOutcome GeneratePresignedUrl(const std::string &bucket, const std::string &key, int64_t expires) const;
-            /**
-             * @brief 生成签名URL
-             *
-             * @param bucket Bucket名称
-             * @param key 不含bucket名称的Object完整路径
-             * @param expires 签名URL有效时长（过期时间）
-             * @param method
-             * @return StringOutcome
-             */
             StringOutcome GeneratePresignedUrl(const std::string &bucket, const std::string &key, int64_t expires, Http::Method method) const;
             GetObjectOutcome GetObjectByUrl(const GetObjectByUrlRequest &request) const;
             GetObjectOutcome GetObjectByUrl(const std::string &url) const;
@@ -241,6 +234,17 @@ namespace AlibabaCloud
             PutObjectOutcome PutObjectByUrl(const std::string &url, const std::string &file, const ObjectMetaData &metaData) const;
             PutObjectOutcome PutObjectByUrl(const std::string &url, const std::shared_ptr<std::iostream> &content) const;
             PutObjectOutcome PutObjectByUrl(const std::string &url, const std::shared_ptr<std::iostream> &content, const ObjectMetaData &metaData) const;
+
+            
+            void setAuthAlgorithm(const std::string &authAlgorithm);
+
+            void setRegion(const std::string &region);
+
+            void setCloudBoxId(const std::string &cloudBoxId);
+
+            void setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders);
+
+            void initSignGernerator(const ClientConfiguration &configuration);
 
             /*Generate Post Policy*/
 
