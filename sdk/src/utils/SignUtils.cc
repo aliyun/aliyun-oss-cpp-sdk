@@ -26,20 +26,22 @@
 using namespace AlibabaCloud::OSS;
 
 const static std::set<std::string> ParamtersToSign =
-    {
-        "acl", "location", "bucketInfo", "stat", "referer", "cors", "website", "restore",
-        "logging", "symlink", "qos", "uploadId", "uploads", "partNumber",
-        "response-content-type", "response-content-language", "response-expires",
-        "response-cache-control", "response-content-disposition", "response-content-encoding",
-        "append", "position", "lifecycle", "delete", "live", "status", "comp", "vod",
-        "startTime", "endTime", "x-oss-process", "security-token", "objectMeta",
-        "callback", "callback-var", "tagging", "policy", "requestPayment", "x-oss-traffic-limit",
-        "encryption", "qosInfo", "versioning", "versionId", "versions",
-        "x-oss-request-payer", "sequential", "inventory", "inventoryId", "continuation-token",
-        "worm", "wormId", "wormExtend"};
+{
+    "acl", "location", "bucketInfo", "stat", "referer", "cors", "website", "restore",
+    "logging", "symlink", "qos", "uploadId", "uploads", "partNumber",
+    "response-content-type", "response-content-language", "response-expires",
+    "response-cache-control", "response-content-disposition", "response-content-encoding",
+    "append", "position", "lifecycle", "delete", "live", "status", "comp", "vod",
+    "startTime", "endTime", "x-oss-process", "security-token", "objectMeta",
+    "callback", "callback-var", "tagging", "policy", "requestPayment", "x-oss-traffic-limit",
+    "encryption", "qosInfo", "versioning", "versionId", "versions",
+    "x-oss-request-payer", "sequential", "inventory", "inventoryId", "continuation-token",
+    "worm", "wormId", "wormExtend"
+};
 
-SignUtils::SignUtils(const std::string &version) : signVersion_(version),
-                                                   canonicalString_()
+SignUtils::SignUtils(const std::string &version):
+    signVersion_(version),
+    canonicalString_()
 {
 }
 
@@ -52,8 +54,8 @@ const std::string &SignUtils::CanonicalString() const
     return canonicalString_;
 }
 
-void SignUtils::build(const std::string &method,
-                      const std::string &resource,
+void SignUtils::build(const std::string &method, 
+                      const std::string &resource, 
                       const std::string &date,
                       const HeaderCollection &headers,
                       const ParameterCollection &parameters,
@@ -95,24 +97,22 @@ void SignUtils::buildV1V2(const std::string &method,
     /*Version 1*/
     // VERB + "\n" +
     // Content-MD5 + "\n"  +
-    // Content-Type + "\n"
+    // Content-Type + "\n" 
     // Date + "\n"  +
     // CanonicalizedOSSHeaders +
     // CanonicalizedResource) +
 
-    // common headers
+    //common headers
     ss << method << "\n";
-    if (headers.find(Http::CONTENT_MD5) != headers.end())
-    {
+    if (headers.find(Http::CONTENT_MD5) != headers.end()) {
         ss << headers.at(Http::CONTENT_MD5);
     }
     ss << "\n";
-    if (headers.find(Http::CONTENT_TYPE) != headers.end())
-    {
+    if (headers.find(Http::CONTENT_TYPE) != headers.end()) {
         ss << headers.at(Http::CONTENT_TYPE);
     }
     ss << "\n";
-    // Date or EXPIRES
+    //Date or EXPIRES
     ss << date << "\n";
 
     // CanonicalizedOSSHeaders, start with x-oss-

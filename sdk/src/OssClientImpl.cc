@@ -1,18 +1,18 @@
 /*
- * Copyright 2009-2017 Alibaba Cloud All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2009-2017 Alibaba Cloud All rights reserved.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 #include <ctime>
 #include <algorithm>
@@ -43,14 +43,13 @@ namespace
     const char *TAG = "OssClientImpl";
 }
 
-OssClientImpl::OssClientImpl(const std::string &endpoint,
-                             const std::shared_ptr<CredentialsProvider> &credentialsProvider,
-                             const ClientConfiguration &configuration) : Client(SERVICE_NAME, configuration),
-                                                                         endpoint_(endpoint),
-                                                                         credentialsProvider_(credentialsProvider),
-                                                                         executor_(configuration.executor ? configuration.executor : std::make_shared<ThreadExecutor>()),
-                                                                         isValidEndpoint_(IsValidEndpoint(endpoint)),
-                                                                         authVersion_(configuration.authVersion)
+OssClientImpl::OssClientImpl(const std::string &endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration & configuration) :
+    Client(SERVICE_NAME, configuration),
+    endpoint_(endpoint),
+    credentialsProvider_(credentialsProvider),
+    executor_(configuration.executor ? configuration.executor :std::make_shared<ThreadExecutor>()),
+    isValidEndpoint_(IsValidEndpoint(endpoint)),
+    authVersion_(configuration.authVersion)
 {
     if (configuration.authVersion == "4.0")
     {
@@ -90,7 +89,7 @@ void OssClientImpl::setAdditionalHeaders(const std::vector<std::pair<std::string
     }
 }
 
-int OssClientImpl::asyncExecute(Runnable *r) const
+int OssClientImpl::asyncExecute(Runnable * r) const
 {
     if (executor_ == nullptr)
         return 1;
@@ -99,20 +98,18 @@ int OssClientImpl::asyncExecute(Runnable *r) const
     return 0;
 }
 
-std::shared_ptr<HttpRequest> OssClientImpl::buildHttpRequest(const std::string &endpoint, const ServiceRequest &msg, Http::Method method) const
+std::shared_ptr<HttpRequest> OssClientImpl::buildHttpRequest(const std::string & endpoint, const ServiceRequest & msg, Http::Method method) const
 {
     auto httpRequest = std::make_shared<HttpRequest>(method);
-    auto calcContentMD5 = !!(msg.Flags() & REQUEST_FLAG_CONTENTMD5);
-    auto paramInPath = !!(msg.Flags() & REQUEST_FLAG_PARAM_IN_PATH);
+    auto calcContentMD5 = !!(msg.Flags()&REQUEST_FLAG_CONTENTMD5);
+    auto paramInPath = !!(msg.Flags()&REQUEST_FLAG_PARAM_IN_PATH);
     httpRequest->setResponseStreamFactory(msg.ResponseStreamFactory());
     addHeaders(httpRequest, msg.Headers());
     addBody(httpRequest, msg.Body(), calcContentMD5);
-    if (paramInPath)
-    {
+    if (paramInPath) {
         httpRequest->setUrl(Url(msg.Path()));
     }
-    else
-    {
+    else {
         addSignInfo(httpRequest, msg);
         addUrl(httpRequest, endpoint, msg);
     }
@@ -120,38 +117,34 @@ std::shared_ptr<HttpRequest> OssClientImpl::buildHttpRequest(const std::string &
     return httpRequest;
 }
 
-bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse> &response) const
+bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&response) const
 {
-    if (BASE::hasResponseError(response))
-    {
+    if (BASE::hasResponseError(response)) {
         return true;
     }
 
-    // check crc64
-    if (response->request().hasCheckCrc64() &&
+    //check crc64
+    if (response->request().hasCheckCrc64() && 
         !response->request().hasHeader(Http::RANGE) &&
-        response->hasHeader("x-oss-hash-crc64ecma"))
-    {
+        response->hasHeader("x-oss-hash-crc64ecma")) {
         uint64_t clientCrc64 = response->request().Crc64Result();
         uint64_t serverCrc64 = std::strtoull(response->Header("x-oss-hash-crc64ecma").c_str(), nullptr, 10);
-        if (clientCrc64 != serverCrc64)
-        {
+        if (clientCrc64 != serverCrc64) {
             response->setStatusCode(ERROR_CRC_INCONSISTENT);
             std::stringstream ss;
             ss << "Crc64 validation failed. Expected hash:" << serverCrc64
-               << " not equal to calculated hash:" << clientCrc64
-               << ". Transferd bytes:" << response->request().TransferedBytes()
-               << ". RequestId:" << response->Header("x-oss-request-id").c_str();
+                << " not equal to calculated hash:" << clientCrc64
+                << ". Transferd bytes:" << response->request().TransferedBytes()
+                << ". RequestId:" << response->Header("x-oss-request-id").c_str();
             response->setStatusMsg(ss.str().c_str());
             return true;
         }
     }
 
-    // check Calback
+    //check Calback 
     if (response->statusCode() == 203 &&
         (response->request().hasHeader("x-oss-callback") ||
-         (response->request().url().query().find("callback=") != std::string::npos)))
-    {
+        (response->request().url().query().find("callback=") != std::string::npos))) {
         return true;
     }
 
@@ -194,29 +187,23 @@ void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, 
     }
 }
 
-void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream> &body, bool contentMd5) const
+void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5) const
 {
-    if (body == nullptr)
-    {
+    if (body == nullptr) {
         Http::Method methold = httpRequest->method();
-        if (methold == Http::Method::Get || methold == Http::Method::Post)
-        {
+        if (methold == Http::Method::Get || methold == Http::Method::Post) {
             httpRequest->setHeader(Http::CONTENT_LENGTH, "0");
-        }
-        else
-        {
+        } else {
             httpRequest->removeHeader(Http::CONTENT_LENGTH);
         }
     }
-
-    if ((body != nullptr) && !httpRequest->hasHeader(Http::CONTENT_LENGTH))
-    {
+    
+    if ((body != nullptr) && !httpRequest->hasHeader(Http::CONTENT_LENGTH)) {
         auto streamSize = GetIOStreamLength(*body);
         httpRequest->setHeader(Http::CONTENT_LENGTH, std::to_string(streamSize));
     }
 
-    if (contentMd5 && body && !httpRequest->hasHeader(Http::CONTENT_MD5))
-    {
+    if (contentMd5 && body && !httpRequest->hasHeader(Http::CONTENT_MD5)) {
         auto md5 = ComputeContentMD5(*body);
         httpRequest->setHeader(Http::CONTENT_MD5, md5);
     }
@@ -250,7 +237,7 @@ void OssClientImpl::addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest,
 
 void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, const std::string &endpoint, const ServiceRequest &request) const
 {
-    const OssRequest &ossRequest = static_cast<const OssRequest &>(request);
+    const OssRequest& ossRequest = static_cast<const OssRequest&>(request);
 
     auto host = CombineHostString(endpoint, ossRequest.bucket(), configuration().isCname);
     auto path = CombinePathString(endpoint, ossRequest.bucket(), ossRequest.key());
@@ -259,10 +246,9 @@ void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, cons
     url.setPath(path);
 
     OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) host:%s, path:%s", this, httpRequest.get(), host.c_str(), path.c_str());
-
+    
     auto parameters = request.Parameters();
-    if (!parameters.empty())
-    {
+    if (!parameters.empty()) {
         std::stringstream queryString;
         for (const auto &p : parameters)
         {
@@ -278,17 +264,15 @@ void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, cons
 
 void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const
 {
-    // progress
+    //progress
     httpRequest->setTransferProgress(request.TransferProgress());
 
-    // crc64 check
-    auto checkCRC64 = !!(request.Flags() & REQUEST_FLAG_CHECK_CRC64);
-    if (configuration().enableCrc64 && checkCRC64)
-    {
+    //crc64 check
+    auto checkCRC64 = !!(request.Flags()&REQUEST_FLAG_CHECK_CRC64);
+    if (configuration().enableCrc64 && checkCRC64 ) {
         httpRequest->setCheckCrc64(true);
 #ifdef ENABLE_OSS_TEST
-        if (!!(request.Flags() & 0x80000000))
-        {
+        if (!!(request.Flags()&0x80000000)) {
             httpRequest->addHeader("oss-test-crc64", "1");
         }
 #endif
@@ -298,52 +282,42 @@ void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, co
 OssError OssClientImpl::buildError(const Error &error) const
 {
     OssError err;
-    if (((error.Status() == 203) || (error.Status() > 299 && error.Status() < 600)) &&
-        !error.Message().empty())
-    {
+    if (((error.Status() == 203) || (error.Status() > 299 && error.Status() < 600)) && 
+        !error.Message().empty()) {
         XMLDocument doc;
         XMLError xml_err;
-        if ((xml_err = doc.Parse(error.Message().c_str(), error.Message().size())) == XML_SUCCESS)
-        {
-            XMLElement *root = doc.RootElement();
-            if (root && !std::strncmp("Error", root->Name(), 5))
-            {
+        if ((xml_err = doc.Parse(error.Message().c_str(), error.Message().size())) == XML_SUCCESS) {
+            XMLElement* root =doc.RootElement();
+            if (root && !std::strncmp("Error", root->Name(), 5)) {
                 XMLElement *node;
                 node = root->FirstChildElement("Code");
-                err.setCode(node ? node->GetText() : "");
+                err.setCode(node ? node->GetText(): "");
                 node = root->FirstChildElement("Message");
-                err.setMessage(node ? node->GetText() : "");
+                err.setMessage(node ? node->GetText(): "");
                 node = root->FirstChildElement("RequestId");
-                err.setRequestId(node ? node->GetText() : "");
+                err.setRequestId(node ? node->GetText(): "");
                 node = root->FirstChildElement("HostId");
-                err.setHost(node ? node->GetText() : "");
-            }
-            else
-            {
+                err.setHost(node ? node->GetText(): "");
+            } else {
                 err.setCode("ParseXMLError");
                 err.setMessage("Xml format invalid, root node name is not Error. the content is:\n" + error.Message());
             }
-        }
-        else
-        {
+        } else {
             std::stringstream ss;
             ss << "ParseXMLError:" << xml_err;
             err.setCode(ss.str());
             err.setMessage(XMLDocument::ErrorIDToName(xml_err));
         }
-    }
-    else
-    {
+    } 
+    else {
         err.setCode(error.Code());
         err.setMessage(error.Message());
     }
 
-    // get from header if body has nothing
-    if (err.RequestId().empty())
-    {
+    //get from header if body has nothing
+    if (err.RequestId().empty()) {
         auto it = error.Headers().find("x-oss-request-id");
-        if (it != error.Headers().end())
-        {
+        if (it != error.Headers().end()) {
             err.setRequestId(it->second);
         }
     }
@@ -356,8 +330,7 @@ ServiceResult OssClientImpl::buildResult(const OssRequest &request, const std::s
     ServiceResult result;
     auto flag = request.Flags();
     if ((flag & REQUEST_FLAG_CHECK_CRC64) &&
-        (flag & REQUEST_FLAG_SAVE_CLIENT_CRC64))
-    {
+        (flag & REQUEST_FLAG_SAVE_CLIENT_CRC64)) {
         httpResponse->addHeader("x-oss-hash-crc64ecma-by-client", std::to_string(httpResponse->request().Crc64Result()));
     }
     result.setRequestId(httpResponse->Header("x-oss-request-id"));
@@ -370,23 +343,18 @@ ServiceResult OssClientImpl::buildResult(const OssRequest &request, const std::s
 OssOutcome OssClientImpl::MakeRequest(const OssRequest &request, Http::Method method) const
 {
     int ret = request.validate();
-    if (ret != 0)
-    {
+    if (ret != 0) {
         return OssOutcome(OssError("ValidateError", request.validateMessage(ret)));
     }
 
-    if (!isValidEndpoint_)
-    {
+    if (!isValidEndpoint_) {
         return OssOutcome(OssError("ValidateError", "The endpoint is invalid."));
     }
 
     auto outcome = BASE::AttemptRequest(endpoint_, request, method);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return OssOutcome(buildResult(request, outcome.result()));
-    }
-    else
-    {
+    } else {
         return OssOutcome(buildError(outcome.error()));
     }
 }
@@ -396,14 +364,12 @@ OssOutcome OssClientImpl::MakeRequest(const OssRequest &request, Http::Method me
 ListBucketsOutcome OssClientImpl::ListBuckets(const ListBucketsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         ListBucketsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListBucketsOutcome(std::move(result)) : ListBucketsOutcome(OssError("ParseXMLError", "Parsing ListBuckets result fail."));
-    }
-    else
-    {
+        return result.ParseDone() ? ListBucketsOutcome(std::move(result)) :
+            ListBucketsOutcome(OssError("ParseXMLError", "Parsing ListBuckets result fail."));
+    } else {
         return ListBucketsOutcome(outcome.error());
     }
 }
@@ -411,221 +377,189 @@ ListBucketsOutcome OssClientImpl::ListBuckets(const ListBucketsRequest &request)
 CreateBucketOutcome OssClientImpl::CreateBucket(const CreateBucketRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
-        return CreateBucketOutcome(Bucket());
-    }
-    else
-    {
+    if (outcome.isSuccess()) {
+        return  CreateBucketOutcome(Bucket());
+    } else {
         return CreateBucketOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketAcl(const SetBucketAclRequest &request) const
+VoidOutcome OssClientImpl::SetBucketAcl(const SetBucketAclRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
-    }
-    else
-    {
+    } else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketLogging(const SetBucketLoggingRequest &request) const
+VoidOutcome OssClientImpl::SetBucketLogging(const SetBucketLoggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketWebsite(const SetBucketWebsiteRequest &request) const
+VoidOutcome OssClientImpl::SetBucketWebsite(const SetBucketWebsiteRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketReferer(const SetBucketRefererRequest &request) const
+VoidOutcome OssClientImpl::SetBucketReferer(const SetBucketRefererRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketLifecycle(const SetBucketLifecycleRequest &request) const
+VoidOutcome OssClientImpl::SetBucketLifecycle(const SetBucketLifecycleRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketCors(const SetBucketCorsRequest &request) const
+VoidOutcome OssClientImpl::SetBucketCors(const SetBucketCorsRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketStorageCapacity(const SetBucketStorageCapacityRequest &request) const
+VoidOutcome OssClientImpl::SetBucketStorageCapacity(const SetBucketStorageCapacityRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketPolicy(const SetBucketPolicyRequest &request) const
+VoidOutcome OssClientImpl::SetBucketPolicy(const SetBucketPolicyRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
-VoidOutcome OssClientImpl::SetBucketRequestPayment(const SetBucketRequestPaymentRequest &request) const
+VoidOutcome OssClientImpl::SetBucketRequestPayment(const SetBucketRequestPaymentRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome AlibabaCloud::OSS::OssClientImpl::SetBucketEncryption(const SetBucketEncryptionRequest &request) const
+VoidOutcome AlibabaCloud::OSS::OssClientImpl::SetBucketEncryption(const SetBucketEncryptionRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketTagging(const SetBucketTaggingRequest &request) const
+VoidOutcome OssClientImpl::SetBucketTagging(const SetBucketTaggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketQosInfo(const SetBucketQosInfoRequest &request) const
+VoidOutcome OssClientImpl::SetBucketQosInfo(const SetBucketQosInfoRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketVersioning(const SetBucketVersioningRequest &request) const
+VoidOutcome OssClientImpl::SetBucketVersioning(const SetBucketVersioningRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::SetBucketInventoryConfiguration(const SetBucketInventoryConfigurationRequest &request) const
+VoidOutcome OssClientImpl::SetBucketInventoryConfiguration(const SetBucketInventoryConfigurationRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
@@ -633,14 +567,12 @@ VoidOutcome OssClientImpl::SetBucketInventoryConfiguration(const SetBucketInvent
 VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
@@ -648,14 +580,12 @@ VoidOutcome OssClientImpl::DeleteBucket(const DeleteBucketRequest &request) cons
 VoidOutcome OssClientImpl::DeleteBucketLogging(const DeleteBucketLoggingRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
@@ -663,14 +593,12 @@ VoidOutcome OssClientImpl::DeleteBucketLogging(const DeleteBucketLoggingRequest 
 VoidOutcome OssClientImpl::DeleteBucketWebsite(const DeleteBucketWebsiteRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
@@ -678,104 +606,90 @@ VoidOutcome OssClientImpl::DeleteBucketWebsite(const DeleteBucketWebsiteRequest 
 VoidOutcome OssClientImpl::DeleteBucketLifecycle(const DeleteBucketLifecycleRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::DeleteBucketCors(const DeleteBucketCorsRequest &request) const
+VoidOutcome OssClientImpl::DeleteBucketCors(const DeleteBucketCorsRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::DeleteBucketPolicy(const DeleteBucketPolicyRequest &request) const
+VoidOutcome OssClientImpl::DeleteBucketPolicy(const DeleteBucketPolicyRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::DeleteBucketEncryption(const DeleteBucketEncryptionRequest &request) const
+VoidOutcome OssClientImpl::DeleteBucketEncryption(const DeleteBucketEncryptionRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::DeleteBucketTagging(const DeleteBucketTaggingRequest &request) const
+VoidOutcome OssClientImpl::DeleteBucketTagging(const DeleteBucketTaggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::DeleteBucketQosInfo(const DeleteBucketQosInfoRequest &request) const
+VoidOutcome OssClientImpl::DeleteBucketQosInfo(const DeleteBucketQosInfoRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::DeleteBucketInventoryConfiguration(const DeleteBucketInventoryConfigurationRequest &request) const
+VoidOutcome OssClientImpl::DeleteBucketInventoryConfiguration(const DeleteBucketInventoryConfigurationRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
@@ -783,14 +697,13 @@ VoidOutcome OssClientImpl::DeleteBucketInventoryConfiguration(const DeleteBucket
 GetBucketAclOutcome OssClientImpl::GetBucketAcl(const GetBucketAclRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketAclResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketAclOutcome(std::move(result)) : GetBucketAclOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketAclOutcome(std::move(result)) :
+            GetBucketAclOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketAclOutcome(outcome.error());
     }
 }
@@ -798,29 +711,27 @@ GetBucketAclOutcome OssClientImpl::GetBucketAcl(const GetBucketAclRequest &reque
 GetBucketLocationOutcome OssClientImpl::GetBucketLocation(const GetBucketLocationRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketLocationResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketLocationOutcome(std::move(result)) : GetBucketLocationOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketLocationOutcome(std::move(result)) :
+            GetBucketLocationOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketLocationOutcome(outcome.error());
     }
 }
 
-GetBucketInfoOutcome OssClientImpl::GetBucketInfo(const GetBucketInfoRequest &request) const
+GetBucketInfoOutcome  OssClientImpl::GetBucketInfo(const  GetBucketInfoRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketInfoResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketInfoOutcome(std::move(result)) : GetBucketInfoOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketInfoOutcome(std::move(result)) :
+            GetBucketInfoOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketInfoOutcome(outcome.error());
     }
 }
@@ -828,14 +739,13 @@ GetBucketInfoOutcome OssClientImpl::GetBucketInfo(const GetBucketInfoRequest &re
 GetBucketLoggingOutcome OssClientImpl::GetBucketLogging(const GetBucketLoggingRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketLoggingResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketLoggingOutcome(std::move(result)) : GetBucketLoggingOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketLoggingOutcome(std::move(result)) :
+            GetBucketLoggingOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketLoggingOutcome(outcome.error());
     }
 }
@@ -843,14 +753,13 @@ GetBucketLoggingOutcome OssClientImpl::GetBucketLogging(const GetBucketLoggingRe
 GetBucketWebsiteOutcome OssClientImpl::GetBucketWebsite(const GetBucketWebsiteRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketWebsiteResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketWebsiteOutcome(std::move(result)) : GetBucketWebsiteOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketWebsiteOutcome(std::move(result)) :
+            GetBucketWebsiteOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketWebsiteOutcome(outcome.error());
     }
 }
@@ -858,14 +767,13 @@ GetBucketWebsiteOutcome OssClientImpl::GetBucketWebsite(const GetBucketWebsiteRe
 GetBucketRefererOutcome OssClientImpl::GetBucketReferer(const GetBucketRefererRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketRefererResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketRefererOutcome(std::move(result)) : GetBucketRefererOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketRefererOutcome(std::move(result)) :
+            GetBucketRefererOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketRefererOutcome(outcome.error());
     }
 }
@@ -873,14 +781,13 @@ GetBucketRefererOutcome OssClientImpl::GetBucketReferer(const GetBucketRefererRe
 GetBucketLifecycleOutcome OssClientImpl::GetBucketLifecycle(const GetBucketLifecycleRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketLifecycleResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketLifecycleOutcome(std::move(result)) : GetBucketLifecycleOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketLifecycleOutcome(std::move(result)) :
+            GetBucketLifecycleOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketLifecycleOutcome(outcome.error());
     }
 }
@@ -888,14 +795,13 @@ GetBucketLifecycleOutcome OssClientImpl::GetBucketLifecycle(const GetBucketLifec
 GetBucketStatOutcome OssClientImpl::GetBucketStat(const GetBucketStatRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketStatResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketStatOutcome(std::move(result)) : GetBucketStatOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketStatOutcome(std::move(result)) :
+            GetBucketStatOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketStatOutcome(outcome.error());
     }
 }
@@ -903,236 +809,216 @@ GetBucketStatOutcome OssClientImpl::GetBucketStat(const GetBucketStatRequest &re
 GetBucketCorsOutcome OssClientImpl::GetBucketCors(const GetBucketCorsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketCorsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketCorsOutcome(std::move(result)) : GetBucketCorsOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketCorsOutcome(std::move(result)) :
+            GetBucketCorsOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketCorsOutcome(outcome.error());
     }
 }
 
-GetBucketStorageCapacityOutcome OssClientImpl::GetBucketStorageCapacity(const GetBucketStorageCapacityRequest &request) const
+GetBucketStorageCapacityOutcome OssClientImpl::GetBucketStorageCapacity(const GetBucketStorageCapacityRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketStorageCapacityResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketStorageCapacityOutcome(std::move(result)) : GetBucketStorageCapacityOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketStorageCapacityOutcome(std::move(result)) :
+            GetBucketStorageCapacityOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketStorageCapacityOutcome(outcome.error());
     }
 }
 
-GetBucketPolicyOutcome OssClientImpl::GetBucketPolicy(const GetBucketPolicyRequest &request) const
+GetBucketPolicyOutcome OssClientImpl::GetBucketPolicy(const GetBucketPolicyRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketPolicyResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketPolicyOutcome(std::move(result)) : GetBucketPolicyOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? GetBucketPolicyOutcome(std::move(result)) :
+            GetBucketPolicyOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return GetBucketPolicyOutcome(outcome.error());
     }
 }
-GetBucketPaymentOutcome OssClientImpl::GetBucketRequestPayment(const GetBucketRequestPaymentRequest &request) const
+GetBucketPaymentOutcome OssClientImpl::GetBucketRequestPayment(const GetBucketRequestPaymentRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketPaymentResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketPaymentOutcome(std::move(result)) : GetBucketPaymentOutcome(OssError("ParseXMLError", "Parsing GetBucketPayment result fail."));
+        return result.ParseDone() ? GetBucketPaymentOutcome(std::move(result)) :
+            GetBucketPaymentOutcome(OssError("ParseXMLError", "Parsing GetBucketPayment result fail."));
     }
-    else
-    {
+    else {
         return GetBucketPaymentOutcome(outcome.error());
     }
 }
 
-GetBucketEncryptionOutcome OssClientImpl::GetBucketEncryption(const GetBucketEncryptionRequest &request) const
+GetBucketEncryptionOutcome OssClientImpl::GetBucketEncryption(const GetBucketEncryptionRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketEncryptionResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketEncryptionOutcome(std::move(result)) : GetBucketEncryptionOutcome(OssError("ParseXMLError", "Parsing GetBucketEncryption result fail."));
+        return result.ParseDone() ? GetBucketEncryptionOutcome(std::move(result)) :
+            GetBucketEncryptionOutcome(OssError("ParseXMLError", "Parsing GetBucketEncryption result fail."));
     }
-    else
-    {
+    else {
         return GetBucketEncryptionOutcome(outcome.error());
     }
 }
 
-GetBucketTaggingOutcome OssClientImpl::GetBucketTagging(const GetBucketTaggingRequest &request) const
+GetBucketTaggingOutcome OssClientImpl::GetBucketTagging(const GetBucketTaggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketTaggingResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketTaggingOutcome(std::move(result)) : GetBucketTaggingOutcome(OssError("ParseXMLError", "Parsing GetBucketTagging result fail."));
+        return result.ParseDone() ? GetBucketTaggingOutcome(std::move(result)) :
+            GetBucketTaggingOutcome(OssError("ParseXMLError", "Parsing GetBucketTagging result fail."));
     }
-    else
-    {
+    else {
         return GetBucketTaggingOutcome(outcome.error());
     }
 }
 
-GetBucketQosInfoOutcome OssClientImpl::GetBucketQosInfo(const GetBucketQosInfoRequest &request) const
+GetBucketQosInfoOutcome OssClientImpl::GetBucketQosInfo(const GetBucketQosInfoRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketQosInfoResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketQosInfoOutcome(std::move(result)) : GetBucketQosInfoOutcome(OssError("ParseXMLError", "Parsing GetBucketQosInfo result fail."));
+        return result.ParseDone() ? GetBucketQosInfoOutcome(std::move(result)) :
+            GetBucketQosInfoOutcome(OssError("ParseXMLError", "Parsing GetBucketQosInfo result fail."));
     }
-    else
-    {
+    else {
         return GetBucketQosInfoOutcome(outcome.error());
     }
 }
 
-GetUserQosInfoOutcome OssClientImpl::GetUserQosInfo(const GetUserQosInfoRequest &request) const
+GetUserQosInfoOutcome OssClientImpl::GetUserQosInfo(const GetUserQosInfoRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetUserQosInfoResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetUserQosInfoOutcome(std::move(result)) : GetUserQosInfoOutcome(OssError("ParseXMLError", "Parsing GetUserQosInfo result fail."));
+        return result.ParseDone() ? GetUserQosInfoOutcome(std::move(result)) :
+            GetUserQosInfoOutcome(OssError("ParseXMLError", "Parsing GetUserQosInfo result fail."));
     }
-    else
-    {
+    else {
         return GetUserQosInfoOutcome(outcome.error());
     }
 }
 
-GetBucketVersioningOutcome OssClientImpl::GetBucketVersioning(const GetBucketVersioningRequest &request) const
+GetBucketVersioningOutcome OssClientImpl::GetBucketVersioning(const GetBucketVersioningRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketVersioningResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketVersioningOutcome(std::move(result)) : GetBucketVersioningOutcome(OssError("ParseXMLError", "Parsing GetBucketVersioning result fail."));
+        return result.ParseDone() ? GetBucketVersioningOutcome(std::move(result)) :
+            GetBucketVersioningOutcome(OssError("ParseXMLError", "Parsing GetBucketVersioning result fail."));
     }
-    else
-    {
+    else {
         return GetBucketVersioningOutcome(outcome.error());
     }
 }
 
-GetBucketInventoryConfigurationOutcome OssClientImpl::GetBucketInventoryConfiguration(const GetBucketInventoryConfigurationRequest &request) const
+GetBucketInventoryConfigurationOutcome OssClientImpl::GetBucketInventoryConfiguration(const GetBucketInventoryConfigurationRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketInventoryConfigurationResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketInventoryConfigurationOutcome(std::move(result)) : GetBucketInventoryConfigurationOutcome(OssError("ParseXMLError", "Parsing GetBucketInventoryConfiguration result fail."));
+        return result.ParseDone() ? GetBucketInventoryConfigurationOutcome(std::move(result)) :
+            GetBucketInventoryConfigurationOutcome(OssError("ParseXMLError", "Parsing GetBucketInventoryConfiguration result fail."));
     }
-    else
-    {
+    else {
         return GetBucketInventoryConfigurationOutcome(outcome.error());
     }
 }
 
-ListBucketInventoryConfigurationsOutcome OssClientImpl::ListBucketInventoryConfigurations(const ListBucketInventoryConfigurationsRequest &request) const
+ListBucketInventoryConfigurationsOutcome OssClientImpl::ListBucketInventoryConfigurations(const ListBucketInventoryConfigurationsRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         ListBucketInventoryConfigurationsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListBucketInventoryConfigurationsOutcome(std::move(result)) : ListBucketInventoryConfigurationsOutcome(OssError("ParseXMLError", "Parsing ListBucketInventoryConfigurations result fail."));
+        return result.ParseDone() ? ListBucketInventoryConfigurationsOutcome(std::move(result)) :
+            ListBucketInventoryConfigurationsOutcome(OssError("ParseXMLError", "Parsing ListBucketInventoryConfigurations result fail."));
     }
-    else
-    {
+    else {
         return ListBucketInventoryConfigurationsOutcome(outcome.error());
     }
 }
 
-InitiateBucketWormOutcome OssClientImpl::InitiateBucketWorm(const InitiateBucketWormRequest &request) const
+InitiateBucketWormOutcome OssClientImpl::InitiateBucketWorm(const InitiateBucketWormRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return InitiateBucketWormOutcome(InitiateBucketWormResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return InitiateBucketWormOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::AbortBucketWorm(const AbortBucketWormRequest &request) const
+VoidOutcome OssClientImpl::AbortBucketWorm(const AbortBucketWormRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::CompleteBucketWorm(const CompleteBucketWormRequest &request) const
+VoidOutcome OssClientImpl::CompleteBucketWorm(const CompleteBucketWormRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-VoidOutcome OssClientImpl::ExtendBucketWormWorm(const ExtendBucketWormRequest &request) const
+VoidOutcome OssClientImpl::ExtendBucketWormWorm(const ExtendBucketWormRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
 
-GetBucketWormOutcome OssClientImpl::GetBucketWorm(const GetBucketWormRequest &request) const
+GetBucketWormOutcome OssClientImpl::GetBucketWorm(const GetBucketWormRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetBucketWormResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetBucketWormOutcome(std::move(result)) : GetBucketWormOutcome(OssError("ParseXMLError", "Parsing GetBucketWorm result fail."));
+        return result.ParseDone() ? GetBucketWormOutcome(std::move(result)) :
+            GetBucketWormOutcome(OssError("ParseXMLError", "Parsing GetBucketWorm result fail."));
     }
-    else
-    {
+    else {
         return GetBucketWormOutcome(outcome.error());
     }
 }
@@ -1141,14 +1027,13 @@ GetBucketWormOutcome OssClientImpl::GetBucketWorm(const GetBucketWormRequest &re
 ListObjectOutcome OssClientImpl::ListObjects(const ListObjectsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         ListObjectsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListObjectOutcome(std::move(result)) : ListObjectOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
+        return result.ParseDone() ? ListObjectOutcome(std::move(result)) :
+            ListObjectOutcome(OssError("ParseXMLError", "Parsing ListObject result fail."));
     }
-    else
-    {
+    else {
         return ListObjectOutcome(outcome.error());
     }
 }
@@ -1156,14 +1041,13 @@ ListObjectOutcome OssClientImpl::ListObjects(const ListObjectsRequest &request) 
 ListObjectsV2Outcome OssClientImpl::ListObjectsV2(const ListObjectsV2Request &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         ListObjectsV2Result result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListObjectsV2Outcome(std::move(result)) : ListObjectsV2Outcome(OssError("ParseXMLError", "Parsing ListObjectV2 result fail."));
+        return result.ParseDone() ? ListObjectsV2Outcome(std::move(result)) :
+            ListObjectsV2Outcome(OssError("ParseXMLError", "Parsing ListObjectV2 result fail."));
     }
-    else
-    {
+    else {
         return ListObjectsV2Outcome(outcome.error());
     }
 }
@@ -1171,14 +1055,13 @@ ListObjectsV2Outcome OssClientImpl::ListObjectsV2(const ListObjectsV2Request &re
 ListObjectVersionsOutcome OssClientImpl::ListObjectVersions(const ListObjectVersionsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         ListObjectVersionsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListObjectVersionsOutcome(std::move(result)) : ListObjectVersionsOutcome(OssError("ParseXMLError", "Parsing ListObjectVersions result fail."));
+        return result.ParseDone() ? ListObjectVersionsOutcome(std::move(result)) :
+            ListObjectVersionsOutcome(OssError("ParseXMLError", "Parsing ListObjectVersions result fail."));
     }
-    else
-    {
+    else {
         return ListObjectVersionsOutcome(outcome.error());
     }
 }
@@ -1187,13 +1070,11 @@ ListObjectVersionsOutcome OssClientImpl::ListObjectVersions(const ListObjectVers
 GetObjectOutcome OssClientImpl::GetObject(const GetObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
-                                                outcome.result().payload(), outcome.result().headerCollection()));
+            outcome.result().payload(),outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return GetObjectOutcome(outcome.error());
     }
 }
@@ -1201,13 +1082,11 @@ GetObjectOutcome OssClientImpl::GetObject(const GetObjectRequest &request) const
 PutObjectOutcome OssClientImpl::PutObject(const PutObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
-        return PutObjectOutcome(PutObjectResult(outcome.result().headerCollection(),
-                                                outcome.result().payload()));
+    if (outcome.isSuccess()) {
+        return PutObjectOutcome(PutObjectResult(outcome.result().headerCollection(), 
+            outcome.result().payload()));
     }
-    else
-    {
+    else {
         return PutObjectOutcome(outcome.error());
     }
 }
@@ -1215,12 +1094,10 @@ PutObjectOutcome OssClientImpl::PutObject(const PutObjectRequest &request) const
 DeleteObjectOutcome OssClientImpl::DeleteObject(const DeleteObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return DeleteObjectOutcome(DeleteObjectResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return DeleteObjectOutcome(outcome.error());
     }
 }
@@ -1228,29 +1105,27 @@ DeleteObjectOutcome OssClientImpl::DeleteObject(const DeleteObjectRequest &reque
 DeleteObjecstOutcome OssClientImpl::DeleteObjects(const DeleteObjectsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         DeleteObjectsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? DeleteObjecstOutcome(std::move(result)) : DeleteObjecstOutcome(OssError("ParseXMLError", "Parsing DeleteObjects result fail."));
+        return result.ParseDone() ? DeleteObjecstOutcome(std::move(result)) :
+            DeleteObjecstOutcome(OssError("ParseXMLError", "Parsing DeleteObjects result fail."));
     }
-    else
-    {
+    else {
         return DeleteObjecstOutcome(outcome.error());
     }
 }
 
-DeleteObjecVersionstOutcome OssClientImpl::DeleteObjectVersions(const DeleteObjectVersionsRequest &request) const
+DeleteObjecVersionstOutcome OssClientImpl::DeleteObjectVersions(const DeleteObjectVersionsRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         DeleteObjectVersionsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? DeleteObjecVersionstOutcome(std::move(result)) : DeleteObjecVersionstOutcome(OssError("ParseXMLError", "Parsing DeleteObjectVersions result fail."));
+        return result.ParseDone() ? DeleteObjecVersionstOutcome(std::move(result)) :
+            DeleteObjecVersionstOutcome(OssError("ParseXMLError", "Parsing DeleteObjectVersions result fail."));
     }
-    else
-    {
+    else {
         return DeleteObjecVersionstOutcome(outcome.error());
     }
 }
@@ -1258,13 +1133,11 @@ DeleteObjecVersionstOutcome OssClientImpl::DeleteObjectVersions(const DeleteObje
 ObjectMetaDataOutcome OssClientImpl::HeadObject(const HeadObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Head);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         ObjectMetaData metaData = outcome.result().headerCollection();
         return ObjectMetaDataOutcome(std::move(metaData));
     }
-    else
-    {
+    else {
         return ObjectMetaDataOutcome(outcome.error());
     }
 }
@@ -1272,13 +1145,11 @@ ObjectMetaDataOutcome OssClientImpl::HeadObject(const HeadObjectRequest &request
 ObjectMetaDataOutcome OssClientImpl::GetObjectMeta(const GetObjectMetaRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Head);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         ObjectMetaData metaData = outcome.result().headerCollection();
         return ObjectMetaDataOutcome(std::move(metaData));
     }
-    else
-    {
+    else {
         return ObjectMetaDataOutcome(outcome.error());
     }
 }
@@ -1286,13 +1157,12 @@ ObjectMetaDataOutcome OssClientImpl::GetObjectMeta(const GetObjectMetaRequest &r
 GetObjectAclOutcome OssClientImpl::GetObjectAcl(const GetObjectAclRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetObjectAclResult result(outcome.result().headerCollection(), outcome.result().payload());
-        return result.ParseDone() ? GetObjectAclOutcome(std::move(result)) : GetObjectAclOutcome(OssError("ParseXMLError", "Parsing GetObjectAcl result fail."));
+        return result.ParseDone() ? GetObjectAclOutcome(std::move(result)) :
+            GetObjectAclOutcome(OssError("ParseXMLError", "Parsing GetObjectAcl result fail."));
     }
-    else
-    {
+    else {
         return GetObjectAclOutcome(outcome.error());
     }
 }
@@ -1300,13 +1170,12 @@ GetObjectAclOutcome OssClientImpl::GetObjectAcl(const GetObjectAclRequest &reque
 AppendObjectOutcome OssClientImpl::AppendObject(const AppendObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
-        AppendObjectResult result(outcome.result().headerCollection());
-        return result.ParseDone() ? AppendObjectOutcome(std::move(result)) : AppendObjectOutcome(OssError("ParseXMLError", "no position or no crc64"));
+    if (outcome.isSuccess()) {
+		AppendObjectResult result(outcome.result().headerCollection());
+        return result.ParseDone() ? AppendObjectOutcome(std::move(result)) :
+            AppendObjectOutcome(OssError("ParseXMLError", "no position or no crc64"));
     }
-    else
-    {
+    else {
         return AppendObjectOutcome(outcome.error());
     }
 }
@@ -1314,12 +1183,10 @@ AppendObjectOutcome OssClientImpl::AppendObject(const AppendObjectRequest &reque
 CopyObjectOutcome OssClientImpl::CopyObject(const CopyObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return CopyObjectOutcome(CopyObjectResult(outcome.result().headerCollection(), outcome.result().payload()));
     }
-    else
-    {
+    else {
         return CopyObjectOutcome(outcome.error());
     }
 }
@@ -1327,12 +1194,10 @@ CopyObjectOutcome OssClientImpl::CopyObject(const CopyObjectRequest &request) co
 GetSymlinkOutcome OssClientImpl::GetSymlink(const GetSymlinkRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return GetSymlinkOutcome(GetSymlinkResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return GetSymlinkOutcome(outcome.error());
     }
 }
@@ -1340,12 +1205,10 @@ GetSymlinkOutcome OssClientImpl::GetSymlink(const GetSymlinkRequest &request) co
 RestoreObjectOutcome OssClientImpl::RestoreObject(const RestoreObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return RestoreObjectOutcome(RestoreObjectResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return RestoreObjectOutcome(outcome.error());
     }
 }
@@ -1353,12 +1216,10 @@ RestoreObjectOutcome OssClientImpl::RestoreObject(const RestoreObjectRequest &re
 CreateSymlinkOutcome OssClientImpl::CreateSymlink(const CreateSymlinkRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return CreateSymlinkOutcome(CreateSymlinkResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return CreateSymlinkOutcome(outcome.error());
     }
 }
@@ -1366,12 +1227,10 @@ CreateSymlinkOutcome OssClientImpl::CreateSymlink(const CreateSymlinkRequest &re
 SetObjectAclOutcome OssClientImpl::SetObjectAcl(const SetObjectAclRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return SetObjectAclOutcome(SetObjectAclResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return SetObjectAclOutcome(outcome.error());
     }
 }
@@ -1379,13 +1238,11 @@ SetObjectAclOutcome OssClientImpl::SetObjectAcl(const SetObjectAclRequest &reque
 GetObjectOutcome OssClientImpl::ProcessObject(const ProcessObjectRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
-                                                outcome.result().payload(), outcome.result().headerCollection()));
+            outcome.result().payload(), outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return GetObjectOutcome(outcome.error());
     }
 }
@@ -1394,15 +1251,12 @@ GetObjectOutcome OssClientImpl::SelectObject(const SelectObjectRequest &request)
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
     int ret = request.dispose();
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
-                                                outcome.result().payload(), outcome.result().headerCollection()));
+            outcome.result().payload(), outcome.result().headerCollection()));
     }
-    else
-    {
-        if (ret != 0)
-        {
+    else {
+        if (ret != 0) {
             return GetObjectOutcome(OssError("SelectObjectError", request.validateMessage(ret)));
         }
         return GetObjectOutcome(outcome.error());
@@ -1412,54 +1266,48 @@ GetObjectOutcome OssClientImpl::SelectObject(const SelectObjectRequest &request)
 CreateSelectObjectMetaOutcome OssClientImpl::CreateSelectObjectMeta(const CreateSelectObjectMetaRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         CreateSelectObjectMetaResult result(request.Bucket(), request.Key(),
-                                            outcome.result().RequestId(), outcome.result().payload());
-        return result.ParseDone() ? CreateSelectObjectMetaOutcome(result) : CreateSelectObjectMetaOutcome(OssError("ParseIOStreamError", "Parse create select object meta IOStream fail."));
+            outcome.result().RequestId(), outcome.result().payload());
+        return result.ParseDone() ? CreateSelectObjectMetaOutcome(result) :
+            CreateSelectObjectMetaOutcome(OssError("ParseIOStreamError", "Parse create select object meta IOStream fail."));
     }
-    else
-    {
+    else {
         return CreateSelectObjectMetaOutcome(outcome.error());
     }
 }
 
-SetObjectTaggingOutcome OssClientImpl::SetObjectTagging(const SetObjectTaggingRequest &request) const
+SetObjectTaggingOutcome OssClientImpl::SetObjectTagging(const SetObjectTaggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return SetObjectTaggingOutcome(SetObjectTaggingResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return SetObjectTaggingOutcome(outcome.error());
     }
 }
 
-DeleteObjectTaggingOutcome OssClientImpl::DeleteObjectTagging(const DeleteObjectTaggingRequest &request) const
+DeleteObjectTaggingOutcome OssClientImpl::DeleteObjectTagging(const DeleteObjectTaggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Delete);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         return DeleteObjectTaggingOutcome(DeleteObjectTaggingResult(outcome.result().headerCollection()));
     }
-    else
-    {
+    else {
         return DeleteObjectTaggingOutcome(outcome.error());
     }
 }
 
-GetObjectTaggingOutcome OssClientImpl::GetObjectTagging(const GetObjectTaggingRequest &request) const
+GetObjectTaggingOutcome OssClientImpl::GetObjectTagging(const GetObjectTaggingRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()) {
         GetObjectTaggingResult result(outcome.result().headerCollection(), outcome.result().payload());
-        return result.ParseDone() ? GetObjectTaggingOutcome(std::move(result)) : GetObjectTaggingOutcome(OssError("ParseXMLError", "Parsing ObjectTagging result fail."));
+        return result.ParseDone() ? GetObjectTaggingOutcome(std::move(result)) :
+            GetObjectTaggingOutcome(OssError("ParseXMLError", "Parsing ObjectTagging result fail."));
     }
-    else
-    {
+    else {
         return GetObjectTaggingOutcome(outcome.error());
     }
 }
@@ -1515,14 +1363,12 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
 GetObjectOutcome OssClientImpl::GetObjectByUrl(const GetObjectByUrlRequest &request) const
 {
     auto outcome = BASE::AttemptRequest(endpoint_, request, Http::Method::Get);
-    if (outcome.isSuccess())
-    {
-        return GetObjectOutcome(GetObjectResult("", "",
-                                                outcome.result()->Body(),
-                                                outcome.result()->Headers()));
+    if (outcome.isSuccess()) {
+        return GetObjectOutcome(GetObjectResult("", "", 
+            outcome.result()->Body(),
+            outcome.result()->Headers()));
     }
-    else
-    {
+    else {
         return GetObjectOutcome(buildError(outcome.error()));
     }
 }
@@ -1530,13 +1376,11 @@ GetObjectOutcome OssClientImpl::GetObjectByUrl(const GetObjectByUrlRequest &requ
 PutObjectOutcome OssClientImpl::PutObjectByUrl(const PutObjectByUrlRequest &request) const
 {
     auto outcome = BASE::AttemptRequest(endpoint_, request, Http::Method::Put);
-    if (outcome.isSuccess())
-    {
-        return PutObjectOutcome(PutObjectResult(outcome.result()->Headers(),
-                                                outcome.result()->Body()));
+    if (outcome.isSuccess()) {
+        return PutObjectOutcome(PutObjectResult(outcome.result()->Headers(), 
+            outcome.result()->Body()));
     }
-    else
-    {
+    else {
         return PutObjectOutcome(buildError(outcome.error()));
     }
 }
@@ -1544,28 +1388,26 @@ PutObjectOutcome OssClientImpl::PutObjectByUrl(const PutObjectByUrlRequest &requ
 InitiateMultipartUploadOutcome OssClientImpl::InitiateMultipartUpload(const InitiateMultipartUploadRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Post);
-    if (outcome.isSuccess())
-    {
+    if(outcome.isSuccess()){
         InitiateMultipartUploadResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? InitiateMultipartUploadOutcome(std::move(result)) : InitiateMultipartUploadOutcome(OssError("InitiateMultipartUploadError", "Parsing InitiateMultipartUploadResult fail"));
+        return result.ParseDone() ? InitiateMultipartUploadOutcome(std::move(result)):
+                InitiateMultipartUploadOutcome(
+                    OssError("InitiateMultipartUploadError",
+                    "Parsing InitiateMultipartUploadResult fail"));
     }
-    else
-    {
+    else{
         return InitiateMultipartUploadOutcome(outcome.error());
     }
 }
 
-PutObjectOutcome OssClientImpl::UploadPart(const UploadPartRequest &request) const
+PutObjectOutcome OssClientImpl::UploadPart(const UploadPartRequest &request)const
 {
     auto outcome = MakeRequest(request, Http::Put);
-    if (outcome.isSuccess())
-    {
-        const HeaderCollection &header = outcome.result().headerCollection();
+    if(outcome.isSuccess()){
+        const HeaderCollection& header = outcome.result().headerCollection();
         return PutObjectOutcome(PutObjectResult(header));
-    }
-    else
-    {
+    }else{
         return PutObjectOutcome(outcome.error());
     }
 }
@@ -1573,14 +1415,12 @@ PutObjectOutcome OssClientImpl::UploadPart(const UploadPartRequest &request) con
 UploadPartCopyOutcome OssClientImpl::UploadPartCopy(const UploadPartCopyRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Put);
-    if (outcome.isSuccess())
-    {
-        const HeaderCollection &header = outcome.result().headerCollection();
+    if(outcome.isSuccess()){
+        const HeaderCollection& header = outcome.result().headerCollection();
         return UploadPartCopyOutcome(
             UploadPartCopyResult(outcome.result().payload(), header));
     }
-    else
-    {
+    else{
         return UploadPartCopyOutcome(outcome.error());
     }
 }
@@ -1588,14 +1428,14 @@ UploadPartCopyOutcome OssClientImpl::UploadPartCopy(const UploadPartCopyRequest 
 CompleteMultipartUploadOutcome OssClientImpl::CompleteMultipartUpload(const CompleteMultipartUploadRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Post);
-    if (outcome.isSuccess())
-    {
+    if (outcome.isSuccess()){
         CompleteMultipartUploadResult result(outcome.result().payload(), outcome.result().headerCollection());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? CompleteMultipartUploadOutcome(std::move(result)) : CompleteMultipartUploadOutcome(OssError("CompleteMultipartUpload", ""));
+        return result.ParseDone() ?
+            CompleteMultipartUploadOutcome(std::move(result)) : 
+            CompleteMultipartUploadOutcome(OssError("CompleteMultipartUpload", ""));
     }
-    else
-    {
+    else {
         return CompleteMultipartUploadOutcome(outcome.error());
     }
 }
@@ -1603,14 +1443,12 @@ CompleteMultipartUploadOutcome OssClientImpl::CompleteMultipartUpload(const Comp
 VoidOutcome OssClientImpl::AbortMultipartUpload(const AbortMultipartUploadRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Delete);
-    if (outcome.isSuccess())
-    {
+    if(outcome.isSuccess()){
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
     }
-    else
-    {
+    else {
         return VoidOutcome(outcome.error());
     }
 }
@@ -1619,14 +1457,15 @@ ListMultipartUploadsOutcome OssClientImpl::ListMultipartUploads(
     const ListMultipartUploadsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Get);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         ListMultipartUploadsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListMultipartUploadsOutcome(std::move(result)) : ListMultipartUploadsOutcome(OssError("ListMultipartUploads", "Parse Error"));
+        return result.ParseDone() ?
+            ListMultipartUploadsOutcome(std::move(result)) :
+            ListMultipartUploadsOutcome(OssError("ListMultipartUploads", "Parse Error"));
     }
-    else
-    {
+    else {
         return ListMultipartUploadsOutcome(outcome.error());
     }
 }
@@ -1634,44 +1473,40 @@ ListMultipartUploadsOutcome OssClientImpl::ListMultipartUploads(
 ListPartsOutcome OssClientImpl::ListParts(const ListPartsRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Get);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         ListPartsResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListPartsOutcome(std::move(result)) : ListPartsOutcome(OssError("ListParts", "Parse Error"));
-    }
-    else
-    {
+        return result.ParseDone() ? 
+            ListPartsOutcome(std::move(result)) :
+            ListPartsOutcome(OssError("ListParts", "Parse Error"));
+    }else{
         return ListPartsOutcome(outcome.error());
     }
 }
 
 #if !defined(OSS_DISABLE_RESUAMABLE)
 /*Resumable Operation*/
-PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest &request) const
+PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest& request) const 
 {
-    const auto &reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
     int code = reqeustBase.validate();
-    if (code != 0)
-    {
+    if (code != 0) {
         return PutObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
     }
 
     if (request.ObjectSize() <= request.PartSize())
     {
         auto content = GetFstreamByPath(request.FilePath(), request.FilePathW(),
-                                        std::ios::in | std::ios::binary);
+            std::ios::in | std::ios::binary);
         PutObjectRequest putObjectReq(request.Bucket(), request.Key(), content, request.MetaData());
-        if (request.TransferProgress().Handler)
-        {
+        if (request.TransferProgress().Handler) {
             putObjectReq.setTransferProgress(request.TransferProgress());
         }
-        if (request.RequestPayer() == RequestPayer::Requester)
-        {
+        if (request.RequestPayer() == RequestPayer::Requester) {
             putObjectReq.setRequestPayer(request.RequestPayer());
         }
-        if (request.TrafficLimit() != 0)
-        {
+        if (request.TrafficLimit() != 0) {
             putObjectReq.setTrafficLimit(request.TrafficLimit());
         }
         return PutObject(putObjectReq);
@@ -1683,45 +1518,37 @@ PutObjectOutcome OssClientImpl::ResumableUploadObject(const UploadObjectRequest 
     }
 }
 
-CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectRequest &request) const
+CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectRequest& request) const 
 {
-    const auto &reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
     int code = reqeustBase.validate();
-    if (code != 0)
-    {
+    if (code != 0) {
         return CopyObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
     }
 
     auto getObjectMetaReq = GetObjectMetaRequest(request.SrcBucket(), request.SrcKey());
-    if (request.RequestPayer() == RequestPayer::Requester)
-    {
+    if (request.RequestPayer() == RequestPayer::Requester) {
         getObjectMetaReq.setRequestPayer(request.RequestPayer());
     }
-    if (!request.VersionId().empty())
-    {
+    if (!request.VersionId().empty()) {
         getObjectMetaReq.setVersionId(request.VersionId());
     }
     auto outcome = GetObjectMeta(getObjectMetaReq);
-    if (!outcome.isSuccess())
-    {
+    if (!outcome.isSuccess()) {
         return CopyObjectOutcome(outcome.error());
     }
 
     auto objectSize = outcome.result().ContentLength();
-    if (objectSize < (int64_t)request.PartSize())
-    {
+    if (objectSize < (int64_t)request.PartSize()) {
         auto copyObjectReq = CopyObjectRequest(request.Bucket(), request.Key(), request.MetaData());
         copyObjectReq.setCopySource(request.SrcBucket(), request.SrcKey());
-        if (request.RequestPayer() == RequestPayer::Requester)
-        {
+        if (request.RequestPayer() == RequestPayer::Requester) {
             copyObjectReq.setRequestPayer(request.RequestPayer());
         }
-        if (request.TrafficLimit() != 0)
-        {
+        if (request.TrafficLimit() != 0) {
             copyObjectReq.setTrafficLimit(request.TrafficLimit());
         }
-        if (!request.VersionId().empty())
-        {
+        if (!request.VersionId().empty()) {
             copyObjectReq.setVersionId(request.VersionId());
         }
         return CopyObject(copyObjectReq);
@@ -1731,67 +1558,56 @@ CopyObjectOutcome OssClientImpl::ResumableCopyObject(const MultiCopyObjectReques
     return copier.Copy();
 }
 
-GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequest &request) const
+GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequest &request) const 
 {
-    const auto &reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
+    const auto& reqeustBase = static_cast<const OssResumableBaseRequest &>(request);
     int code = reqeustBase.validate();
-    if (code != 0)
-    {
+    if (code != 0) {
         return GetObjectOutcome(OssError("ValidateError", reqeustBase.validateMessage(code)));
     }
 
     auto getObjectMetaReq = GetObjectMetaRequest(request.Bucket(), request.Key());
-    if (request.RequestPayer() == RequestPayer::Requester)
-    {
+    if (request.RequestPayer() == RequestPayer::Requester) {
         getObjectMetaReq.setRequestPayer(request.RequestPayer());
     }
-    if (!request.VersionId().empty())
-    {
+    if (!request.VersionId().empty()) {
         getObjectMetaReq.setVersionId(request.VersionId());
     }
     auto hOutcome = GetObjectMeta(getObjectMetaReq);
-    if (!hOutcome.isSuccess())
-    {
+    if (!hOutcome.isSuccess()) {
         return GetObjectOutcome(hOutcome.error());
     }
 
     auto objectSize = hOutcome.result().ContentLength();
-    if (objectSize < (int64_t)request.PartSize())
-    {
-        auto getObjectReq = GetObjectRequest(request.Bucket(), request.Key(), request.ModifiedSinceConstraint(), request.UnmodifiedSinceConstraint(), request.MatchingETagsConstraint(), request.NonmatchingETagsConstraint(), request.ResponseHeaderParameters());
-        if (request.RangeIsSet())
-        {
+    if (objectSize < (int64_t)request.PartSize()) {
+        auto getObjectReq = GetObjectRequest(request.Bucket(), request.Key(), request.ModifiedSinceConstraint(), request.UnmodifiedSinceConstraint(),request.MatchingETagsConstraint(), request.NonmatchingETagsConstraint(), request.ResponseHeaderParameters());
+        if (request.RangeIsSet()) {
             getObjectReq.setRange(request.RangeStart(), request.RangeEnd());
         }
-        if (request.TransferProgress().Handler)
-        {
+        if (request.TransferProgress().Handler) {
             getObjectReq.setTransferProgress(request.TransferProgress());
         }
-        if (request.RequestPayer() == RequestPayer::Requester)
-        {
+        if (request.RequestPayer() == RequestPayer::Requester) {
             getObjectReq.setRequestPayer(request.RequestPayer());
         }
-        if (request.TrafficLimit() != 0)
-        {
+        if (request.TrafficLimit() != 0) {
             getObjectReq.setTrafficLimit(request.TrafficLimit());
         }
-        if (!request.VersionId().empty())
-        {
+        if (!request.VersionId().empty()) {
             getObjectReq.setVersionId(request.VersionId());
         }
-        getObjectReq.setResponseStreamFactory([=]()
-                                              { return GetFstreamByPath(request.FilePath(), request.FilePathW(),
-                                                                        std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary); });
+        getObjectReq.setResponseStreamFactory([=]() {
+            return GetFstreamByPath(request.FilePath(), request.FilePathW(),
+                std::ios_base::out | std::ios_base::in | std::ios_base::trunc | std::ios_base::binary);
+        });
         auto outcome = this->GetObject(getObjectReq);
         std::shared_ptr<std::iostream> content = nullptr;
         outcome.result().setContent(content);
-        if (IsFileExist(request.TempFilePath()))
-        {
+        if (IsFileExist(request.TempFilePath())) {
             RemoveFile(request.TempFilePath());
         }
 #ifdef _WIN32
-        else if (IsFileExist(request.TempFilePathW()))
-        {
+        else if (IsFileExist(request.TempFilePathW())) {
             RemoveFile(request.TempFilePathW());
         }
 #endif
@@ -1805,32 +1621,30 @@ GetObjectOutcome OssClientImpl::ResumableDownloadObject(const DownloadObjectRequ
 
 #if !defined(OSS_DISABLE_LIVECHANNEL)
 /*Live Channel*/
-VoidOutcome OssClientImpl::PutLiveChannelStatus(const PutLiveChannelStatusRequest &request) const
+VoidOutcome OssClientImpl::PutLiveChannelStatus(const PutLiveChannelStatusRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Put);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(result);
-    }
-    else
-    {
+    }else{
         return VoidOutcome(outcome.error());
     }
 }
 
-PutLiveChannelOutcome OssClientImpl::PutLiveChannel(const PutLiveChannelRequest &request) const
+PutLiveChannelOutcome OssClientImpl::PutLiveChannel(const PutLiveChannelRequest& request) const
 {
     auto outcome = MakeRequest(request, Http::Put);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         PutLiveChannelResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? PutLiveChannelOutcome(std::move(result)) : PutLiveChannelOutcome(OssError("PutLiveChannelError", "Parse Error"));
-    }
-    else
-    {
+        return result.ParseDone()?
+            PutLiveChannelOutcome(std::move(result)):
+            PutLiveChannelOutcome(OssError("PutLiveChannelError", "Parse Error"));
+    }else{
         return PutLiveChannelOutcome(outcome.error());
     }
 }
@@ -1838,14 +1652,12 @@ PutLiveChannelOutcome OssClientImpl::PutLiveChannel(const PutLiveChannelRequest 
 VoidOutcome OssClientImpl::PostVodPlaylist(const PostVodPlaylistRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Post);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(std::move(result));
-    }
-    else
-    {
+    }else{
         return VoidOutcome(outcome.error());
     }
 }
@@ -1853,14 +1665,12 @@ VoidOutcome OssClientImpl::PostVodPlaylist(const PostVodPlaylistRequest &request
 GetVodPlaylistOutcome OssClientImpl::GetVodPlaylist(const GetVodPlaylistRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Get);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         GetVodPlaylistResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
         return GetVodPlaylistOutcome(std::move(result));
-    }
-    else
-    {
+    }else{
         return GetVodPlaylistOutcome(outcome.error());
     }
 }
@@ -1868,14 +1678,14 @@ GetVodPlaylistOutcome OssClientImpl::GetVodPlaylist(const GetVodPlaylistRequest 
 GetLiveChannelStatOutcome OssClientImpl::GetLiveChannelStat(const GetLiveChannelStatRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Get);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         GetLiveChannelStatResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetLiveChannelStatOutcome(std::move(result)) : GetLiveChannelStatOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
-    }
-    else
-    {
+        return result.ParseDone()?
+            GetLiveChannelStatOutcome(std::move(result)):
+            GetLiveChannelStatOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
         return GetLiveChannelStatOutcome(outcome.error());
     }
 }
@@ -1883,14 +1693,14 @@ GetLiveChannelStatOutcome OssClientImpl::GetLiveChannelStat(const GetLiveChannel
 GetLiveChannelInfoOutcome OssClientImpl::GetLiveChannelInfo(const GetLiveChannelInfoRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Get);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         GetLiveChannelInfoResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetLiveChannelInfoOutcome(std::move(result)) : GetLiveChannelInfoOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
-    }
-    else
-    {
+        return result.ParseDone()?
+            GetLiveChannelInfoOutcome(std::move(result)):
+            GetLiveChannelInfoOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
         return GetLiveChannelInfoOutcome(outcome.error());
     }
 }
@@ -1898,14 +1708,14 @@ GetLiveChannelInfoOutcome OssClientImpl::GetLiveChannelInfo(const GetLiveChannel
 GetLiveChannelHistoryOutcome OssClientImpl::GetLiveChannelHistory(const GetLiveChannelHistoryRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Get);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         GetLiveChannelHistoryResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? GetLiveChannelHistoryOutcome(std::move(result)) : GetLiveChannelHistoryOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
-    }
-    else
-    {
+        return result.ParseDone()?
+            GetLiveChannelHistoryOutcome(std::move(result)):
+            GetLiveChannelHistoryOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
         return GetLiveChannelHistoryOutcome(outcome.error());
     }
 }
@@ -1913,14 +1723,14 @@ GetLiveChannelHistoryOutcome OssClientImpl::GetLiveChannelHistory(const GetLiveC
 ListLiveChannelOutcome OssClientImpl::ListLiveChannel(const ListLiveChannelRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Get);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         ListLiveChannelResult result(outcome.result().payload());
         result.requestId_ = outcome.result().RequestId();
-        return result.ParseDone() ? ListLiveChannelOutcome(std::move(result)) : ListLiveChannelOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
-    }
-    else
-    {
+        return result.ParseDone()?
+            ListLiveChannelOutcome(std::move(result)):
+            ListLiveChannelOutcome(OssError("GetLiveChannelStatError", "Parse Error"));
+    }else{
         return ListLiveChannelOutcome(outcome.error());
     }
 }
@@ -1928,14 +1738,12 @@ ListLiveChannelOutcome OssClientImpl::ListLiveChannel(const ListLiveChannelReque
 VoidOutcome OssClientImpl::DeleteLiveChannel(const DeleteLiveChannelRequest &request) const
 {
     auto outcome = MakeRequest(request, Http::Delete);
-    if (outcome.isSuccess())
+    if(outcome.isSuccess())
     {
         VoidResult result;
         result.requestId_ = outcome.result().RequestId();
         return VoidOutcome(std::move(result));
-    }
-    else
-    {
+    }else{
         return VoidOutcome(outcome.error());
     }
 }
