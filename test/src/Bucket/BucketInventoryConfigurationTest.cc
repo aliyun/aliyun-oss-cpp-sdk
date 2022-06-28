@@ -73,101 +73,101 @@ std::string BucketInventoryConfigurationTest::DstBucketName = "";
 
 TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
 {
-    // InventoryConfiguration conf;
-    // conf.setId("report1");
-    // conf.setIsEnabled(true);
-    // conf.setFilter(InventoryFilter("filterPrefix"));
+    InventoryConfiguration conf;
+    conf.setId("report1");
+    conf.setIsEnabled(true);
+    conf.setFilter(InventoryFilter("filterPrefix"));
 
-    // InventoryOSSBucketDestination dest;
-    // dest.setFormat(InventoryFormat::CSV);
-    // dest.setAccountId(Config::RamUID);
-    // dest.setRoleArn(Config::RamRoleArn);
-    // dest.setBucket(DstBucketName);
-    // dest.setPrefix("prefix1");
-    // dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
-    // conf.setDestination(dest);
+    InventoryOSSBucketDestination dest;
+    dest.setFormat(InventoryFormat::CSV);
+    dest.setAccountId(Config::RamUID);
+    dest.setRoleArn(Config::RamRoleArn);
+    dest.setBucket(DstBucketName);
+    dest.setPrefix("prefix1");
+    dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
+    conf.setDestination(dest);
 
-    // conf.setSchedule(InventoryFrequency::Daily);
-    // conf.setIncludedObjectVersions(InventoryIncludedObjectVersions::All);
+    conf.setSchedule(InventoryFrequency::Daily);
+    conf.setIncludedObjectVersions(InventoryIncludedObjectVersions::All);
 
-    // InventoryOptionalFields field { 
-    //     InventoryOptionalField::Size, InventoryOptionalField::LastModifiedDate, 
-    //     InventoryOptionalField::ETag, InventoryOptionalField::StorageClass, 
-    //     InventoryOptionalField::IsMultipartUploaded, InventoryOptionalField::EncryptionStatus
-    // };
-    // conf.setOptionalFields(field);
+    InventoryOptionalFields field { 
+        InventoryOptionalField::Size, InventoryOptionalField::LastModifiedDate, 
+        InventoryOptionalField::ETag, InventoryOptionalField::StorageClass, 
+        InventoryOptionalField::IsMultipartUploaded, InventoryOptionalField::EncryptionStatus
+    };
+    conf.setOptionalFields(field);
 
-    // auto setOutcome = Client->SetBucketInventoryConfiguration(SetBucketInventoryConfigurationRequest(BucketName, conf));
-    // EXPECT_EQ(setOutcome.isSuccess(), true);
+    auto setOutcome = Client->SetBucketInventoryConfiguration(SetBucketInventoryConfigurationRequest(BucketName, conf));
+    EXPECT_EQ(setOutcome.isSuccess(), true);
      
-    // auto getOutcome = Client->GetBucketInventoryConfiguration(GetBucketInventoryConfigurationRequest(BucketName, "report1"));
-    // EXPECT_EQ(getOutcome.isSuccess(), true);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report1");
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), true);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "filterPrefix");
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), "keyId");
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Schedule(), InventoryFrequency::Daily);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().IncludedObjectVersions(), InventoryIncludedObjectVersions::All);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields().size(), 6U);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[0], InventoryOptionalField::Size);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[1], InventoryOptionalField::LastModifiedDate);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[2], InventoryOptionalField::ETag);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[3], InventoryOptionalField::StorageClass);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[4], InventoryOptionalField::IsMultipartUploaded);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[5], InventoryOptionalField::EncryptionStatus);
+    auto getOutcome = Client->GetBucketInventoryConfiguration(GetBucketInventoryConfigurationRequest(BucketName, "report1"));
+    EXPECT_EQ(getOutcome.isSuccess(), true);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report1");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), true);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "filterPrefix");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), "keyId");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Schedule(), InventoryFrequency::Daily);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().IncludedObjectVersions(), InventoryIncludedObjectVersions::All);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields().size(), 6U);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[0], InventoryOptionalField::Size);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[1], InventoryOptionalField::LastModifiedDate);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[2], InventoryOptionalField::ETag);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[3], InventoryOptionalField::StorageClass);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[4], InventoryOptionalField::IsMultipartUploaded);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[5], InventoryOptionalField::EncryptionStatus);
 
-    // auto delOutcome = Client->DeleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest(BucketName, "report1"));
-    // EXPECT_EQ(delOutcome.isSuccess(), true);
+    auto delOutcome = Client->DeleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest(BucketName, "report1"));
+    EXPECT_EQ(delOutcome.isSuccess(), true);
 
-    // //report2
-    // conf.setId("report2");
-    // conf.setIsEnabled(false);
-    // conf.setFilter(InventoryFilter("filterPrefix2"));
-    // InventoryOSSBucketDestination dest1;
-    // dest1.setFormat(InventoryFormat::CSV);
-    // dest1.setAccountId(Config::RamUID);
-    // dest1.setRoleArn(Config::RamRoleArn);
-    // dest1.setBucket(DstBucketName);
-    // dest1.setPrefix("prefix2");
-    // dest1.setEncryption(InventoryEncryption(InventorySSEOSS()));
-    // conf.setDestination(dest1);
-    // conf.setSchedule(InventoryFrequency::Weekly);
-    // conf.setIncludedObjectVersions(InventoryIncludedObjectVersions::Current);
-    // InventoryOptionalFields field2 {
-    //     InventoryOptionalField::Size, InventoryOptionalField::LastModifiedDate,
-    //     InventoryOptionalField::ETag, InventoryOptionalField::StorageClass
-    // };
-    // conf.setOptionalFields(field2);
+    //report2
+    conf.setId("report2");
+    conf.setIsEnabled(false);
+    conf.setFilter(InventoryFilter("filterPrefix2"));
+    InventoryOSSBucketDestination dest1;
+    dest1.setFormat(InventoryFormat::CSV);
+    dest1.setAccountId(Config::RamUID);
+    dest1.setRoleArn(Config::RamRoleArn);
+    dest1.setBucket(DstBucketName);
+    dest1.setPrefix("prefix2");
+    dest1.setEncryption(InventoryEncryption(InventorySSEOSS()));
+    conf.setDestination(dest1);
+    conf.setSchedule(InventoryFrequency::Weekly);
+    conf.setIncludedObjectVersions(InventoryIncludedObjectVersions::Current);
+    InventoryOptionalFields field2 {
+        InventoryOptionalField::Size, InventoryOptionalField::LastModifiedDate,
+        InventoryOptionalField::ETag, InventoryOptionalField::StorageClass
+    };
+    conf.setOptionalFields(field2);
 
-    // setOutcome = Client->SetBucketInventoryConfiguration(SetBucketInventoryConfigurationRequest(BucketName, conf));
-    // EXPECT_EQ(setOutcome.isSuccess(), true);
+    setOutcome = Client->SetBucketInventoryConfiguration(SetBucketInventoryConfigurationRequest(BucketName, conf));
+    EXPECT_EQ(setOutcome.isSuccess(), true);
 
-    // getOutcome = Client->GetBucketInventoryConfiguration(GetBucketInventoryConfigurationRequest(BucketName, "report2"));
-    // EXPECT_EQ(getOutcome.isSuccess(), true);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report2");
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), false);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "filterPrefix2");
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix2");
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), false);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEOSS(), true);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().Schedule(), InventoryFrequency::Weekly);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().IncludedObjectVersions(), InventoryIncludedObjectVersions::Current);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields().size(), 4U);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[0], InventoryOptionalField::Size);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[1], InventoryOptionalField::LastModifiedDate);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[2], InventoryOptionalField::ETag);
-    // EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[3], InventoryOptionalField::StorageClass);
+    getOutcome = Client->GetBucketInventoryConfiguration(GetBucketInventoryConfigurationRequest(BucketName, "report2"));
+    EXPECT_EQ(getOutcome.isSuccess(), true);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Id(), "report2");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().IsEnabled(), false);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Filter().Prefix(), "filterPrefix2");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().AccountId(), Config::RamUID);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().RoleArn(), Config::RamRoleArn);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix2");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), false);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEOSS(), true);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Schedule(), InventoryFrequency::Weekly);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().IncludedObjectVersions(), InventoryIncludedObjectVersions::Current);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields().size(), 4U);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[0], InventoryOptionalField::Size);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[1], InventoryOptionalField::LastModifiedDate);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[2], InventoryOptionalField::ETag);
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields()[3], InventoryOptionalField::StorageClass);
 
-    // delOutcome = Client->DeleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest(BucketName, "report2"));
-    // EXPECT_EQ(delOutcome.isSuccess(), true);
+    delOutcome = Client->DeleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest(BucketName, "report2"));
+    EXPECT_EQ(delOutcome.isSuccess(), true);
 }
 
 TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutFilterTest)
