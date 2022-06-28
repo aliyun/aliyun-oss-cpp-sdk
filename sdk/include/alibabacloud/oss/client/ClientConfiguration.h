@@ -121,13 +121,6 @@ namespace OSS
         * Your http client' implement
         */
         std::shared_ptr<HttpClient> httpClient;
-        /**
-         * The version of signature ("1.0"/"2.0"/"4.0"), default is "1.0"
-         */
-        std::string authVersion;
-
-        // additional header
-        std::vector<std::pair<std::string, std::string>> additionalHeaders;
     };
 }
 }

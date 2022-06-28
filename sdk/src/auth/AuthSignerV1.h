@@ -16,21 +16,20 @@
 
 #pragma once
 
-#include "Signer.h"
-#include <ctime>
+#include "AuthSigner.h"
+#include "HmacSha1Signer.h"
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
-    class HmacSha256Signer : public Signer
+
+    class  AuthSignerV1 : public AuthSigner
     {
     public:
-        HmacSha256Signer();
-        ~HmacSha256Signer();
-
-        virtual ByteBuffer calculate(const std::string &src, const ByteBuffer &secret) const override;
-        virtual std::string generate(const std::string &src, const std::string &secret) const override;
+        AuthSignerV1();
+        virtual ~AuthSignerV1() = default;
+        virtual bool signRequest(HttpRequest &request, const AuthSignerParam& param) const override;
     };
 }
 }

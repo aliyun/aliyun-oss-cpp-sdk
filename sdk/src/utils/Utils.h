@@ -20,6 +20,7 @@
 #include <ctime>
 #include <iostream>
 #include <alibabacloud/oss/Types.h>
+#include "LogUtils.h"
 
 namespace AlibabaCloud
 {
@@ -37,6 +38,7 @@ namespace OSS
 
     std::string GenerateUuid();
     std::string UrlEncode(const std::string &src);
+    std::string UrlEncodeIgnoreSlash(const std::string & src);
     std::string UrlDecode(const std::string &src);
 
     std::string Base64Encode(const std::string &src);
@@ -59,11 +61,11 @@ namespace OSS
     std::string TrimQuotes(const char* source);
     std::string ToLower(const char* source);
     std::string ToUpper(const char* source);
-    std::string ToGmtTime(std::time_t &t);
+    std::string ToGmtTime(const std::time_t &t);
     std::string ToUtcTime(std::time_t &t);
-    std::string ToUtcV4Time(std::time_t &t);
+    std::string ToUtcTimeWithoutMill(const std::time_t &t);
     std::time_t UtcToUnixTime(const std::string &t);
-    std::string UtcV4ToDay(const std::string &t);
+    std::string LowerHexToString(const ByteBuffer &data);
 
     bool IsIp(const std::string &host);
     bool IsValidBucketName(const std::string &bucketName);
@@ -126,6 +128,9 @@ namespace OSS
 
     const char * ToTierTypeName(TierType status);
     TierType ToTierType(const char *name);
+
+    std::string GenResource(const std::string &bucket, const std::string &object);
+    std::string GenScope(const std::string &day, const std::string &region, const std::string &product, const std::string &request);
 
 #if !defined(OSS_DISABLE_RESUAMABLE) || !defined(OSS_DISABLE_ENCRYPTION)
     std::map<std::string, std::string> JsonStringToMap(const std::string& jsonStr);

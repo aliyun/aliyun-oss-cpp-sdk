@@ -115,8 +115,7 @@ ClientConfiguration::ClientConfiguration() :
     sendRateLimiter(nullptr),
     recvRateLimiter(nullptr),
     executor(nullptr),
-    httpClient(nullptr),
-    authVersion("1.0")
+    httpClient(nullptr)
 {
 
 }

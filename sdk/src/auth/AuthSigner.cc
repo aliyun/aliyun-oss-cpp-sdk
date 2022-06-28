@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-#pragma once
+#include "AuthSigner.h"
+#include "AuthSignerV1.h"
+#include "AuthSignerV4.h"
+#include "HmacSha1Signer.h"
+#include "HmacSha256Signer.h"
 
-#include "Signer.h"
-#include <ctime>
+using namespace AlibabaCloud::OSS;
 
-namespace AlibabaCloud
+std::shared_ptr<AuthSigner> AuthSigner::CreateSigner(const std::string &region, const std::string &version, const std::string &product)
 {
-namespace OSS
-{
-    class HmacSha256Signer : public Signer
-    {
-    public:
-        HmacSha256Signer();
-        ~HmacSha256Signer();
-
-        virtual ByteBuffer calculate(const std::string &src, const ByteBuffer &secret) const override;
-        virtual std::string generate(const std::string &src, const std::string &secret) const override;
-    };
-}
+    
+    if (version == "4.0") {
+        return std::make_shared<AuthSignerV4>(region, product);
+    }
+    return std::make_shared<AuthSignerV1>();
 }

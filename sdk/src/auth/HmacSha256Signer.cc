@@ -15,6 +15,7 @@
  */
 
 #include "HmacSha256Signer.h"
+#include "../utils/Utils.h"
 #if 0//def _WIN32
 #include <windows.h>
 #include <wincrypt.h>
@@ -36,10 +37,15 @@ HmacSha256Signer::~HmacSha256Signer()
 {
 }
 
-byteArray HmacSha256Signer::generate(const byteArray &src, const std::string & secret) const
+std::string HmacSha256Signer::generate(const std::string & src, const std::string & secret) const {
+    OSS_LOG(LogLevel::LogError, "HmacSha256Signer", "no implemented, src = %s, secret = %s", src.c_str(), secret.c_str());
+    return "";
+}
+
+ByteBuffer HmacSha256Signer::calculate(const std::string &src, const ByteBuffer & secret) const
 {
-    if (src.len_ == 0)
-        return byteArray{};
+    if (src.size() == 0)
+        return ByteBuffer{};
 
 #if 0//def _WIN32
     typedef struct _my_blob {
@@ -87,14 +93,19 @@ byteArray HmacSha256Signer::generate(const byteArray &src, const std::string & s
     delete dest;
     return ret;
 #else
-    unsigned char md[32];
-    unsigned int mdLen = 32;
+    ByteBuffer md(EVP_MAX_MD_SIZE);
+    unsigned int mdLen = EVP_MAX_MD_SIZE;
 
-    if (HMAC(EVP_sha256(), secret.c_str(), static_cast<int>(secret.size()),
-        src.str_, src.len_,
-        md, &mdLen) == nullptr)
-        return byteArray{};
+    if (HMAC(EVP_sha256(), 
+             secret.data(), 
+             static_cast<int>(secret.size()),
+             reinterpret_cast<unsigned char const*>(src.data()), 
+             static_cast<int>(src.size()),
+             md.data(), &mdLen) == nullptr)
+        return ByteBuffer{};
 
-    return byteArray{md, mdLen};
+    md.resize(mdLen);
+
+    return md;
 #endif
 }

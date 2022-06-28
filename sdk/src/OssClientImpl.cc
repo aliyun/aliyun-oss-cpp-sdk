@@ -39,51 +39,35 @@ using namespace tinyxml2;
 
 namespace
 {
-    const std::string SERVICE_NAME = "OSS";
-    const char *TAG = "OssClientImpl";
+const std::string SERVICE_NAME = "OSS";
+const char *TAG = "OssClientImpl";
 }
 
 OssClientImpl::OssClientImpl(const std::string &endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration & configuration) :
     Client(SERVICE_NAME, configuration),
     endpoint_(endpoint),
     credentialsProvider_(credentialsProvider),
+    signer_(std::make_shared<HmacSha1Signer>()),
     executor_(configuration.executor ? configuration.executor :std::make_shared<ThreadExecutor>()),
-    isValidEndpoint_(IsValidEndpoint(endpoint)),
-    authVersion_(configuration.authVersion)
+    isValidEndpoint_(IsValidEndpoint(endpoint))
 {
-    if (configuration.authVersion == "4.0")
-    {
-        signGenerator_ = std::make_shared<SignGeneratorV4>(authAlgorithm_);
-        setAuthAlgorithm("HMAC-SHA256");
-    } else {
-        signGenerator_ = std::make_shared<SignGeneratorV1>(authAlgorithm_);
-        setAuthAlgorithm("HMAC-SHA1");
-    }
+    initSigner();
 }
 
 OssClientImpl::~OssClientImpl()
 {
 }
 
-void OssClientImpl::initSignGernerator() {
-    if (authAlgorithm_ == "4.0")
-    {
-        signGenerator_ = std::make_shared<SignGeneratorV4>(authAlgorithm_);
-    } else {
-        signGenerator_ = std::make_shared<SignGeneratorV1>(authAlgorithm_);
-    }
+void OssClientImpl::initSigner(const std::string &region, const std::string &version, const std::string &product) {
+    authSigner_ = AuthSigner::CreateSigner(region, version, product);
 }
 
-void OssClientImpl::setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders) {
-    // osshead: include addtional head、x-oss-、content-md5、content-type
-    additionalHeaders_.clear();
-    host_.clear();
-    for (const auto &header : additionalHeaders) {
-        std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
-        if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "content-md5" && lowerKey != "content-type") {
-            additionalHeaders_.insert(lowerKey);
-            if (lowerKey == "host") {
-                host_ = Trim(header.second.c_str());
+void OssClientImpl::setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
+    if (!additionalHeaders.empty()) {
+        for (const auto &header : additionalHeaders) {
+            std::string lowerKey = Trim(ToLower(header.c_str()).c_str());
+            if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "content-md5" && lowerKey != "content-type") {
+                additionalHeaders_.insert(lowerKey);
             }
         }
     }
@@ -110,8 +94,7 @@ std::shared_ptr<HttpRequest> OssClientImpl::buildHttpRequest(const std::string &
         httpRequest->setUrl(Url(msg.Path()));
     }
     else {
-        addSignInfo(httpRequest, msg);
-        addUrl(httpRequest, endpoint, msg);
+        addUrlAndSignRequest(httpRequest, endpoint, msg);
     }
     addOther(httpRequest, msg);
     return httpRequest;
@@ -153,38 +136,12 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
 
 void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const HeaderCollection &headers) const
 {
-    for (auto const &header : headers)
-    {
+    for (auto const& header : headers) {
         httpRequest->addHeader(header.first, header.second);
     }
 
-    // common headers
+    //common headers
     httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
-
-    // Date
-    if (authVersion_ == "4.0") {
-        if (!httpRequest->hasHeader("x-oss-date")) {
-            std::time_t t = std::time(nullptr);
-            t += getRequestDateOffset();
-            httpRequest->addHeader("x-oss-date", ToUtcV4Time(t));
-        }
-    } else {
-        if (httpRequest->hasHeader("x-oss-date"))
-        {
-            httpRequest->addHeader(Http::DATE, httpRequest->Header("x-oss-date"));
-        }
-        if (!httpRequest->hasHeader(Http::DATE))
-        {
-            std::time_t t = std::time(nullptr);
-            t += getRequestDateOffset();
-            httpRequest->addHeader(Http::DATE, ToGmtTime(t));
-        }
-    }
-
-    // Host
-    if (!host_.empty()) {
-        httpRequest->addHeader(Http::HOST, host_);
-    }
 }
 
 void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5) const
@@ -211,57 +168,6 @@ void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, con
     httpRequest->addBody(body);
 }
 
-void OssClientImpl::addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const
-{
-    const OssRequest &ossRequest = static_cast<const OssRequest &>(request);
-    std::stringstream resource;
-    resource << "/";
-    if (!ossRequest.bucket().empty())
-    {
-        resource << ossRequest.bucket() << "/";
-    }
-    if (!ossRequest.key().empty())
-    {
-        resource << ossRequest.key();
-    }
-
-    SignParam signParam(configuration(), resource.str(), request.Parameters(), credentialsProvider_->getCredentials());
-    if (signGenerator_->version() == "4.0") {
-        signParam.setAdditionalHeaders(additionalHeaders_);
-        signParam.setCloudBoxId(cloudBoxId_);
-        signParam.setRegion(region_);
-    }
-
-    signGenerator_->signHeader(httpRequest, signParam);
-}
-
-void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, const std::string &endpoint, const ServiceRequest &request) const
-{
-    const OssRequest& ossRequest = static_cast<const OssRequest&>(request);
-
-    auto host = CombineHostString(endpoint, ossRequest.bucket(), configuration().isCname);
-    auto path = CombinePathString(endpoint, ossRequest.bucket(), ossRequest.key());
-
-    Url url(host);
-    url.setPath(path);
-
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) host:%s, path:%s", this, httpRequest.get(), host.c_str(), path.c_str());
-    
-    auto parameters = request.Parameters();
-    if (!parameters.empty()) {
-        std::stringstream queryString;
-        for (const auto &p : parameters)
-        {
-            if (p.second.empty())
-                queryString << "&" << UrlEncode(p.first);
-            else
-                queryString << "&" << UrlEncode(p.first) << "=" << UrlEncode(p.second);
-        }
-        url.setQuery(queryString.str().substr(1));
-    }
-    httpRequest->setUrl(url);
-}
-
 void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const
 {
     //progress
@@ -278,6 +184,51 @@ void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, co
 #endif
     }
 }
+
+void OssClientImpl::addUrlAndSignRequest(const std::shared_ptr<HttpRequest>& httpRequest, const std::string& endpoint, const ServiceRequest& request) const
+{
+    //build request url
+    const OssRequest& ossRequest = static_cast<const OssRequest&>(request);
+    auto bucket = ossRequest.bucket();
+    auto key = ossRequest.key();
+    auto parameters = request.Parameters();
+
+    auto host = CombineHostString(endpoint, bucket, configuration().isCname);
+    auto path = CombinePathString(endpoint, bucket, key);
+
+    Url url(host);
+    url.setPath(path);
+
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) host:%s, path:%s", this, httpRequest.get(), host.c_str(), path.c_str());
+
+    if (!parameters.empty()) {
+        std::stringstream queryString;
+        for (const auto &p : parameters)
+        {
+            if (p.second.empty())
+                queryString << "&" << UrlEncode(p.first);
+            else
+                queryString << "&" << UrlEncode(p.first) << "=" << UrlEncode(p.second);
+        }
+        url.setQuery(queryString.str().substr(1));
+    }
+    httpRequest->setUrl(url);
+
+    //sign request
+    Credentials credentials = credentialsProvider_->getCredentials();
+    if (!credentials.SessionToken().empty()) {
+        httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
+    }
+
+    //TODO anonymous request 
+    std::time_t requestTime = std::time(nullptr);
+    requestTime += getRequestDateOffset();
+    AuthSignerParam param(std::move(bucket), std::move(key), std::move(credentials), std::move(requestTime));
+    param.setAdditionalHeaders(additionalHeaders_);
+    param.setParameters(parameters);
+    authSigner_->signRequest(*httpRequest.get(), param);
+}
+
 
 OssError OssClientImpl::buildError(const Error &error) const
 {
@@ -1315,8 +1266,7 @@ GetObjectTaggingOutcome OssClientImpl::GetObjectTagging(const GetObjectTaggingRe
 StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
     if (!IsValidBucketName(request.bucket_) ||
-        !IsValidObjectKey(request.key_))
-    {
+        !IsValidObjectKey(request.key_)) {
         return StringOutcome(OssError("ValidateError", "The Bucket or Key is invalid."));
     }
 
@@ -1324,36 +1274,33 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
 
     ParameterCollection parameters;
     const Credentials credentials = credentialsProvider_->getCredentials();
-    if (!credentials.SessionToken().empty())
-    {
+    if (!credentials.SessionToken().empty()) {
         parameters["security-token"] = credentials.SessionToken();
     }
-    for (auto const &param : request.parameters_)
-    {
+    for (auto const&param : request.parameters_) {
         parameters[param.first] = param.second;
     }
+
+    SignUtils signUtils(signer_->version());
     auto method = Http::MethodToString(request.method_);
     auto resource = std::string().append("/").append(request.bucket_).append("/").append(request.key_);
     auto date = headers[Http::EXPIRES];
-
-    OSS_LOG(LogLevel::LogDebug, TAG, "method(%s) resxource(%s) date:%s", method.c_str(), resource.c_str(), date.c_str());
-
-    SignParam signParam(method, resource, headers, parameters, credentials);
-    parameters["Signature"] = signGenerator_->presign(signParam);
+    signUtils.build(method, resource, date, headers, parameters);
+    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
     parameters["Expires"] = date;
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
+    parameters["Signature"] = signature;
 
-    // host
+    //host
     std::stringstream ss;
     ss << CombineHostString(endpoint_, request.bucket_, configuration().isCname);
-    // path
+    //path
     auto path = CombinePathString(endpoint_, request.bucket_, request.key_);
-    if (request.unencodedSlash_)
-    {
+    if (request.unencodedSlash_) {
         StringReplace(path, "%2F", "/");
     }
     ss << path;
-    // query
+    //query
     ss << "?";
     ss << CombineQueryString(parameters);
 
@@ -1751,21 +1698,19 @@ VoidOutcome OssClientImpl::DeleteLiveChannel(const DeleteLiveChannelRequest &req
 StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRequest &request) const
 {
     if (!IsValidBucketName(request.bucket_) ||
-        !IsValidChannelName(request.ChannelName()) ||
+        !IsValidChannelName(request.ChannelName()) || 
         !IsValidPlayListName(request.PlayList()) ||
-        0 == request.Expires())
-    {
+        0 == request.Expires()) {
         return StringOutcome(OssError("ValidateError", "The Bucket or ChannelName or "
-                                                       "PlayListName or Expires is invalid."));
+            "PlayListName or Expires is invalid."));
     }
 
     ParameterCollection parameters;
     const Credentials credentials = credentialsProvider_->getCredentials();
-    if (!credentials.SessionToken().empty())
-    {
+    if (!credentials.SessionToken().empty()) {
         parameters["security-token"] = credentials.SessionToken();
     }
-
+    
     parameters = request.Parameters();
 
     std::string expireStr;
@@ -1773,12 +1718,13 @@ StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRe
     ss << request.Expires();
     expireStr = ss.str();
 
+    SignUtils signUtils(signer_->version());
     auto resource = std::string().append("/").append(request.Bucket()).append("/").append(request.ChannelName());
-
+    signUtils.build(expireStr, resource, parameters);
+    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
     parameters["Expires"] = expireStr;
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
-    SignParam signParam(expireStr, resource, parameters, credentials);
-    parameters["Signature"] = signGenerator_->signRTMP(signParam);
+    parameters["Signature"] = signature;
 
     ss.str("");
     ss << CombineRTMPString(endpoint_, request.bucket_, configuration().isCname);

@@ -477,7 +477,7 @@ bool AlibabaCloud::OSS::IsIp(const std::string &host)
 #endif
 }
 
-std::string AlibabaCloud::OSS::ToGmtTime(std::time_t &t)
+std::string AlibabaCloud::OSS::ToGmtTime(const std::time_t &t)
 {
     std::stringstream date;
     std::tm tm;
@@ -525,37 +525,6 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
     date << std::put_time(&tm, "%Y-%m-%dT%X.000Z");
 #endif
     return date.str();
-}
-
-std::string AlibabaCloud::OSS::ToUtcV4Time(std::time_t &t)
-{
-    std::stringstream date;
-    std::tm tm;
-#ifdef _WIN32
-    ::gmtime_s(&tm, &t);
-#else
-    ::gmtime_r(&t, &tm);
-#endif
-#if defined(__GNUG__) && __GNUC__ < 5
-    char tmbuff[17];
-    strftime(tmbuff, 17, "%Y%m%dT%H%M%SZ", &tm);
-    date << tmbuff;
-#else
-    date.imbue(std::locale::classic());
-    date << std::put_time(&tm, "%Y%m%dT%H%M%SZ");
-#endif
-    return date.str();
-}
-
-std::string AlibabaCloud::OSS::UtcV4ToDay(const std::string &t) {
-    const char* date = t.c_str();
-    std::tm tm;
-    sscanf(date, "%4d%2d%2dT%2d%2d%2dZ",
-        &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
-    
-    std::stringstream day;
-    day << tm.tm_year << tm.tm_mon << tm.tm_mday;
-    return day.str();
 }
 
 std::time_t AlibabaCloud::OSS::UtcToUnixTime(const std::string &t)
@@ -1187,3 +1156,83 @@ std::string AlibabaCloud::OSS::MapToJsonString(const std::map<std::string, std::
     return Json::writeString(builder, root);
 }
 #endif
+
+std::string AlibabaCloud::OSS::UrlEncodeIgnoreSlash(const std::string & src)
+{
+    std::stringstream dest;
+    static const char *hex = "0123456789ABCDEF";
+    unsigned char c;
+
+    for (size_t i = 0; i < src.size(); i++) {
+        c = src[i];
+        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~') || c == '/') {
+            dest << c;
+        } else if (c == ' ') {
+            dest << "%20";
+        } else {
+            dest << '%' << hex[c >> 4] << hex[c & 15];
+        }
+    }
+
+    return dest.str();
+}
+
+std::string AlibabaCloud::OSS::LowerHexToString(const ByteBuffer &data)
+{ 
+    static char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    std::stringstream ss;
+    for (size_t i = 0; i < data.size(); i++)
+        ss << hex[(data[i] >> 4)] << hex[(data[i] & 0x0F)];
+    return ss.str();
+}
+
+std::string AlibabaCloud::OSS::ToUtcTimeWithoutMill(const std::time_t &t)
+{
+    std::stringstream date;
+    std::tm tm;
+#ifdef _WIN32
+    ::gmtime_s(&tm, &t);
+#else
+    ::gmtime_r(&t, &tm);
+#endif
+#if defined(__GNUG__) && __GNUC__ < 5
+    char tmbuff[17];
+    strftime(tmbuff, 17, "%Y%m%dT%H%M%SZ", &tm);
+    date << tmbuff;
+#else
+    date.imbue(std::locale::classic());
+    date << std::put_time(&tm, "%Y%m%dT%H%M%SZ");
+#endif
+    return date.str();
+}
+
+std::string AlibabaCloud::OSS::GenResource(const std::string &bucket, const std::string &object) {
+    std::stringstream resource;
+    resource << "/";
+
+    if (!bucket.empty()) {
+        resource << bucket << "/";
+    }
+
+    if (!object.empty()) {
+        resource << object;
+    }
+
+    return resource.str();
+}
+
+std::string AlibabaCloud::OSS::GenScope(const std::string &day, const std::string &region, const std::string &product, const std::string &request) {
+    if (day.empty() || region.empty() || request.empty() || product.empty()) {
+        OSS_LOG(LogLevel::LogError, "Utils", "GenScope invalid params, day = %s, region = %s, product = %s, request = %s",
+                day.c_str(), region.c_str(), product.c_str(), request.c_str());
+        return "";
+    }
+
+    std::stringstream scope;
+    scope << day
+          << "/" << region
+          << "/" << product
+          << "/" << request;
+
+    return scope.str();
+}

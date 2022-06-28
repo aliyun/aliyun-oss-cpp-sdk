@@ -30,7 +30,8 @@ namespace OSS
         HmacSha1Signer();
         ~HmacSha1Signer();
         
-        virtual byteArray generate(const byteArray &src, const std::string &secret)const override;
+        virtual std::string generate(const std::string &src, const std::string &secret)const override;
+        virtual ByteBuffer calculate(const std::string &src, const ByteBuffer &secret) const override;
     };
 }
 }
