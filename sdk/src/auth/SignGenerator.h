@@ -8,12 +8,12 @@
 #include "HmacSha256Signer.h"
 #include "../utils/SignUtils.h"
 #include "../utils/LogUtils.h"
+#include "../utils/Utils.h"
 
 namespace AlibabaCloud
 {
     namespace OSS
     {
-        std::string ALIBABACLOUD_OSS_EXPORT UtcV4ToDay(const std::string &t);
         struct SignParam
         {
             // expireStr, resource, parameters, credentials
@@ -24,8 +24,8 @@ namespace AlibabaCloud
                 : resource_(resource), credentials_(credentials), params_(params), method_(method), headers_(headers) {}
 
             // request, credentialsProvider_->getCredentials(), resource, configuration()
-            SignParam(const ClientConfiguration &config, const std::string &resource, const ParameterCollection &params, const Credentials &credentials)
-                : config_(config), resource_(resource), credentials_(credentials), params_(params) {}
+            SignParam(const ClientConfiguration &config, const std::string &resource, const ParameterCollection &params, const Credentials &credentials, uint64_t dateOffset)
+                : config_(config), resource_(resource), credentials_(credentials), params_(params), dateOffset_(dateOffset) {}
 
             inline void setCloudBoxId(const std::string &cloudBoxId)
             {
@@ -35,6 +35,11 @@ namespace AlibabaCloud
             inline void setRegion(const std::string &region)
             {
                 region_ = region;
+            }
+
+            inline void setProduct(const std::string &product)
+            {
+                product_ = product;
             }
 
             inline void setAdditionalHeaders(const HeaderSet &additionalHeaders)
@@ -51,7 +56,9 @@ namespace AlibabaCloud
             std::string expires_;
             std::string cloudBoxId_;
             std::string region_;
+            std::string product_;
             HeaderSet additionalHeaders_;
+            uint64_t dateOffset_;
         };
 
         class SignGenerator

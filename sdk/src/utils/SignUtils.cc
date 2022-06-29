@@ -25,19 +25,6 @@
 
 using namespace AlibabaCloud::OSS;
 
-const static std::set<std::string> ParamtersToSign =
-{
-    "acl", "location", "bucketInfo", "stat", "referer", "cors", "website", "restore",
-    "logging", "symlink", "qos", "uploadId", "uploads", "partNumber",
-    "response-content-type", "response-content-language", "response-expires",
-    "response-cache-control", "response-content-disposition", "response-content-encoding",
-    "append", "position", "lifecycle", "delete", "live", "status", "comp", "vod",
-    "startTime", "endTime", "x-oss-process", "security-token", "objectMeta",
-    "callback", "callback-var", "tagging", "policy", "requestPayment", "x-oss-traffic-limit",
-    "encryption", "qosInfo", "versioning", "versionId", "versions",
-    "x-oss-request-payer", "sequential", "inventory", "inventoryId", "continuation-token",
-    "worm", "wormId", "wormExtend"
-};
 
 SignUtils::SignUtils(const std::string &version):
     signVersion_(version),
@@ -60,37 +47,6 @@ void SignUtils::build(const std::string &method,
                       const HeaderCollection &headers,
                       const ParameterCollection &parameters,
                       const HeaderSet &additionalHeaders)
-{
-    if (signVersion_ == "V4")
-    {
-        buildV4(method, resource, headers, parameters, additionalHeaders);
-    }
-    else
-    {
-        buildV1V2(method, resource, date, headers, parameters, additionalHeaders);
-    }
-}
-
-void SignUtils::build(const std::string &expires,
-                      const std::string &resource,
-                      const ParameterCollection &parameters)
-{
-    std::stringstream ss;
-    ss << expires << '\n';
-    for (auto const &param : parameters)
-    {
-        ss << param.first << ":" << param.second << '\n';
-    }
-    ss << resource;
-    canonicalString_ = ss.str();
-}
-
-void SignUtils::buildV1V2(const std::string &method,
-                          const std::string &resource,
-                          const std::string &date,
-                          const HeaderCollection &headers,
-                          const ParameterCollection &parameters,
-                          const HeaderSet &additionalHeaders)
 {
     std::stringstream ss;
 
@@ -168,86 +124,16 @@ void SignUtils::buildV1V2(const std::string &method,
     canonicalString_ = ss.str();
 }
 
-void SignUtils::buildV4(const std::string &method,
-                        const std::string &resource,
-                        const HeaderCollection &headers,
-                        const ParameterCollection &parameters,
-                        const HeaderSet &additionalHeaders)
+void SignUtils::build(const std::string &expires,
+                      const std::string &resource,
+                      const ParameterCollection &parameters)
 {
-    /*Version 4*/
-    // HTTP Verb + "\n" +
-    // Canonical URI + "\n" +
-    // Canonical Query String + "\n" +
-    // Canonical Headers + "\n" +
-    // Additional Headers + "\n" +
-    // Hashed PayLoad
-
     std::stringstream ss;
-
-    ss << method << "\n";   // HTTP Verb + "\n"
-    ss << resource << "\n"; // Canonical URI + "\n"
-
-    // Canonical Query String + "\n"
-    // UriEncode(<QueryParam1>) + "=" + UriEncode(<Value>) + "&" + UriEncode(<QueryParam2>) + "\n"
-    char separator = '&';
-    bool isFirstParam = true;
+    ss << expires << '\n';
     for (auto const &param : parameters)
     {
-        if (ParamtersToSign.find(param.first) == ParamtersToSign.end())
-        {
-            continue;
-        }
-
-        if (!isFirstParam)
-        {
-            ss << separator;
-        }
-        else
-        {
-            isFirstParam = false;
-        }
-
-        ss << param.first;
-        if (!param.second.empty())
-        {
-            ss << "=" << param.second;
-        }
+        ss << param.first << ":" << param.second << '\n';
     }
-    ss << "\n";
-
-    // Canonical Headers + "\n" +
-    // Additional Headers + "\n" +
-    std::string playload;
-    for (const auto &header : headers)
-    {
-        std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
-        std::string value = Trim(header.second.c_str());
-        ss << lowerKey << ":" << value << "\n";
-        if (lowerKey == "x-oss-content-sha256")
-        {
-            // hashed payload
-            playload = value;
-        }
-    }
-
-    std::stringstream additionalSS;
-    bool isFirstHeader = true;
-    for (const auto &addHeader : additionalHeaders)
-    {
-        if (isFirstHeader)
-        {
-            additionalSS << ";";
-        }
-        else
-        {
-            isFirstHeader = false;
-        }
-        additionalSS << addHeader.c_str();
-    }
-
-    ss << "\n"
-       << additionalSS.str() << "\n"
-       << playload;
-
+    ss << resource;
     canonicalString_ = ss.str();
 }

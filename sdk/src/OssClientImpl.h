@@ -52,13 +52,15 @@ namespace OSS
             region_ = region;
         }
 
+        inline void setProduct(const std::string &product) {
+            product_ = product;
+        }
+
         inline void setCloudBoxId(const std::string &cloudBoxId) {
             cloudBoxId_ = cloudBoxId;
         }
 
-        void setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders);
-
-        void initSignGernerator();
+        void setAdditionalHeaders(const std::vector<std::string> &additionalHeaders);
 
 #if !defined(OSS_DISABLE_BUCKET)
         ListBucketsOutcome ListBuckets(const ListBucketsRequest &request) const;
@@ -213,11 +215,11 @@ namespace OSS
         HeaderSet additionalHeaders_;
         // such as "cn-hangzhou". attention: not "oss-cn-hangzhou"
         std::string region_;
+        std::string product_;
         // cloud box id
         std::string cloudBoxId_;
         bool isValidEndpoint_;
         std::string authVersion_;
-        std::string host_;
     };
 }
 }

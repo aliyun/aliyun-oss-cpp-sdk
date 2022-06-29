@@ -42,7 +42,7 @@ namespace OSS
     std::string ALIBABACLOUD_OSS_EXPORT ComputeContentMD5(std::istream& stream);
     std::string ALIBABACLOUD_OSS_EXPORT ComputeContentETag(const char* data, size_t size);
     std::string ALIBABACLOUD_OSS_EXPORT ComputeContentETag(std::istream& stream);
-    std::string ALIBABACLOUD_OSS_EXPORT UrlEncode(const std::string& src);
+//     std::string ALIBABACLOUD_OSS_EXPORT UrlEncode(const std::string& src, bool ignoreSlash);
     std::string ALIBABACLOUD_OSS_EXPORT UrlDecode(const std::string& src);
     std::string ALIBABACLOUD_OSS_EXPORT Base64Encode(const std::string& src);
     std::string ALIBABACLOUD_OSS_EXPORT Base64Encode(const char* src, int len);
@@ -242,9 +242,9 @@ namespace OSS
 
         void setCloudBoxId(const std::string &cloudBoxId);
 
-        void setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders);
+        void setProduct(const std::string &product);
 
-        void initSignGernerator(const ClientConfiguration &configuration);
+        void setAdditionalHeaders(const std::vector<std::string> &additionalHeaders);
 
 #if !defined(OSS_DISABLE_RESUAMABLE)
         PutObjectOutcome ResumableUploadObject(const UploadObjectRequest& request) const;

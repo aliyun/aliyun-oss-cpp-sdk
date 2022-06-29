@@ -21,40 +21,12 @@
 #include <sstream>
 #include <alibabacloud/oss/Types.h>
 #include <alibabacloud/oss/client/ClientConfiguration.h>
+#include "../utils/LogUtils.h"
 
 namespace AlibabaCloud
 {
     namespace OSS
     {
-        using byte = unsigned char;
-        struct byteArray
-        {
-            byteArray(const std::string &str);
-            byteArray(byte *str, size_t len);
-            byteArray(char *str, size_t len);
-            byteArray();
-            ~byteArray()
-            {
-                // 构造函数均为拷贝，因此析构需要释放
-                if (str_ != nullptr)
-                {
-                    free((byte *)str_);
-                    str_ = nullptr;
-                }
-                len_ = 0;
-            }
-
-            operator std::string()
-            {
-                return std::string{(char *)(str_), len_} + "\0";
-            }
-
-            // std::string toString();
-
-            const byte *str_;
-            size_t len_;
-        };
-
         class Signer
         {
         public:
@@ -65,8 +37,8 @@ namespace AlibabaCloud
             };
             virtual ~Signer();
 
-            // byte array
-            virtual byteArray generate(const byteArray &src, const std::string &secret) const = 0;
+            virtual ByteBuffer calculate(const ByteBuffer &src, const std::string &secret) const = 0;
+            virtual std::string generate(const std::string &src, const std::string &secret) const = 0;
             std::string name() const;
             Type type() const;
             std::string version() const;

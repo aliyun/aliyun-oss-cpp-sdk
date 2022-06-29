@@ -127,7 +127,7 @@ namespace OSS
         std::string authVersion;
 
         // additional header
-        std::vector<std::pair<std::string, std::string>> additionalHeaders;
+        std::vector<std::string> additionalHeaders;
     };
 }
 }

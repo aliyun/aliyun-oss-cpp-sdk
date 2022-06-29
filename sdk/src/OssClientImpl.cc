@@ -65,26 +65,13 @@ OssClientImpl::~OssClientImpl()
 {
 }
 
-void OssClientImpl::initSignGernerator() {
-    if (authAlgorithm_ == "4.0")
-    {
-        signGenerator_ = std::make_shared<SignGeneratorV4>(authAlgorithm_);
-    } else {
-        signGenerator_ = std::make_shared<SignGeneratorV1>(authAlgorithm_);
-    }
-}
-
-void OssClientImpl::setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders) {
+void OssClientImpl::setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
     // osshead: include addtional head、x-oss-、content-md5、content-type
     additionalHeaders_.clear();
-    host_.clear();
     for (const auto &header : additionalHeaders) {
-        std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
+        std::string lowerKey = Trim(ToLower(header.c_str()).c_str());
         if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "content-md5" && lowerKey != "content-type") {
             additionalHeaders_.insert(lowerKey);
-            if (lowerKey == "host") {
-                host_ = Trim(header.second.c_str());
-            }
         }
     }
 }
@@ -160,31 +147,6 @@ void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, 
 
     // common headers
     httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
-
-    // Date
-    if (authVersion_ == "4.0") {
-        if (!httpRequest->hasHeader("x-oss-date")) {
-            std::time_t t = std::time(nullptr);
-            t += getRequestDateOffset();
-            httpRequest->addHeader("x-oss-date", ToUtcV4Time(t));
-        }
-    } else {
-        if (httpRequest->hasHeader("x-oss-date"))
-        {
-            httpRequest->addHeader(Http::DATE, httpRequest->Header("x-oss-date"));
-        }
-        if (!httpRequest->hasHeader(Http::DATE))
-        {
-            std::time_t t = std::time(nullptr);
-            t += getRequestDateOffset();
-            httpRequest->addHeader(Http::DATE, ToGmtTime(t));
-        }
-    }
-
-    // Host
-    if (!host_.empty()) {
-        httpRequest->addHeader(Http::HOST, host_);
-    }
 }
 
 void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5) const
@@ -225,11 +187,12 @@ void OssClientImpl::addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest,
         resource << ossRequest.key();
     }
 
-    SignParam signParam(configuration(), resource.str(), request.Parameters(), credentialsProvider_->getCredentials());
+    SignParam signParam(configuration(), resource.str(), request.Parameters(), credentialsProvider_->getCredentials(), getRequestDateOffset());
     if (signGenerator_->version() == "4.0") {
         signParam.setAdditionalHeaders(additionalHeaders_);
         signParam.setCloudBoxId(cloudBoxId_);
         signParam.setRegion(region_);
+        signParam.setProduct(product_);
     }
 
     signGenerator_->signHeader(httpRequest, signParam);

@@ -1017,10 +1017,14 @@ void OssClient::setRegion(const std::string &region) {
     client_->setRegion(region);
 }
 
+void OssClient::setProduct(const std::string &product) {
+    client_->setProduct(product);
+}
+
 void OssClient::setCloudBoxId(const std::string &cloudBoxId) {
     client_->setCloudBoxId(cloudBoxId);
 }
 
-void OssClient::setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders) {
+void OssClient::setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
     client_->setAdditionalHeaders(additionalHeaders);
 }

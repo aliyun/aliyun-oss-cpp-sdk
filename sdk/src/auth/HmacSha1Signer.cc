@@ -15,7 +15,6 @@
  */
 
 #include "HmacSha1Signer.h"
-#include "../utils/LogUtils.h"
 #if 0//def _WIN32
 #include <windows.h>
 #include <wincrypt.h>
@@ -37,11 +36,10 @@ HmacSha1Signer::~HmacSha1Signer()
 {
 }
 
-byteArray HmacSha1Signer::generate(const byteArray &src, const std::string & secret) const
+std::string HmacSha1Signer::generate(const std::string & src, const std::string & secret) const
 {
-    OSS_LOG(LogLevel::LogDebug, "HmacSha1Signer", "src = %s, secret = %s", src.str_, secret.c_str());
-    if (src.len_ == 0)
-        return byteArray{};
+    if (src.empty())
+        return std::string();
 
 #if 0//def _WIN32
     typedef struct _my_blob {
@@ -93,12 +91,18 @@ byteArray HmacSha1Signer::generate(const byteArray &src, const std::string & sec
     unsigned int mdLen = 32;
 
     if (HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.size()),
-        src.str_, src.len_,
+        reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
         md, &mdLen) == nullptr)
-        return byteArray{};
+        return std::string();
 
     char encodedData[100];
     EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md, mdLen);
-    return byteArray{encodedData, strlen(encodedData)};
+    return encodedData;
 #endif
+}
+
+ByteBuffer HmacSha1Signer::calculate(const ByteBuffer &src, const std::string & secret) const
+{
+    OSS_LOG(LogLevel::LogError, "HmacSha1Signer", "no implemented, src = %s, secret = %s", src.data(), secret.c_str());
+    return ByteBuffer{};
 }

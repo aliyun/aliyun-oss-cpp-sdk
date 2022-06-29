@@ -18,30 +18,6 @@
 
 using namespace AlibabaCloud::OSS;
 
-byteArray::byteArray(const std::string &str) : len_(str.size())
-{
-    str_ = (byte*)malloc(sizeof(byte) * len_);
-    memcpy((void *)str_, str.c_str(), len_);
-}
-
-byteArray::byteArray(byte *str, size_t len) : len_(len)
-{
-    str_ = (byte*)malloc(sizeof(byte) * (len_+1));
-    memcpy((void *)str_, str, len_ + 1);
-}
-
-byteArray::byteArray() : str_(nullptr), len_(0)
-{
-}
-
-byteArray::byteArray(char *str, size_t len) : len_(len)
-{ 
-    str_ = (byte*)malloc(sizeof(byte) * (len_+1));
-    memcpy((void *)str_, str, len_ + 1);
-    // std::cerr << str_ << "   " << len_ << std::endl;
-    // std::cerr << (unsigned char *)str << "   " << len_ << std::endl;
-}
-
 Signer::Signer(Type type, const std::string &name, const std::string &version) : type_(type),
                                                                                  name_(name),
                                                                                  version_(version)

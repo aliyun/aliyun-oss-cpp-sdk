@@ -26,6 +26,20 @@ namespace AlibabaCloud
 {
     namespace OSS
     {
+
+        const static std::set<std::string> ParamtersToSign =
+            {
+                "acl", "location", "bucketInfo", "stat", "referer", "cors", "website", "restore",
+                "logging", "symlink", "qos", "uploadId", "uploads", "partNumber",
+                "response-content-type", "response-content-language", "response-expires",
+                "response-cache-control", "response-content-disposition", "response-content-encoding",
+                "append", "position", "lifecycle", "delete", "live", "status", "comp", "vod",
+                "startTime", "endTime", "x-oss-process", "security-token", "objectMeta",
+                "callback", "callback-var", "tagging", "policy", "requestPayment", "x-oss-traffic-limit",
+                "encryption", "qosInfo", "versioning", "versionId", "versions",
+                "x-oss-request-payer", "sequential", "inventory", "inventoryId", "continuation-token",
+                "worm", "wormId", "wormExtend"};
+
         class SignUtils
         {
         public:
@@ -44,20 +58,6 @@ namespace AlibabaCloud
                        const ParameterCollection &parameters);
 
             const std::string &CanonicalString() const;
-
-        private:
-            void buildV4(const std::string &method,
-                         const std::string &resource,
-                         const HeaderCollection &headers,
-                         const ParameterCollection &parameters,
-                         const HeaderSet &additionalHeaders);
-
-            void buildV1V2(const std::string &method,
-                           const std::string &resource,
-                           const std::string &date,
-                           const HeaderCollection &headers,
-                           const ParameterCollection &parameters,
-                           const HeaderSet &additionalHeaders);
 
         private:
             std::string signVersion_;

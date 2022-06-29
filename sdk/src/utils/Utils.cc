@@ -48,7 +48,7 @@ std::string AlibabaCloud::OSS::GenerateUuid()
     return "";
 }
 
-std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
+std::string AlibabaCloud::OSS::UrlEncode(const std::string & src, bool ignoreSlash)
 {
     std::stringstream dest;
     static const char *hex = "0123456789ABCDEF";
@@ -56,7 +56,8 @@ std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
 
     for (size_t i = 0; i < src.size(); i++) {
         c = src[i];
-        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~')) {
+        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~')
+            || (ignoreSlash && c == '/')) {
             dest << c;
         } else if (c == ' ') {
             dest << "%20";
@@ -317,11 +318,21 @@ std::string AlibabaCloud::OSS::ComputeContentMD5(std::istream& stream)
     EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md_value, md_len);
     return encodedData;
 }
+
 static std::string HexToString(const unsigned char *data, size_t size)
 { 
     static char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
     std::stringstream ss;
     for (size_t i = 0; i < size; i++)
+        ss << hex[(data[i] >> 4)] << hex[(data[i] & 0x0F)];
+    return ss.str();
+}
+
+std::string AlibabaCloud::OSS::LowerHexToString(const ByteBuffer &data)
+{ 
+    static char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    std::stringstream ss;
+    for (size_t i = 0; i < data.size(); i++)
         ss << hex[(data[i] >> 4)] << hex[(data[i] & 0x0F)];
     return ss.str();
 }
@@ -527,7 +538,7 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
     return date.str();
 }
 
-std::string AlibabaCloud::OSS::ToUtcV4Time(std::time_t &t)
+std::string AlibabaCloud::OSS::ToUtcTimeWithoutMill(std::time_t &t)
 {
     std::stringstream date;
     std::tm tm;
@@ -547,16 +558,6 @@ std::string AlibabaCloud::OSS::ToUtcV4Time(std::time_t &t)
     return date.str();
 }
 
-std::string AlibabaCloud::OSS::UtcV4ToDay(const std::string &t) {
-    const char* date = t.c_str();
-    std::tm tm;
-    sscanf(date, "%4d%2d%2dT%2d%2d%2dZ",
-        &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
-    
-    std::stringstream day;
-    day << tm.tm_year << tm.tm_mon << tm.tm_mday;
-    return day.str();
-}
 
 std::time_t AlibabaCloud::OSS::UtcToUnixTime(const std::string &t)
 {

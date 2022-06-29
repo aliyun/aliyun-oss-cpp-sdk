@@ -19,6 +19,7 @@
 #include "../Config.h"
 #include "../Utils.h"
 #include "src/utils/FileSystemUtils.h"
+#include "src/utils/Utils.h"
 #include <fstream>
 
 namespace AlibabaCloud {

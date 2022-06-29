@@ -149,7 +149,7 @@ namespace AlibabaCloud
 
             ClientConfiguration conf;
             conf.authVersion = "4.0";
-            conf.additionalHeaders.emplace_back("host", "cloubox-test.cb-f8z7yvzgwfkl9q0hstv0.cn-heyuan.oss-cloudbox-control.aliyuncs.com");
+            conf.additionalHeaders.emplace_back("host");
             OssClient client(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
             client.setRegion("cn-hangzhou");
             client.setCloudBoxId("cloudboxtest");
