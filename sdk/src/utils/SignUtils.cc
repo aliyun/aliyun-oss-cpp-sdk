@@ -25,7 +25,6 @@
 
 using namespace AlibabaCloud::OSS;
 
-
 SignUtils::SignUtils(const std::string &version):
     signVersion_(version),
     canonicalString_()
@@ -45,8 +44,7 @@ void SignUtils::build(const std::string &method,
                       const std::string &resource, 
                       const std::string &date,
                       const HeaderCollection &headers,
-                      const ParameterCollection &parameters,
-                      const HeaderSet &additionalHeaders)
+                      const ParameterCollection &parameters)
 {
     std::stringstream ss;
 
@@ -71,51 +69,26 @@ void SignUtils::build(const std::string &method,
     //Date or EXPIRES
     ss << date << "\n";
 
-    // CanonicalizedOSSHeaders, start with x-oss-
-    for (const auto &header : headers)
-    {
-        std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
-        std::string value = Trim(header.second.c_str());
-        if (lowerKey.compare(0, 6, "x-oss-", 6) == 0)
-        {
-            ss << lowerKey << ":" << value << "\n";
+    //CanonicalizedOSSHeaders, start with x-oss-
+    for (const auto &header : headers) {
+        std::string lower = Trim(ToLower(header.first.c_str()).c_str());
+        if (lower.compare(0, 6, "x-oss-", 6) == 0) {
+            std::string value = Trim(header.second.c_str());
+            ss << lower << ":" << value << "\n";
         }
     }
 
-    // for v2 version: AdditionalHeadersNormalizedVal + "\n"
-    if (signVersion_ == "V2")
-    {
-        std::stringstream additionalSS;
-        bool isFirstHeader = true;
-        for (const auto &addHeader : additionalHeaders)
-        {
-            if (isFirstHeader)
-            {
-                additionalSS << ";";
-            }
-            else
-            {
-                isFirstHeader = false;
-            }
-            additionalSS << addHeader.c_str();
-        }
-        ss << additionalSS.str() << "\n";
-    }
-
-    // CanonicalizedResource, the sub resouce in
+    //CanonicalizedResource, the sub resouce in
     ss << resource;
     char separator = '?';
-    for (auto const &param : parameters)
-    {
-        if (ParamtersToSign.find(param.first) == ParamtersToSign.end())
-        {
+    for (auto const& param : parameters) {
+        if (ParamtersToSign.find(param.first) == ParamtersToSign.end()) {
             continue;
         }
 
         ss << separator;
         ss << param.first;
-        if (!param.second.empty())
-        {
+        if (!param.second.empty()) {
             ss << "=" << param.second;
         }
         separator = '&';
@@ -125,12 +98,12 @@ void SignUtils::build(const std::string &method,
 }
 
 void SignUtils::build(const std::string &expires,
-                      const std::string &resource,
-                      const ParameterCollection &parameters)
+    const std::string &resource,
+    const ParameterCollection &parameters)
 {
     std::stringstream ss;
     ss << expires << '\n';
-    for (auto const &param : parameters)
+    for(auto const& param : parameters)
     {
         ss << param.first << ":" << param.second << '\n';
     }

@@ -28,6 +28,8 @@ namespace AlibabaCloud
             std::string genSignature(const std::string &accessKeySecret, const std::shared_ptr<Signer> &signAlgo,
                                      const std::string &day, const std::string &region, const std::string &product,
                                      const std::string &stringToSign, const std::string &canonical) const;
+
+            void addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const;
         };
     }
 }

@@ -175,26 +175,33 @@ std::string genAuthStr(const std::string &accessKeyId, const std::string &scope,
     return authValue.str();
 }
 
-void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const
-{
+void SignGeneratorV4::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const {
+    // date
     if (!httpRequest->hasHeader("x-oss-date")) {
         std::time_t t = std::time(nullptr);
         t += signParam.dateOffset_;
         httpRequest->addHeader("x-oss-date", ToUtcTimeWithoutMill(t));
     }
 
+    // security token
     if (!signParam.credentials_.SessionToken().empty())
     {
         httpRequest->addHeader("x-oss-security-token", signParam.credentials_.SessionToken());
     }
+
+    // sha256
     httpRequest->addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
 
-    // Sort the parameters
-    ParameterCollection parameters;
-    for (auto const &param : signParam.params_)
-    {
-        parameters[param.first] = param.second;
+    // host
+    if (signParam.additionalHeaders_.find("host") != signParam.additionalHeaders_.end() &&
+        !httpRequest->hasHeader(Http::HOST)) {
+            httpRequest->addHeader(Http::HOST, httpRequest->url().toString());
     }
+}
+
+void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const
+{
+    addHeaders(httpRequest, signParam);
 
     std::string method = Http::MethodToString(httpRequest->method());
 
@@ -220,7 +227,7 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
           << "/" << signParam.product_
           << "/aliyun_v4_request";
 
-    std::string canonical = genCanonicalReuqest(method, signParam.resource_, httpRequest->Headers(), parameters, signParam.additionalHeaders_);
+    std::string canonical = genCanonicalReuqest(method, signParam.resource_, httpRequest->Headers(), signParam.params_, signParam.additionalHeaders_);
     std::string stringToSign = genStringToSign(canonical, date, scope.str(), signAlgo_->name());
     std::string signature = genSignature(signParam.credentials_.AccessKeySecret(), signAlgo_, day, region, product, stringToSign, canonical);
     std::string authValue = genAuthStr(signParam.credentials_.AccessKeyId(), scope.str(), signParam.additionalHeaders_, signature);

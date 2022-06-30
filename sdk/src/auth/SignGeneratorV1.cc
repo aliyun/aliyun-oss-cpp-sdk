@@ -25,19 +25,12 @@ void SignGeneratorV1::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
         httpRequest->addHeader("x-oss-security-token", signParam.credentials_.SessionToken());
     }
 
-    // Sort the parameters
-    ParameterCollection parameters;
-    for (auto const &param : signParam.params_)
-    {
-        parameters[param.first] = param.second;
-    }
-
     std::string method = Http::MethodToString(httpRequest->method());
 
     std::string date = httpRequest->Header(Http::DATE);
 
     SignUtils signUtils(version_);
-    signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), parameters, signParam.additionalHeaders_);
+    signUtils.build(method, signParam.resource_, date, httpRequest->Headers(), signParam.params_);
 
     auto signature = signAlgo_->generate(signUtils.CanonicalString(), signParam.credentials_.AccessKeySecret());
     std::stringstream authValue;
@@ -55,7 +48,7 @@ void SignGeneratorV1::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
 std::string SignGeneratorV1::presign(const SignParam &signParam) const
 {
     SignUtils signUtils(version_);
-    signUtils.build(signParam.method_, signParam.resource_, signParam.headers_.at(Http::EXPIRES), signParam.headers_, signParam.params_, signParam.additionalHeaders_);
+    signUtils.build(signParam.method_, signParam.resource_, signParam.headers_.at(Http::EXPIRES), signParam.headers_, signParam.params_);
     return signAlgo_->generate(signUtils.CanonicalString(), signParam.credentials_.AccessKeySecret());
 }
 

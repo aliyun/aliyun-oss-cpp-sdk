@@ -97,8 +97,8 @@ std::shared_ptr<HttpRequest> OssClientImpl::buildHttpRequest(const std::string &
         httpRequest->setUrl(Url(msg.Path()));
     }
     else {
-        addSignInfo(httpRequest, msg);
         addUrl(httpRequest, endpoint, msg);
+        addSignInfo(httpRequest, msg);
     }
     addOther(httpRequest, msg);
     return httpRequest;
