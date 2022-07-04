@@ -417,6 +417,7 @@ CurlHttpClient::CurlHttpClient(const ClientConfiguration &configuration) :
     caPath_(configuration.caPath),
     caFile_(configuration.caFile),
     networkInterface_(configuration.networkInterface),
+    chunkedEncoding_(configuration.enableChunkedEncoding),
     sendRateLimiter_(configuration.sendRateLimiter),
     recvRateLimiter_(configuration.recvRateLimiter)
 {
@@ -438,9 +439,13 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         if (p.second.empty())
             continue;
         std::string str = p.first;
+        if (ignoreHeader(request->method(), str)) {
+            continue;
+        }
         str.append(": ").append(p.second);
         list = curl_slist_append(list, str.c_str());
     }
+
     // Disable Expect: 100-continue
     list = curl_slist_append(list, "Expect:");
 
@@ -487,6 +492,9 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         break;
     case Http::Method::Put:
         curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+        if (!chunkedEncoding_ && transferState.total >= 0) {
+            curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)transferState.total);
+        }
         break;
     case Http::Method::Post:
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -641,3 +649,27 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
 
     return response;
 }
+
+bool CurlHttpClient::ignoreHeader(Http::Method method, const std::string &header) const
+{
+    const static std::string KEY_CONTENT_LENGTH = "content-length";
+    switch (method)
+    {
+    default:
+        break;
+    case Http::Method::Put:
+    {
+        //only support chunked transfer encoding in PUT request now.
+        //if CURLOPT_INFILESIZE_LARGE is not set, chunky upload is enable.
+        if (chunkedEncoding_ && 
+            (KEY_CONTENT_LENGTH.length() == header.length()) && 
+            std::equal(header.begin(), header.end(), KEY_CONTENT_LENGTH.begin(),
+                [](char a, char b) {return ::tolower(a) == ::tolower(b); })) {
+            return true;
+        }
+    }
+        break;
+    };
+    return false;
+}
+

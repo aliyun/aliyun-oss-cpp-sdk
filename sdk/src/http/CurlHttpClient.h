@@ -49,9 +49,12 @@ namespace OSS
         std::string caPath_;
         std::string caFile_;
         std::string networkInterface_;
+        bool chunkedEncoding_;
     public:
         std::shared_ptr<RateLimiter> sendRateLimiter_;
         std::shared_ptr<RateLimiter> recvRateLimiter_;
+    private:
+        bool ignoreHeader(Http::Method method, const std::string &header) const;
     };
 }
 }

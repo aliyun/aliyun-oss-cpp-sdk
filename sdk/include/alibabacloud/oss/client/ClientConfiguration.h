@@ -121,6 +121,10 @@ namespace OSS
         * Your http client' implement
         */
         std::shared_ptr<HttpClient> httpClient;
+        /**
+        * set TRUE if doing chunked transfer-encoding on upload(works in PUT Request).
+        */
+        bool enableChunkedEncoding;
     };
 }
 }
