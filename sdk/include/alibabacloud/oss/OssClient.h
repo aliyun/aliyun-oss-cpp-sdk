@@ -81,6 +81,31 @@ namespace OSS
         OssClient(const std::string& endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration& configuration);
         virtual ~OssClient();
 
+        class ALIBABACLOUD_OSS_EXPORT OssClientBuiderImpl
+        {
+        public:
+            OssClientBuiderImpl& endpoint(const std::string& value);
+            OssClientBuiderImpl& credentialsProvider(const std::shared_ptr<CredentialsProvider>& credentialsProvider);
+            OssClientBuiderImpl& configuration(const ClientConfiguration& configuration);
+            template <typename T> T build();
+        private:
+            friend class OssClient;
+            OssClientBuiderImpl();
+            void init(OssClient *);
+        private:
+            friend class OssClient;
+            std::string endpoint_;
+            std::shared_ptr<CredentialsProvider> credentialsProvider_;
+            ClientConfiguration configuration_;
+            std::string region_;
+            bool regionIsSet_;
+        };
+
+        static OssClientBuiderImpl Builder() {
+            return OssClientBuiderImpl();
+        }
+
+
 #if !defined(OSS_DISABLE_BUCKET)
         /*Service*/
         ListBucketsOutcome ListBuckets() const;
