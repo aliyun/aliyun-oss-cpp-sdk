@@ -527,6 +527,37 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
     return date.str();
 }
 
+std::string AlibabaCloud::OSS::ToUtcV4Time(std::time_t &t)
+{
+    std::stringstream date;
+    std::tm tm;
+#ifdef _WIN32
+    ::gmtime_s(&tm, &t);
+#else
+    ::gmtime_r(&t, &tm);
+#endif
+#if defined(__GNUG__) && __GNUC__ < 5
+    char tmbuff[17];
+    strftime(tmbuff, 17, "%Y%m%dT%H%M%SZ", &tm);
+    date << tmbuff;
+#else
+    date.imbue(std::locale::classic());
+    date << std::put_time(&tm, "%Y%m%dT%H%M%SZ");
+#endif
+    return date.str();
+}
+
+std::string AlibabaCloud::OSS::UtcV4ToDay(const std::string &t) {
+    const char* date = t.c_str();
+    std::tm tm;
+    sscanf(date, "%4d%2d%2dT%2d%2d%2dZ",
+        &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
+    
+    std::stringstream day;
+    day << tm.tm_year << tm.tm_mon << tm.tm_mday;
+    return day.str();
+}
+
 std::time_t AlibabaCloud::OSS::UtcToUnixTime(const std::string &t)
 {
     const char* date = t.c_str();

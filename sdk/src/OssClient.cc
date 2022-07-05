@@ -15,7 +15,6 @@
 */
 
 #include <alibabacloud/oss/OssClient.h>
-#include "auth/SimpleCredentialsProvider.h"
 #include "http/CurlHttpClient.h"
 #include "OssClientImpl.h"
 #include <fstream>
@@ -36,6 +35,7 @@ void AlibabaCloud::OSS::InitializeSdk()
     if (IsSdkInitialized())
         return;
     InitLogInner();
+    // curl global
     CurlHttpClient::initGlobalState();
     SdkInitDone = true;
 }
@@ -97,6 +97,67 @@ OssClient::OssClient(const std::string &endpoint, const std::shared_ptr<Credenti
 OssClient::~OssClient()
 {
 }
+
+OssClient::OssClientBuiderImpl::OssClientBuiderImpl():
+    endpoint_(""),
+    credentialsProvider_(std::make_shared<SimpleCredentialsProvider>("", "", "")),
+    configuration_(ClientConfiguration()),
+    regionIsSet_(false)
+{
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::endpoint(const std::string& endpoint)
+{
+    endpoint_ = endpoint;
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::credentialsProvider(const std::shared_ptr<CredentialsProvider>& credentialsProvider)
+{
+    credentialsProvider_ = credentialsProvider;
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::configuration(const ClientConfiguration& configuration)
+{
+    configuration_ = configuration;
+    return *this;
+}
+
+template <>
+OssClient OssClient::OssClientBuiderImpl::build<OssClient>()
+{
+    auto c = OssClient(endpoint_, credentialsProvider_, configuration_);
+    init(&c);
+    return c;
+}
+
+template <>
+OssClient* OssClient::OssClientBuiderImpl::build<OssClient *>()
+{
+    auto c = new OssClient(endpoint_, credentialsProvider_, configuration_);
+    init(c);
+    return c;
+}
+
+template <>
+std::shared_ptr<OssClient> OssClient::OssClientBuiderImpl::build<std::shared_ptr<OssClient>>()
+{
+    auto c = std::make_shared<OssClient>(endpoint_, credentialsProvider_, configuration_);
+    init(c.get());
+    return c;
+}
+
+void OssClient::OssClientBuiderImpl::init(OssClient *client)
+{
+    if (client == nullptr) {
+        return;
+    }
+    if (regionIsSet_) {
+        //todo call client->client_->setXXX
+    }
+}
+
 
 #if !defined(OSS_DISABLE_BUCKET)
 
@@ -1007,3 +1068,19 @@ GetObjectOutcome OssClient::ResumableDownloadObject(const DownloadObjectRequest 
     return client_->ResumableDownloadObject(request);
 }
 #endif
+
+void OssClient::setAuthAlgorithm(const std::string &authAlgorithm) {
+    client_->setAuthAlgorithm(authAlgorithm);
+}
+
+void OssClient::setRegion(const std::string &region) {
+    client_->setRegion(region);
+}
+
+void OssClient::setCloudBoxId(const std::string &cloudBoxId) {
+    client_->setCloudBoxId(cloudBoxId);
+}
+
+void OssClient::setAdditionalHeaders(const std::vector<std::pair<std::string, std::string>> &additionalHeaders) {
+    client_->setAdditionalHeaders(additionalHeaders);
+}

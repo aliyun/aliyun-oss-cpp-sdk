@@ -16,7 +16,6 @@
 
 #include <fstream>
 #include <alibabacloud/oss/OssEncryptionClient.h>
-#include "../auth/SimpleCredentialsProvider.h"
 #include "../encryption/CryptoModule.h"
 #include "../utils/Utils.h"
 #include "../utils/FileSystemUtils.h"

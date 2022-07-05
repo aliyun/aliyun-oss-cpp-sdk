@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <memory>
 #include <functional>
 #include <alibabacloud/oss/Export.h>
@@ -198,6 +199,7 @@ namespace OSS
     using RefererList = std::vector<std::string>;
     using MetaData = std::map<std::string, std::string, caseInsensitiveLess>;
     using HeaderCollection = std::map<std::string, std::string, caseInsensitiveLess>;
+    using HeaderSet = std::set<std::string, caseInsensitiveLess>;
     using ParameterCollection = std::map<std::string, std::string, caseSensitiveLess>;
     using IOStreamFactory = std::function< std::shared_ptr<std::iostream>(void)>;
     using ByteBuffer = std::vector<unsigned char>;

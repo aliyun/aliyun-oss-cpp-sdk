@@ -16,24 +16,20 @@
 
 #pragma once
 
-#include <alibabacloud/oss/auth/CredentialsProvider.h>
+#include "Signer.h"
+#include <ctime>
 
 namespace AlibabaCloud
 {
 namespace OSS
 {
-
-    class ALIBABACLOUD_OSS_EXPORT SimpleCredentialsProvider : public CredentialsProvider
+    class HmacSha256Signer : public Signer
     {
     public:
-        SimpleCredentialsProvider(const Credentials &credentials);
-        SimpleCredentialsProvider(const std::string &accessKeyId,
-            const std::string &accessKeySecret, const std::string &securityToken = "");
-        ~SimpleCredentialsProvider();
+        HmacSha256Signer();
+        ~HmacSha256Signer();
 
-        virtual Credentials getCredentials() override;
-    private:
-        Credentials credentials_;
+        virtual byteArray generate(const byteArray &src, const std::string &secret)const override;
     };
 }
 }
