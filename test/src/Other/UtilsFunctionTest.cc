@@ -24,6 +24,7 @@
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/StreamBuf.h"
 #include "src/auth/HmacSha1Signer.h"
+#include "src/auth/AuthSignerV4.h"
 
 namespace AlibabaCloud {
 namespace OSS {
@@ -1028,9 +1029,9 @@ TEST_F(UtilsFunctionTest, ToUtcTimeWithoutMillTest)
     std::string timeStr = ToUtcTimeWithoutMill(t);
     EXPECT_STREQ(timeStr.c_str(), "19700101T000000Z");
 
-    t = 1520411719;
+    t = 1658201018;
     timeStr = ToUtcTimeWithoutMill(t);
-    EXPECT_STREQ(timeStr.c_str(), "20180307T083519Z");
+    EXPECT_STREQ(timeStr.c_str(), "20220719T032338Z");
 }
 
 TEST_F(UtilsFunctionTest, LowerHexToStringTest)
@@ -1107,8 +1108,8 @@ TEST_F(UtilsFunctionTest, CaseInsensitiveLessTest) {
     EXPECT_EQ(true, coll.find("host") != coll.end());
 
     HeaderSet set;
-    set.insert(Http::X_OSS_CONTENT_SHA256);
-    EXPECT_EQ(true, set.find(Http::X_OSS_CONTENT_SHA256) != set.end());
+    set.insert(AuthSignerV4::X_OSS_CONTENT_SHA256);
+    EXPECT_EQ(true, set.find(AuthSignerV4::X_OSS_CONTENT_SHA256) != set.end());
     EXPECT_EQ(true, set.find("x-oss-content-sha256") != set.end());
 }
 }

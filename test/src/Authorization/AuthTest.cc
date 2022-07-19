@@ -3,6 +3,7 @@
 #include "../Config.h"
 #include <alibabacloud/oss/OssRequest.h>
 #include <fstream>
+#include "src/auth/AuthSignerV4.h"
 
 namespace AlibabaCloud
 {
@@ -77,92 +78,67 @@ namespace AlibabaCloud
             EXPECT_EQ(outcome.isSuccess(), true);
         }
 
-        TEST_F(AuthTest, SignV4OSSTest)
-        {
-            // no clound-box and addtional header
-            ClientConfiguration conf;
-            OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
-                                                   .configuration(conf)
-                                                   .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
-                                                   .authVersion("4.0")
-                                                   .region("cn-hangzhou")
-                                                   .build<OssClient>();
-        
-            GetObjectRequest request(BucketName, ObjectName);
-            auto outcome = client.GetObject(request);
-            EXPECT_EQ(outcome.isSuccess(), false);
-            std::cout << "GetObjectToFile fail"
-                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
-        }
-
         TEST_F(AuthTest, SignV4CloudBoxTest)
         {
-            // clound-box and no addtional header
+            // cloudbox 
+            std::string bucket = "bucket";
+            std::string object = "object";
+            std::string region = "cloudBoxId";
+            std::string product = "oss-cloudbox";
+            std::time_t requestTime = 1658201018; // 20220719T032338Z
+
+            SimpleCredentialsProvider provider("ak", "sk");
+            Credentials credentials = provider.getCredentials();
+            AuthSignerV4 signer(region, product);
+            auto httpRequest = std::make_shared<HttpRequest>(Http::Get);
             ClientConfiguration conf;
-            OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
-                                                   .configuration(conf)
-                                                   .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
-                                                   .authVersion("4.0")
-                                                   .region("cn-hangzhou") // no use
-                                                   .cloudBoxId("cloudBoxId")
-                                                   .build<OssClient>();
+            httpRequest->addHeader(Http::USER_AGENT, conf.userAgent);
+            AuthSignerParam param(bucket, object, credentials, requestTime);
+            signer.signRequest(*httpRequest.get(), param);
 
-            GetObjectRequest request(BucketName, ObjectName);
-            auto outcome = client.GetObject(request);
-            EXPECT_EQ(outcome.isSuccess(), false);
-            std::cout << "GetObjectToFile fail"
-                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
-
-        }
-
-        TEST_F(AuthTest, SignV4AdditionalHeaderTest)
-        {
-            // clound-box and addtional header
-            ClientConfiguration conf;
-            std::vector<std::string> additional = {"host", "date"};
-            OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
-                                                   .configuration(conf)
-                                                   .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
-                                                   .authVersion("4.0")
-                                                   .region("cn-hangzhou") // no use
-                                                   .cloudBoxId("cloudBoxId")
-                                                   .additionalHeaders(additional)
-                                                   .build<OssClient>();
-
-            GetObjectRequest request(BucketName, ObjectName);
-            auto outcome = client.GetObject(request);
-            EXPECT_EQ(outcome.isSuccess(), false);
-            std::cout << "GetObjectToFile fail"
-                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
-
+            std::string rightAuth = "OSS4-HMAC-SHA256 Credential=ak/20220719/cloudBoxId/oss-cloudbox/aliyun_v4_request,Signature=88db5f82cdc3115dc07a9c022942bf10931b5d2fe7191e015961c387a531382a";
+            EXPECT_STREQ(httpRequest->Header(Http::AUTHORIZATION).c_str(), rightAuth.c_str());
         }
 
         TEST_F(AuthTest, SignV4ParamsTest)
         {
-            // clound-box and addtional header
+            // cloudbox 
+            std::string bucket = "bucket";
+            std::string object = "object";
+            std::string region = "cloudBoxId";
+            std::string product = "oss-cloudbox";
+            std::time_t requestTime = 1658212981; // 20220719T064301Z
+
+            SimpleCredentialsProvider provider("ak", "sk");
+            Credentials credentials = provider.getCredentials();
+            AuthSignerV4 signer(region, product);
+            auto httpRequest = std::make_shared<HttpRequest>(Http::Get);
             ClientConfiguration conf;
-            std::vector<std::string> additional = {"host", "date"};
-            OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
-                                                   .configuration(conf)
-                                                   .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
-                                                   .authVersion("4.0")
-                                                   .region("cn-hangzhou") // no use
-                                                   .cloudBoxId("cloudBoxId")
-                                                   .additionalHeaders(additional)
-                                                   .build<OssClient>();
+            httpRequest->addHeader(Http::USER_AGENT, conf.userAgent);
+            httpRequest->addHeader("x-oss-head1", "value");
+            httpRequest->addHeader("abc", "value");
+            httpRequest->addHeader("ZAbc", "value");
+            httpRequest->addHeader("XYZ", "value");
 
-            std::vector<std::string> etags;
-            std::map<std::string, std::string> maps;
-            maps["param1"] = "value1";
-            maps["empty"] = "";
-            GetObjectRequest request(BucketName, ObjectName, "", "", etags, etags, maps);
-            auto outcome = client.GetObject(request);
-            EXPECT_EQ(outcome.isSuccess(), false);
-            std::cout << "GetObjectToFile fail"
-                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
-
+            AuthSignerParam authParam(bucket, object, credentials, requestTime);
+            ParameterCollection param;
+            param["param1"] = "value1";
+            param["|param1"] = "value2";
+            param["+param1"] = "value3";
+            param["|param1"] = "value4";
+            param["+param2"] = "";
+            param["|param2"] = "";
+            param["param2"] = "";
+            HeaderSet additionalHeaders;
+            additionalHeaders.insert("ZAbc");
+            additionalHeaders.insert("x-oss-head1");
+            additionalHeaders.insert("abc");
+            authParam.setAdditionalHeaders(additionalHeaders);
+            authParam.setParameters(param);
             
-
+            signer.signRequest(*httpRequest.get(), authParam);
+            std::string rightAuth = "OSS4-HMAC-SHA256 Credential=ak/20220719/cloudBoxId/oss-cloudbox/aliyun_v4_request,AdditionalHeaders=abc;zabc,Signature=6829265e66cb6fb4488269dacf047bbdb1e6ea301a8343b6525c6bf39cf04b04";
+            EXPECT_STREQ(httpRequest->Header(Http::AUTHORIZATION).c_str(), rightAuth.c_str());
         }
    }
 }

@@ -29,10 +29,12 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-
     class  AuthSignerV4 : public AuthSigner
     {
     public:
+        static const char* X_OSS_CONTENT_SHA256;
+        static const char* X_OSS_DATE;
+        
         AuthSignerV4(const std::string &region, const std::string &product);
         virtual ~AuthSignerV4() = default;
         virtual bool signRequest(HttpRequest &request, const AuthSignerParam& param) const override;
@@ -41,7 +43,8 @@ namespace OSS
                                         const std::string &resource,
                                         const HeaderCollection &headers,
                                         const ParameterCollection &parameters,
-                                        const HeaderSet &additionalHeaders) const;
+                                        const HeaderSet &additionalHeaders,
+                                        const std::string &addiHeadersStr) const;
 
         std::string genStringToSign(const std::string &canonical, const std::string &date, const std::string &scope, const std::string &algoName) const;
 
@@ -50,11 +53,13 @@ namespace OSS
                                     const std::string &stringToSign) const;
 
         std::string genAuthStr(const std::string &accessKeyId, const std::string &scope,
-                        const HeaderSet &additionalHeaders, const std::string &signature) const;
+                        const std::string &addiHeadersStr, const std::string &signature) const;
 
         void addHeaders(HttpRequest& request, const AuthSignerParam& param) const;
 
-        bool needToSignHeader(const std::string &headerKey, const HeaderSet &additionalHeaders) const;
+        bool mustToSignHeader(const std::string &headerKey) const;
+
+        std::string addiHeaderToStr(const HeaderSet &additionalHeaders, const HeaderCollection &headers) const;
     private:
         std::string region_;
         std::string product_;

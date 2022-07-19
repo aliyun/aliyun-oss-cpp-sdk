@@ -103,6 +103,7 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
 
 ByteBuffer HmacSha1Signer::calculate(const std::string &src, const ByteBuffer & secret) const
 {
-    OSS_LOG(LogLevel::LogError, "HmacSha1Signer", "no implemented, src = %s, secret = %s", src.data(), secret.data());
+    (void)src;
+    (void)secret;
     return ByteBuffer{};
 }
