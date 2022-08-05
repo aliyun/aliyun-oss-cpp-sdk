@@ -68,7 +68,7 @@ namespace OSS
         const std::string& EncodingType() const { return encodingType_; }
         int MaxKeys() const { return maxKeys_; }
         bool IsTruncated() const { return isTruncated_; }
-        const CommonPrefixeList& CommonPrefixes() const { return commonPrefixes_; }
+        const CommonPrefixList& CommonPrefixes() const { return commonPrefixes_; }
         const ObjectSummaryList& ObjectSummarys() const { return objectSummarys_; }
     private:
         std::string name_;
@@ -79,7 +79,7 @@ namespace OSS
         std::string encodingType_;
         bool        isTruncated_;
         int         maxKeys_;
-        CommonPrefixeList commonPrefixes_;
+        CommonPrefixList commonPrefixes_;
         ObjectSummaryList objectSummarys_;
     };
 } 
