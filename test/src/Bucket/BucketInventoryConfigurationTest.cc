@@ -357,7 +357,7 @@ TEST_F(BucketInventoryConfigurationTest, ListBucketInventoryConfigurationTest)
     EXPECT_EQ(listOutcome.result().NextContinuationToken(), "98");
     EXPECT_EQ(listOutcome.result().IsTruncated(), true);
     EXPECT_EQ(listOutcome.result().InventoryConfigurationList().size(), 100U);
-    for (const auto conf : listOutcome.result().InventoryConfigurationList()) {
+    for (const auto& conf : listOutcome.result().InventoryConfigurationList()) {
         int j = std::strtol(conf.Id().c_str(), nullptr, 10);
         EXPECT_EQ(conf.IsEnabled(), ((j % 4) ? true : false));
         EXPECT_EQ(conf.Filter().Prefix(), ((j % 5) ? "filterPrefix" : ""));

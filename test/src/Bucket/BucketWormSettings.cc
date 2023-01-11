@@ -65,7 +65,7 @@ std::string BucketWormSettings::BucketName = "";
 
 TEST_F(BucketWormSettings, InvalidBucketNameTest)
 {
-    for (auto const invalidBucketName : TestUtils::InvalidBucketNamesList()) {
+    for (auto const& invalidBucketName : TestUtils::InvalidBucketNamesList()) {
         auto ibWOutcome = Client->InitiateBucketWorm(InitiateBucketWormRequest(invalidBucketName, 10));
         EXPECT_EQ(ibWOutcome.isSuccess(), false);
         EXPECT_STREQ(ibWOutcome.error().Code().c_str(), "ValidateError");
