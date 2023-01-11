@@ -67,7 +67,7 @@ std::string BucketLoggingSettingsTest::BucketName = "";
 
 TEST_F(BucketLoggingSettingsTest, InvalidBucketNameTest)
 {
-    for (auto const invalidBucketName : TestUtils::InvalidBucketNamesList()) {
+    for (auto const& invalidBucketName : TestUtils::InvalidBucketNamesList()) {
         auto outcome = Client->SetBucketLogging(invalidBucketName, "bucket", "LogPrefix");
         EXPECT_EQ(outcome.isSuccess(), false);
         EXPECT_STREQ(outcome.error().Code().c_str(), "ValidateError");
