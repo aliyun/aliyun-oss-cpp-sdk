@@ -267,11 +267,22 @@ std::string AlibabaCloud::OSS::ComputeContentMD5(const char * data, size_t size)
         return "";
     }
 
-    unsigned char md[MD5_DIGEST_LENGTH];
-    MD5(reinterpret_cast<const unsigned char*>(data), size, (unsigned char*)&md);
-     
+    auto ctx = EVP_MD_CTX_create();
+    unsigned char md_value[EVP_MAX_MD_SIZE];
+    unsigned int md_len = 0;
+
+    EVP_MD_CTX_init(ctx);
+#ifndef OPENSSL_IS_BORINGSSL 
+    EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
+#endif
+    EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
+
+    EVP_DigestUpdate(ctx, static_cast<const void*>(data), size);
+    EVP_DigestFinal_ex(ctx, md_value, &md_len);
+    EVP_MD_CTX_destroy(ctx);
+
     char encodedData[100];
-    EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md, MD5_DIGEST_LENGTH);
+    EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md_value, md_len);
     return encodedData;
 }
 
@@ -336,10 +347,22 @@ std::string AlibabaCloud::OSS::ComputeContentETag(const char * data, size_t size
     if (!data) {
         return "";
     }
-    unsigned char md[MD5_DIGEST_LENGTH];
-    MD5(reinterpret_cast<const unsigned char*>(data), size, (unsigned char*)&md);
 
-    return HexToString(md, MD5_DIGEST_LENGTH);
+    auto ctx = EVP_MD_CTX_create();
+    unsigned char md_value[EVP_MAX_MD_SIZE];
+    unsigned int md_len = 0;
+
+    EVP_MD_CTX_init(ctx);
+#ifndef OPENSSL_IS_BORINGSSL 
+    EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
+#endif
+    EVP_DigestInit_ex(ctx, EVP_md5(), nullptr);
+
+    EVP_DigestUpdate(ctx, static_cast<const void*>(data), size);
+    EVP_DigestFinal_ex(ctx, md_value, &md_len);
+    EVP_MD_CTX_destroy(ctx);
+
+    return HexToString(md_value, md_len);
 }
 
 std::string AlibabaCloud::OSS::ComputeContentETag(std::istream& stream)
