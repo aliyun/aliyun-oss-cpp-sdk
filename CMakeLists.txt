@@ -100,6 +100,12 @@ endif()
 
 #Compiler flags
 list(APPEND SDK_COMPILER_FLAGS "-std=c++11")
+
+if(OPENSSL_VERSION VERSION_GREATER "3.0.0")
+	message("open ssl version is greater then 3.0.0")
+	list(APPEND SDK_COMPILER_FLAGS "-Wno-error=deprecated-declarations")
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	list(APPEND SDK_COMPILER_FLAGS "/MP")
 	if (NOT ENABLE_RTTI)
