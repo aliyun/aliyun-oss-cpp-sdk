@@ -121,6 +121,10 @@ namespace OSS
         * Your http client' implement
         */
         std::shared_ptr<HttpClient> httpClient;
+        /**
+        * When re-downloading a file from the checkpoint, whether to verify the downloaded data. Default is false.
+        */
+        bool enableVerifyDownloadedData;
     };
 }
 }

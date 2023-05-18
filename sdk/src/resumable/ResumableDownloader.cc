@@ -34,6 +34,26 @@ struct DownloaderTransferState {
     void *userData;
 };
 
+static uint64_t computeStreamCrc64(std::shared_ptr<std::fstream>stream, std::streamsize len)
+{
+    uint64_t crc64 = 0;
+    std::streamsize remains = len;
+    std::streamsize buffer_size = 2048;
+    char buff[2048];
+    while (stream->good() && remains > 0)
+    {
+        auto n = std::min(remains, buffer_size);
+        stream->read(buff, n);
+        auto read = stream->gcount();
+        if (read > 0)
+        {
+            crc64 = CRC64::CalcCRC(crc64, (void*)buff, static_cast<size_t>(read));
+        }
+        remains -= read;
+    }
+    return crc64;
+}
+
 GetObjectOutcome ResumableDownloader::Download() 
 {
     OssError err;
@@ -410,6 +430,30 @@ int ResumableDownloader::getPartsToDownload(OssError &err, PartRecordList &parts
 
     std::set<uint64_t> partNumbersDownloaded;
     if (hasRecord_) {
+        //skip inconsistent parts 
+        if (client_->configuration().enableVerifyDownloadedData) {
+            auto tmpFstream = GetFstreamByPath(request_.TempFilePath(), request_.TempFilePathW(), std::ios_base::in | std::ios_base::binary);
+            PartRecordList validParts;
+            for (PartRecord& part : record_.parts) {
+                // allways re donwload last part
+                if (part.size != partSize_) {
+                    continue;
+                }
+                // check downloaded data crc64
+                uint64_t pos = partSize_ * (static_cast<uint64_t>(part.partNumber) - 1);
+                tmpFstream->clear();
+                tmpFstream->seekp(pos, tmpFstream->beg);
+                auto crc64 = computeStreamCrc64(tmpFstream, part.size);
+                if (crc64 != part.crc64) {
+                    continue;
+                }
+                validParts.push_back(part);
+            }
+            if (record_.parts.size() != validParts.size()) {
+                record_.parts = validParts;
+            }
+        }
+
         for (PartRecord &part : record_.parts) {
             partNumbersDownloaded.insert(part.partNumber);
             consumedSize_ += part.size;

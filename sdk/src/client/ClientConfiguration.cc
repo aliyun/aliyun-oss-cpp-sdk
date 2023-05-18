@@ -115,7 +115,8 @@ ClientConfiguration::ClientConfiguration() :
     sendRateLimiter(nullptr),
     recvRateLimiter(nullptr),
     executor(nullptr),
-    httpClient(nullptr)
+    httpClient(nullptr),
+    enableVerifyDownloadedData(false)
 {
 
 }
