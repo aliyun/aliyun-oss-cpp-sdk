@@ -23,7 +23,8 @@ ListBucketsRequest::ListBucketsRequest() :
     prefixIsSet_(false),
     markerIsSet_(false),
     maxKeysIsSet_(false),
-    tagIsSet(false)
+    tagIsSet(false),
+    regionList_(false)
 {
 }
 ListBucketsRequest::ListBucketsRequest(const std::string& prefix, const std::string& marker, int maxKeys) :
@@ -31,7 +32,8 @@ ListBucketsRequest::ListBucketsRequest(const std::string& prefix, const std::str
     prefix_(prefix), prefixIsSet_(true),
     marker_(marker), markerIsSet_(true),
     maxKeys_(maxKeys), maxKeysIsSet_(true),
-    tagIsSet(false)
+    tagIsSet(false),
+    regionList_(false)
 {
 }
 
@@ -50,5 +52,6 @@ ParameterCollection ListBucketsRequest::specialParameters() const
             }
         }
     }
+    if (regionList_) params["regionList"] = "";
     return params;
 }

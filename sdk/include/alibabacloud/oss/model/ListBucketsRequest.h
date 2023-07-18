@@ -33,6 +33,7 @@ namespace OSS
         void setMarker(const std::string& marker) {marker_ = marker; markerIsSet_ = true;}    
         void setMaxKeys(int maxKeys) {maxKeys_ = maxKeys; maxKeysIsSet_ = true;} 
         void setTag(const Tag& tag) { tag_ = tag; tagIsSet = true; }
+        void setRegionList(bool flag) { regionList_ = flag;}
     protected:
         virtual ParameterCollection specialParameters() const;
 
@@ -45,6 +46,7 @@ namespace OSS
         bool maxKeysIsSet_;
         Tag tag_;
         bool tagIsSet;
+        bool regionList_;
     };
 } 
 }
