@@ -297,15 +297,15 @@ TEST_F(BucketLifecycleSettingsTest, LifecycleAdvancedSettingTest)
     rule.setID("StandardExpireRule-104");
     rule.setPrefix("test");
     rule.setStatus(RuleStatus::Enabled);
-    rule.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(400, true));
+    rule.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(-400, true));
     rule.AbortMultipartUpload().setCreatedBeforeDate(TestUtils::GetUTCString(400, true));
 
     transition = LifeCycleTransition();
-    transition.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(180, true));
+    transition.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(-180, true));
     transition.setStorageClass(StorageClass::IA);
     rule.addTransition(transition);
 
-    transition.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(365, true));
+    transition.Expiration().setCreatedBeforeDate(TestUtils::GetUTCString(-365, true));
     transition.setStorageClass(StorageClass::Archive);
     rule.addTransition(transition);
     EXPECT_TRUE(TestRule(rule));
