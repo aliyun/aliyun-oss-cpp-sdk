@@ -438,7 +438,8 @@ TEST_F(ObjectVersioningTest, AppendObjectWithVersioningEnableTest)
     auto aOutcome = Client->AppendObject(aRequest);
     EXPECT_EQ(aOutcome.isSuccess(), true);
     EXPECT_EQ(aOutcome.result().RequestId().size(), 24UL);
-    EXPECT_EQ(aOutcome.result().VersionId(), "null");
+    EXPECT_TRUE(aOutcome.result().VersionId().size() > 0, "null");
+    EXPECT_NE(aOutcome.result().VersionId(), "null");
     EXPECT_EQ(aOutcome.result().Length(), 16UL);
     EXPECT_EQ(aOutcome.result().CRC64(), crc1);
 
@@ -446,7 +447,8 @@ TEST_F(ObjectVersioningTest, AppendObjectWithVersioningEnableTest)
     aOutcome = Client->AppendObject(aRequest);
     EXPECT_EQ(aOutcome.isSuccess(), true);
     EXPECT_EQ(aOutcome.result().RequestId().size(), 24UL);
-    EXPECT_EQ(aOutcome.result().VersionId(), "null");
+    EXPECT_NE(aOutcome.result().VersionId(), "null");
+    EXPECT_TRUE(aOutcome.result().VersionId().size() > 0);
     EXPECT_EQ(aOutcome.result().Length(), 32UL);
     EXPECT_EQ(aOutcome.result().CRC64(), crc2);
 }
@@ -1442,7 +1444,7 @@ TEST_F(ObjectVersioningTest, ProcessObjectWithVersioningEnableTest)
     std::string imageFilePath = Config::GetDataPath();
     imageFilePath.append("example.jpg");
     std::string process = "image/resize,m_fixed,w_100,h_100";
-    std::string imageInfo = "{\n    \"FileSize\": {\"value\": \"3267\"},\n    \"Format\": {\"value\": \"jpg\"},\n    \"ImageHeight\": {\"value\": \"100\"},\n    \"ImageWidth\": {\"value\": \"100\"},\n    \"ResolutionUnit\": {\"value\": \"1\"},\n    \"XResolution\": {\"value\": \"1/1\"},\n    \"YResolution\": {\"value\": \"1/1\"}}";
+    std::string imageInfo = "{\n    \"FileSize\": {\"value\": \"3267\"},\n    \"Format\": {\"value\": \"jpg\"},\n    \"FrameCount\": {\"value\": \"1\"},\n    \"ImageHeight\": {\"value\": \"100\"},\n    \"ImageWidth\": {\"value\": \"100\"},\n    \"ResolutionUnit\": {\"value\": \"1\"},\n    \"XResolution\": {\"value\": \"1/1\"},\n    \"YResolution\": {\"value\": \"1/1\"}}";
     auto key = TestUtils::GetObjectKey("ProcessObjectWithVersioningEnableTest");
     key.append("-example.jpg");
 

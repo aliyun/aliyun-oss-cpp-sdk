@@ -35,13 +35,17 @@ protected:
     // Sets up the stuff shared by all tests in this test case.
     static void SetUpTestCase()
     {
-        std::string endpoint = "http://oss-ap-southeast-2.aliyuncs.com";
-        Client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
         BucketName = TestUtils::GetBucketName("cpp-sdk-inventory");
         DstBucketName = TestUtils::GetBucketName("cpp-sdk-inventory-dst");
         Client->CreateBucket(CreateBucketRequest(BucketName));
         Client->CreateBucket(CreateBucketRequest(DstBucketName));
-
+        auto content = TestUtils::GetRandomStream(10);
+        PutObjectRequest request(BucketName, "kms-key", content);
+        request.MetaData().addHeader("x-oss-server-side-encryption", "KMS");
+        auto outcome = Client->PutObject(request);
+        auto metaOutcome = Client->HeadObject(BucketName, "kms-key");
+        KmsKeyId = metaOutcome.result().HttpMetaData()["x-oss-server-side-encryption-key-id"];
     }
 
     // Tears down the stuff shared by all tests in this test case.
@@ -65,11 +69,13 @@ public:
     static std::shared_ptr<OssClient> Client;
     static std::string BucketName;
     static std::string DstBucketName;
+    static std::string KmsKeyId;
 };
 
 std::shared_ptr<OssClient> BucketInventoryConfigurationTest::Client = nullptr;
 std::string BucketInventoryConfigurationTest::BucketName = "";
 std::string BucketInventoryConfigurationTest::DstBucketName = "";
+std::string BucketInventoryConfigurationTest::KmsKeyId = "";
 
 TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
 {
@@ -84,7 +90,7 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
     dest.setRoleArn(Config::RamRoleArn);
     dest.setBucket(DstBucketName);
     dest.setPrefix("prefix1");
-    dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
+    dest.setEncryption(InventoryEncryption(InventorySSEKMS(KmsKeyId)));
     conf.setDestination(dest);
 
     conf.setSchedule(InventoryFrequency::Daily);
@@ -110,7 +116,7 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationAllTest)
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), "keyId");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), KmsKeyId);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Schedule(), InventoryFrequency::Daily);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().IncludedObjectVersions(), InventoryIncludedObjectVersions::All);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields().size(), 6U);
@@ -182,7 +188,7 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutFilt
     dest.setRoleArn(Config::RamRoleArn);
     dest.setBucket(DstBucketName);
     dest.setPrefix("prefix1");
-    dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
+    dest.setEncryption(InventoryEncryption(InventorySSEKMS(KmsKeyId)));
     conf.setDestination(dest);
 
     conf.setSchedule(InventoryFrequency::Daily);
@@ -208,7 +214,7 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationWithoutFilt
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Bucket(), DstBucketName);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Prefix(), "prefix1");
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
-    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), "keyId");
+    EXPECT_EQ(getOutcome.result().InventoryConfiguration().Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), KmsKeyId);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().Schedule(), InventoryFrequency::Daily);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().IncludedObjectVersions(), InventoryIncludedObjectVersions::All);
     EXPECT_EQ(getOutcome.result().InventoryConfiguration().OptionalFields().size(), 6U);
@@ -329,7 +335,7 @@ TEST_F(BucketInventoryConfigurationTest, ListBucketInventoryConfigurationTest)
         dest.setRoleArn(Config::RamRoleArn);
         dest.setBucket(DstBucketName);
         dest.setPrefix("prefix1");
-        dest.setEncryption(InventoryEncryption(InventorySSEKMS("keyId")));
+        dest.setEncryption(InventoryEncryption(InventorySSEKMS(KmsKeyId)));
         conf.setDestination(dest);
 
         conf.setSchedule(InventoryFrequency::Daily);
@@ -366,7 +372,7 @@ TEST_F(BucketInventoryConfigurationTest, ListBucketInventoryConfigurationTest)
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Bucket(), DstBucketName);
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Prefix(), "prefix1");
         EXPECT_EQ(conf.Destination().OSSBucketDestination().Encryption().hasSSEKMS(), true);
-        EXPECT_EQ(conf.Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), "keyId");
+        EXPECT_EQ(conf.Destination().OSSBucketDestination().Encryption().SSEKMS().KeyId(), KmsKeyId);
         EXPECT_EQ(conf.Schedule(), InventoryFrequency::Daily);
         EXPECT_EQ(conf.IncludedObjectVersions(), InventoryIncludedObjectVersions::All);
         EXPECT_EQ(conf.OptionalFields().size(), ((j % 7)? 6U : 1U));
@@ -420,14 +426,14 @@ TEST_F(BucketInventoryConfigurationTest, BucketInventoryConfigurationNegativeTes
     EXPECT_EQ(getOutcome.isSuccess(), false);
     EXPECT_EQ(getOutcome.error().Code(), "NoSuchInventory");
 
-    auto delOutcome = Client->DeleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest("not-exist-bucket", "not-exist-report-id"));
+    auto delOutcome = Client->DeleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest(BucketName + "-not-exist-bucket", "not-exist-report-id"));
     EXPECT_EQ(delOutcome.isSuccess(), false);
     EXPECT_EQ(delOutcome.error().Code(), "NoSuchBucket");
 
     delOutcome = Client->DeleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest(BucketName, "not-exist-report-id"));
     EXPECT_EQ(delOutcome.isSuccess(), true);
 
-    auto listOutcome = Client->ListBucketInventoryConfigurations(ListBucketInventoryConfigurationsRequest("not-exist-bucket"));
+    auto listOutcome = Client->ListBucketInventoryConfigurations(ListBucketInventoryConfigurationsRequest(BucketName + "-not-exist-bucket"));
     EXPECT_EQ(listOutcome.isSuccess(), false);
     EXPECT_EQ(listOutcome.error().Code(), "NoSuchBucket");
 }

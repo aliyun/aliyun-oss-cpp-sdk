@@ -1286,7 +1286,7 @@ TEST_F(ObjectRequestPaymentTest, ProcessObjectRequestTest)
     std::string ImageFilePath = Config::GetDataPath();
     ImageFilePath.append("example.jpg");
     std::string Process = "image/resize,m_fixed,w_100,h_100";
-    std::string ImageInfo = "{\n    \"FileSize\": {\"value\": \"3267\"},\n    \"Format\": {\"value\": \"jpg\"},\n    \"ImageHeight\": {\"value\": \"100\"},\n    \"ImageWidth\": {\"value\": \"100\"},\n    \"ResolutionUnit\": {\"value\": \"1\"},\n    \"XResolution\": {\"value\": \"1/1\"},\n    \"YResolution\": {\"value\": \"1/1\"}}";
+    std::string ImageInfo = "{\n    \"FileSize\": {\"value\": \"3267\"},\n    \"Format\": {\"value\": \"jpg\"},\n    \"FrameCount\": {\"value\": \"1\"},\n    \"ImageHeight\": {\"value\": \"100\"},\n    \"ImageWidth\": {\"value\": \"100\"},\n    \"ResolutionUnit\": {\"value\": \"1\"},\n    \"XResolution\": {\"value\": \"1/1\"},\n    \"YResolution\": {\"value\": \"1/1\"}}";
 
     std::string key = TestUtils::GetObjectKey("ImageProcessBysetProcessAndSavetoTest");
     std::string key1 = key;
