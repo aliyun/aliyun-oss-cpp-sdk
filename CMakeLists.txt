@@ -23,7 +23,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 file(STRINGS "VERSION" version)
 project(alibabacloud-oss-cpp-sdk VERSION ${version})
 message(STATUS "Project version: ${PROJECT_VERSION}")
-set(SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+set(OSS_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(TARGET_OUTPUT_NAME_PREFIX "alibabacloud-oss-" CACHE STRING "The target's output name prefix")
 
 #Options

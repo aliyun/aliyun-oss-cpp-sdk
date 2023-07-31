@@ -43,9 +43,9 @@ add_executable(${PROJECT_NAME}
 	${test_encryption_src})
 
 target_include_directories(${PROJECT_NAME}
-	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include
-	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/
-	PRIVATE ${CMAKE_SOURCE_DIR}/test/external)
+ PRIVATE ${OSS_SDK_ROOT}/sdk/include
+ PRIVATE ${OSS_SDK_ROOT}/sdk/
+ PRIVATE ${OSS_SDK_ROOT}/test/external)
 
 if (${TARGET_OS} STREQUAL "WINDOWS")
 target_include_directories(${PROJECT_NAME}
