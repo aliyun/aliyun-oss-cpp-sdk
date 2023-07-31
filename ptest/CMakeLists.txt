@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-project(cpp-sdk-ptest VERSION ${version})
+project(oss-cpp-sdk-ptest VERSION ${version})
 	
 file(GLOB ptest_src "src/*")
 
@@ -23,7 +23,7 @@ add_executable(${PROJECT_NAME} 	${ptest_src})
 target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include)
 
-target_link_libraries(${PROJECT_NAME} cpp-sdk${STATIC_LIB_SUFFIX})	
+target_link_libraries(${PROJECT_NAME} oss-cpp-sdk${STATIC_LIB_SUFFIX})	
 target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})
 if (${TARGET_OS} STREQUAL "LINUX")

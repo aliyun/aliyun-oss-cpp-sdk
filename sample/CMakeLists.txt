@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-project(cpp-sdk-sample VERSION ${version})
+project(oss-cpp-sdk-sample VERSION ${version})
 	
 file(GLOB sample_src "src/*")
 
@@ -45,7 +45,7 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include)
 
-target_link_libraries(${PROJECT_NAME} cpp-sdk)	
+target_link_libraries(${PROJECT_NAME} oss-cpp-sdk)	
 target_link_libraries(${PROJECT_NAME} ${CRYPTO_LIBS})
 target_link_libraries(${PROJECT_NAME} ${CLIENT_LIBS})
 if (${TARGET_OS} STREQUAL "LINUX")
