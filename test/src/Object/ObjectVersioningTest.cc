@@ -438,7 +438,7 @@ TEST_F(ObjectVersioningTest, AppendObjectWithVersioningEnableTest)
     auto aOutcome = Client->AppendObject(aRequest);
     EXPECT_EQ(aOutcome.isSuccess(), true);
     EXPECT_EQ(aOutcome.result().RequestId().size(), 24UL);
-    EXPECT_TRUE(aOutcome.result().VersionId().size() > 0, "null");
+    EXPECT_TRUE(aOutcome.result().VersionId().size() > 0);
     EXPECT_NE(aOutcome.result().VersionId(), "null");
     EXPECT_EQ(aOutcome.result().Length(), 16UL);
     EXPECT_EQ(aOutcome.result().CRC64(), crc1);
