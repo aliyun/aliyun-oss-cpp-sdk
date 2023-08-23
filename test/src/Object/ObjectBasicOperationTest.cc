@@ -1148,6 +1148,7 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
                             <Type>Normal</Type>
                             <Size>344606</Size>
                             <StorageClass>Standard</StorageClass>
+                            <RestoreInfo>ongoing-request="true"</RestoreInfo>
                             <Owner>
                                 <ID>00220120222</ID>
                                 <DisplayName>user-example</DisplayName>
@@ -1160,6 +1161,15 @@ TEST_F(ObjectBasicOperationTest, ListObjectsResult)
     EXPECT_EQ(result.ObjectSummarys()[0].Size(), 5368709120LL);
     EXPECT_EQ(result.ObjectSummarys()[0].StorageClass(), "Standard");
     EXPECT_EQ(result.ObjectSummarys()[1].StorageClass(), "IA");
+
+    EXPECT_EQ(result.ObjectSummarys()[3].Key(), "oss.jpg");
+    EXPECT_EQ(result.ObjectSummarys()[3].LastModified(), "2012-02-24T06:07:48.000Z");
+    EXPECT_EQ(result.ObjectSummarys()[3].Type(), "Normal");
+    EXPECT_EQ(result.ObjectSummarys()[3].StorageClass(), "Standard");
+    EXPECT_EQ(result.ObjectSummarys()[3].Owner().Id(), "00220120222");
+    EXPECT_EQ(result.ObjectSummarys()[3].Owner().DisplayName(), "user-example");
+    EXPECT_EQ(result.ObjectSummarys()[3].RestoreInfo(), "ongoing-request=\"true\"");
+
 }
 
 TEST_F(ObjectBasicOperationTest, ListObjectsResultWithEncodingType)
@@ -2016,6 +2026,59 @@ TEST_F(ObjectBasicOperationTest, ListObjectsV2ResultTest)
     EXPECT_EQ(result7.ObjectSummarys()[0].StorageClass(), "class");
     EXPECT_EQ(result7.ObjectSummarys()[0].Owner().DisplayName(), "display");
     EXPECT_EQ(result7.ObjectSummarys()[0].Owner().Id(), "id");
+
+    xml = R"(
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ListBucketResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Name>name</Name>
+            <Prefix>prefix</Prefix>
+            <StartAfter>start</StartAfter>
+            <MaxKeys>20</MaxKeys>
+            <Delimiter>/</Delimiter>
+            <IsTruncated>true</IsTruncated>
+            <NextContinuationToken>next</NextContinuationToken>
+            <ContinuationToken>current</ContinuationToken>
+            <EncodingType>type</EncodingType>
+            <CommonPrefixes>
+                <Prefix>com-prefix</Prefix>
+            </CommonPrefixes>
+            <Contents>
+                <Key>key</Key>
+                <LastModified>last</LastModified>
+                <ETag>tag</ETag>
+                <Type>type</Type>
+                <Size>100</Size>
+                <StorageClass>class</StorageClass>
+                <Owner>
+                    <ID>id</ID>
+                    <DisplayName>display</DisplayName>
+                </Owner>
+                <RestoreInfo>ongoing-request="true"</RestoreInfo>
+            </Contents>
+            <KeyCount>3</KeyCount>
+        </ListBucketResult>
+        )";
+    result7 = ListObjectsV2Result(xml);
+    EXPECT_EQ(result7.Name(), "name");
+    EXPECT_EQ(result7.Prefix(), "prefix");
+    EXPECT_EQ(result7.MaxKeys(), 20L);
+    EXPECT_EQ(result7.Delimiter(), "/");
+    EXPECT_EQ(result7.IsTruncated(), true);
+    EXPECT_EQ(result7.NextContinuationToken(), "next");
+    EXPECT_EQ(result7.ContinuationToken(), "current");
+    EXPECT_EQ(result7.EncodingType(), "type");
+    EXPECT_EQ(result7.CommonPrefixes().size(), 1UL);
+    EXPECT_EQ(result7.CommonPrefixes()[0], "com-prefix");
+    EXPECT_EQ(result7.ObjectSummarys().size(), 1UL);
+    EXPECT_EQ(result7.ObjectSummarys()[0].Key(), "key");
+    EXPECT_EQ(result7.ObjectSummarys()[0].LastModified(), "last");
+    EXPECT_EQ(result7.ObjectSummarys()[0].ETag(), "tag");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Type(), "type");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Size(), 100LL);
+    EXPECT_EQ(result7.ObjectSummarys()[0].StorageClass(), "class");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Owner().DisplayName(), "display");
+    EXPECT_EQ(result7.ObjectSummarys()[0].Owner().Id(), "id");
+    EXPECT_EQ(result7.ObjectSummarys()[0].RestoreInfo(), "ongoing-request=\"true\"");
 }
 
 }
