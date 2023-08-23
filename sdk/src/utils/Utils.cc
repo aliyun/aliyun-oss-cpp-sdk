@@ -852,14 +852,15 @@ const std::string& AlibabaCloud::OSS::LookupMimeType(const std::string &name)
 std::string AlibabaCloud::OSS::CombineHostString(
     const std::string &endpoint, 
     const std::string &bucket, 
-    bool isCname)
+    bool isCname,
+    bool isPathStyle)
 {
     Url url(endpoint);
     if (url.scheme().empty()) {
         url.setScheme(Http::SchemeToString(Http::HTTP));
     }
 
-    if (!bucket.empty() && !isCname && !IsIp(url.host())) {
+    if (!bucket.empty() && !isCname && !IsIp(url.host()) && !isPathStyle) {
         std::string host(bucket);
         host.append(".").append(url.host());
         url.setHost(host);
@@ -873,12 +874,13 @@ std::string AlibabaCloud::OSS::CombineHostString(
 std::string AlibabaCloud::OSS::CombinePathString(
     const std::string &endpoint,
     const std::string &bucket,
-    const std::string &key)
+    const std::string &key,
+    bool isPathStyle)
 {
     Url url(endpoint);
     std::string path;
     path = "/";
-    if (IsIp(url.host())) {
+    if (IsIp(url.host()) || isPathStyle) {
         path.append(bucket).append("/");
     }
     path.append(UrlEncode(key));
@@ -888,10 +890,11 @@ std::string AlibabaCloud::OSS::CombinePathString(
 std::string AlibabaCloud::OSS::CombineRTMPString(
     const std::string &endpoint, 
     const std::string &bucket,
-    bool isCname)
+    bool isCname,
+    bool isPathStyle)
 {
     Url url(endpoint);
-    if (!bucket.empty() && !isCname && !IsIp(url.host())) {
+    if (!bucket.empty() && !isCname && !IsIp(url.host()) && !isPathStyle) {
         std::string host(bucket);
         host.append(".").append(url.host());
         url.setHost(host);
