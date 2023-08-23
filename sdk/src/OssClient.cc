@@ -15,7 +15,6 @@
 */
 
 #include <alibabacloud/oss/OssClient.h>
-#include "auth/SimpleCredentialsProvider.h"
 #include "http/CurlHttpClient.h"
 #include "OssClientImpl.h"
 #include <fstream>

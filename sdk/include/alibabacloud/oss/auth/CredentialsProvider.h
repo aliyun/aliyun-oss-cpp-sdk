@@ -30,5 +30,24 @@ namespace OSS
     private:
 
     };
+
+    class ALIBABACLOUD_OSS_EXPORT SimpleCredentialsProvider : public CredentialsProvider
+    {
+    public:
+        SimpleCredentialsProvider(const Credentials& credentials);
+        SimpleCredentialsProvider(const std::string& accessKeyId,
+            const std::string& accessKeySecret, const std::string& securityToken = "");
+        ~SimpleCredentialsProvider();
+
+        virtual Credentials getCredentials() override;
+    private:
+        Credentials credentials_;
+    };
+
+    class ALIBABACLOUD_OSS_EXPORT EnvironmentVariableCredentialsProvider : public CredentialsProvider
+    {
+    public:
+        Credentials getCredentials() override;
+    };
 }
 }

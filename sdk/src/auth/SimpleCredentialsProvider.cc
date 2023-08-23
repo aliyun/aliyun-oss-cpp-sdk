@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "SimpleCredentialsProvider.h"
+#include <alibabacloud/oss/auth/CredentialsProvider.h>
 
 using namespace AlibabaCloud::OSS;
 

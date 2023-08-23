@@ -21,3 +21,31 @@ using namespace AlibabaCloud::OSS;
 CredentialsProvider::~CredentialsProvider()
 {
 }
+
+Credentials EnvironmentVariableCredentialsProvider::getCredentials()
+{
+    auto value = std::getenv("OSS_ACCESS_KEY_ID");
+    Credentials credentials("", "");
+
+    if (value)
+    {
+        credentials.setAccessKeyId(value);
+
+        value = std::getenv("OSS_ACCESS_KEY_SECRET");
+
+        if (value)
+        {
+            credentials.setAccessKeySecret(value);
+        }
+
+        value = std::getenv("OSS_SESSION_TOKEN");
+
+        if (value)
+        {
+            credentials.setSessionToken(value);
+        }
+    }
+
+    return credentials;
+}
+
