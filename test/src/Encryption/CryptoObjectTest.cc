@@ -18,7 +18,6 @@
 #include <src/utils/Crc64.h>
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/Utils.h"
-#include "src/auth/SimpleCredentialsProvider.h"
 #include "../Config.h"
 #include "../Utils.h"
 #include <alibabacloud/oss/OssEncryptionClient.h>

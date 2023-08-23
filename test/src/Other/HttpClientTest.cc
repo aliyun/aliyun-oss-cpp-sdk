@@ -27,7 +27,6 @@
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/Utils.h"
 #include "src/client/Client.h"
-#include "src/auth/SimpleCredentialsProvider.h"
 #include "src/OssClientImpl.h"
 
 
