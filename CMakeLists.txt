@@ -32,7 +32,7 @@ option(BUILD_SAMPLE "Build sample" ON)
 option(BUILD_TESTS "Build unit and perfermence tests" OFF)
 option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
 option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
-
+option(USE_CPP20 "Use C++20" OFF)
 
 #Platform
 if (CMAKE_CROSSCOMPILING)
@@ -99,7 +99,12 @@ else()
 endif()
 
 #Compiler flags
-list(APPEND SDK_COMPILER_FLAGS "-std=c++11")
+if(USE_CPP20)
+	message("Use C++20")
+	list(APPEND SDK_COMPILER_FLAGS "-std=c++20")
+else()
+	list(APPEND SDK_COMPILER_FLAGS "-std=c++11")
+endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	list(APPEND SDK_COMPILER_FLAGS "/MP")
 	if (NOT ENABLE_RTTI)

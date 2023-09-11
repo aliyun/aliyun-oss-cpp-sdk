@@ -224,7 +224,7 @@ SelectObjectRequest::SelectObjectRequest(const std::string& bucket, const std::s
 void SelectObjectRequest::setResponseStreamFactory(const IOStreamFactory& factory)
 {
     upperResponseStreamFactory_ = factory;
-    ServiceRequest::setResponseStreamFactory([=]() {
+    ServiceRequest::setResponseStreamFactory([this]() {
         streamBuffer_ = nullptr;
         auto content = upperResponseStreamFactory_();
         if (!outputFormat_->OutputRawData()) {
