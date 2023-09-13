@@ -17,7 +17,11 @@ jobs:
     steps:
     - name: check out
       uses: actions/checkout@v3
-      
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install curl libssl-dev libcurl4-openssl-dev
+              
     - name: configure cmake
       run: CXX=clang++ CC=clang cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }}
       
