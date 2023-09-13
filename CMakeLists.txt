@@ -32,7 +32,7 @@ option(BUILD_SAMPLE "Build sample" ON)
 option(BUILD_TESTS "Build unit and perfermence tests" OFF)
 option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
 option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
-
+set(CPP_STANDARD "11" CACHE STRING "Flag to the C++ standard. The default is 11.")
 
 #Platform
 if (CMAKE_CROSSCOMPILING)
@@ -98,12 +98,10 @@ else()
 	set(CLIENT_LIBS_ABSTRACT_NAME curl)
 endif()
 
-#Compiler flags
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-	set(CMAKE_CXX_STANDARD 11)
-endif()
+message(STATUS "CXX Standard: ${CPP_STANDARD}")
 
-message(STATUS "CXX Standard: ${CMAKE_CXX_STANDARD}")
+#Compiler flags
+list(APPEND SDK_COMPILER_FLAGS "-std=c++${CPP_STANDARD}")
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	list(APPEND SDK_COMPILER_FLAGS "/MP")
 	if (NOT ENABLE_RTTI)
@@ -121,13 +119,9 @@ else()
 	if (NOT ENABLE_RTTI)
 	list(APPEND SDK_COMPILER_FLAGS "-fno-rtti")
 	endif()
-	
+
 	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
-	if(CMAKE_CXX_STANDARD EQUAL 20)
-		message(STATUS "set no-stringop-overflow")
-		list(APPEND SDK_COMPILER_FLAGS "-Wno-error" "-Wstringop-overflow")
-	endif()
-	
+
 	if (ENABLE_COVERAGE)
 	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 	SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
