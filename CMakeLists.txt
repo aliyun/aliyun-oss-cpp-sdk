@@ -123,6 +123,9 @@ else()
 	endif()
 	
 	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
+	if(CMAKE_CXX_STANDARD EQUAL 20)
+		list(APPEND SDK_COMPILER_FLAGS "-Werror" "-Wstringop-overflow")
+	endif()
 	
 	if (ENABLE_COVERAGE)
 	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
