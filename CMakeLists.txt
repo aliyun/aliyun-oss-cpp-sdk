@@ -99,7 +99,11 @@ else()
 endif()
 
 #Compiler flags
-list(APPEND SDK_COMPILER_FLAGS "-std=c++11")
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+	set(CMAKE_CXX_STANDARD 11)
+endif()
+
+message(STATUS "CXX Standard: ${CMAKE_CXX_STANDARD}")
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	list(APPEND SDK_COMPILER_FLAGS "/MP")
 	if (NOT ENABLE_RTTI)
@@ -119,6 +123,10 @@ else()
 	endif()
 	
 	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
+	if(CMAKE_CXX_STANDARD EQUAL 20)
+		message(STATUS "set no-stringop-overflow")
+		list(APPEND SDK_COMPILER_FLAGS "-Wno-error" "-Wstringop-overflow")
+	endif()
 	
 	if (ENABLE_COVERAGE)
 	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")

@@ -75,7 +75,7 @@ GetObjectOutcome ResumableDownloader::Download()
                 uint64_t end = start + part.size - 1;
                 auto getObjectReq = GetObjectRequest(request_.Bucket(), request_.Key(), request_.ModifiedSinceConstraint(), request_.UnmodifiedSinceConstraint(),
                     request_.MatchingETagsConstraint(), request_.NonmatchingETagsConstraint(), request_.ResponseHeaderParameters());
-                getObjectReq.setResponseStreamFactory([=]() {
+                getObjectReq.setResponseStreamFactory([this, pos]() {
                     auto tmpFstream = GetFstreamByPath(request_.TempFilePath(), request_.TempFilePathW(),
                         std::ios_base::in | std::ios_base::out | std::ios_base::binary);
                     tmpFstream->seekp(pos, tmpFstream->beg);
