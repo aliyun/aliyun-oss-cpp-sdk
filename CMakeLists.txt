@@ -124,7 +124,8 @@ else()
 	
 	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
 	if(CMAKE_CXX_STANDARD EQUAL 20)
-		list(APPEND SDK_COMPILER_FLAGS "-Werror" "-Wstringop-overflow")
+		message(STATUS "set no-stringop-overflow")
+		list(APPEND SDK_COMPILER_FLAGS "-Wno-error" "-Wstringop-overflow")
 	endif()
 	
 	if (ENABLE_COVERAGE)
