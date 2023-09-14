@@ -2,9 +2,9 @@ name:  macOS Monterey 12
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
     
 jobs:
   build:

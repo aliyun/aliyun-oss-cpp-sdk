@@ -2,9 +2,9 @@ name: Ubuntu (gcc)
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
     
 jobs:
   ubuntu_gcc:
