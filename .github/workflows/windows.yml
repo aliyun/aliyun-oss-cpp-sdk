@@ -2,9 +2,9 @@ name: Windows Server 2022
 
 on: 
   push:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
     
 jobs:
   build:
@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v3
         
       - name: generate project
-        run: cmake -B ${{ github.workspace }}\build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -A${{ matrix.arch }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }}
+        run: cmake -B ${{ github.workspace }}\build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -A${{ matrix.arch }} -DCPP_STANDARD=${{ matrix.cpp_version }}
         
       - name: build project
         run: cmake --build ${{ github.workspace }}\build --config ${{ matrix.mode }}

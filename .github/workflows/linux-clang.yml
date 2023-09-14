@@ -2,9 +2,9 @@ name: Ubuntu (clang)
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
     
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
         sudo apt-get install curl libssl-dev libcurl4-openssl-dev
               
     - name: configure cmake
-      run: CXX=clang++ CC=clang cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }}
+      run: CXX=clang++ CC=clang cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCPP_STANDARD=${{ matrix.cpp_version }}
       
     - name: build project
       run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.mode }}
