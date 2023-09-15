@@ -2,9 +2,9 @@ name: Ubuntu (gcc)
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, support-c20 ]
     
 jobs:
   ubuntu_gcc:
@@ -26,7 +26,7 @@ jobs:
       run: gcc --version
 
     - name: configure cmake
-      run: CXX=g++ CC=gcc cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }}
+      run: CXX=g++ CC=gcc cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCPP_STANDARD=${{ matrix.cpp_version }}
       
     - name: build project
       run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.mode }}
