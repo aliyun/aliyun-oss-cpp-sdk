@@ -4762,7 +4762,7 @@ void StyledWriter::indent() { indentString_ += JSONCPP_STRING(indentSize_, ' ');
 
 void StyledWriter::unindent() {
   assert(indentString_.size() >= indentSize_);
-  indentString_.resize(indentString_.size() - indentSize_);
+  indentString_.resize(static_cast<unsigned int>(indentString_.size()) - indentSize_);
 }
 
 void StyledWriter::writeCommentBeforeValue(const Value& root) {
