@@ -20,6 +20,9 @@
 #include <alibabacloud/oss/auth/CredentialsProvider.h>
 #include <alibabacloud/oss/http/HttpClient.h>
 #include <alibabacloud/oss/utils/Executor.h>
+#ifdef USE_COROUTINE
+#include <async_simple/coro/Lazy.h>
+#endif
 
 namespace AlibabaCloud
 {
