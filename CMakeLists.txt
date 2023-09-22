@@ -32,6 +32,7 @@ option(BUILD_SAMPLE "Build sample" ON)
 option(BUILD_TESTS "Build unit and perfermence tests" OFF)
 option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
 option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
+option(ENABLE_TREAT_WARNING_AS_ERROR "Flag to enabled/disable treating all warnings to errors" ON)
 
 
 #Platform
@@ -118,7 +119,10 @@ else()
 	list(APPEND SDK_COMPILER_FLAGS "-fno-rtti")
 	endif()
 	
-	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
+	list(APPEND SDK_COMPILER_FLAGS "-Wall" "-pedantic" "-Wextra")
+        if (ENABLE_TREAT_WARNING_AS_ERROR)
+	list(APPEND SDK_COMPILER_FLAGS "-Werror")
+        endif()
 	
 	if (ENABLE_COVERAGE)
 	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
