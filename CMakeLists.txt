@@ -29,10 +29,15 @@ set(TARGET_OUTPUT_NAME_PREFIX "alibabacloud-oss-" CACHE STRING "The target's out
 #Options
 option(BUILD_SHARED_LIBS  "Enable shared library" OFF)
 option(BUILD_SAMPLE "Build sample" ON)
-option(BUILD_TESTS "Build unit and perfermence tests" OFF)
+option(BUILD_TESTS "Build unit and perfermence tests" ON)
 option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
 option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
-set(CPP_STANDARD "11" CACHE STRING "Flag to the C++ standard. The default is 11.")
+option(USE_COROUTINE "Use C++ 20 coroutine" ON)
+if (USE_COROUTINE)
+	set(CPP_STANDARD "20" CACHE STRING "Set C++ standard 20.")
+else()
+	set(CPP_STANDARD "11" CACHE STRING "Flag to the C++ standard. The default is 11.")
+endif()
 
 #Platform
 if (CMAKE_CROSSCOMPILING)
@@ -129,6 +134,16 @@ else()
 	endif()
 endif()
 
+if (USE_COROUTINE)
+	message(STATUS "Use C++20 Coroutine")
+	add_compile_definitions(USE_CORO)
+	list(APPEND SDK_COMPILER_FLAGS "-fexceptions")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines")
+        #-ftree-slp-vectorize with coroutine cause link error. disable it util gcc fix.
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-tree-slp-vectorize")
+    endif()
+endif()
 
 if (BUILD_SHARED_LIBS)
 	set(STATIC_LIB_SUFFIX "-static")

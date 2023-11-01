@@ -97,6 +97,53 @@ Client::ClientOutcome Client::AttemptOnceRequest(const std::string & endpoint, c
     }
 }
 
+#ifdef USE_CORO
+async_simple::coro::Lazy<Client::ClientOutcome> Client::AttemptRequestCoro(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const{
+    for (int retry =0; ;retry++) {
+        auto outcome = co_await AttemptOnceRequestCoro(endpoint, request, method);
+        if (outcome.isSuccess()) {
+            co_return outcome;
+        } 
+        else if (!httpClient_->isEnable()) {
+            co_return outcome;
+        }
+        else {
+            if (configuration_.enableDateSkewAdjustment &&
+                outcome.error().Status() == 403 &&
+                outcome.error().Message().find("RequestTimeTooSkewed")) {
+                auto serverTimeStr = analyzeServerTime(outcome.error().Message());
+                auto serverTime = UtcToUnixTime(serverTimeStr);
+                if (serverTime != -1) {
+                    std::time_t localTime = std::time(nullptr);
+                    setRequestDateOffset(serverTime - localTime);
+                }
+            }
+            RetryStrategy *retryStrategy = configuration().retryStrategy.get();
+            if (retryStrategy == nullptr || !retryStrategy->shouldRetry(outcome.error(), retry)) {
+                co_return outcome;
+            }
+            long sleepTmeMs = retryStrategy->calcDelayTimeMs(outcome.error(), retry);
+            httpClient_->waitForRetry(sleepTmeMs);
+        }
+    }
+}
+
+async_simple::coro::Lazy<Client::ClientOutcome> Client::AttemptOnceRequestCoro(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const{
+    if (!httpClient_->isEnable()) {
+        co_return ClientOutcome(Error("ClientError:100002", "Disable all requests by upper."));
+    }
+
+    auto r = buildHttpRequest(endpoint, request, method);
+    auto response = co_await httpClient_->makeRequestCoro(r); 
+    
+    if(hasResponseError(response)) {
+        co_return ClientOutcome(buildError(response));
+    } else {
+        co_return ClientOutcome(response);
+    }
+}
+#endif
+
 std::string Client::analyzeServerTime(const std::string &message) const
 {
     XMLDocument doc;

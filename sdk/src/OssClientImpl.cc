@@ -332,6 +332,27 @@ OssOutcome OssClientImpl::MakeRequest(const OssRequest &request, Http::Method me
     }
 }
 
+#ifdef USE_CORO
+async_simple::coro::Lazy<OssOutcome> OssClientImpl::MakeRequestCoro(const OssRequest &request, Http::Method method) const
+{
+    int ret = request.validate();
+    if (ret != 0) {
+        co_return OssOutcome(OssError("ValidateError", request.validateMessage(ret)));
+    }
+
+    if (!isValidEndpoint_) {
+        co_return OssOutcome(OssError("ValidateError", "The endpoint is invalid."));
+    }
+
+    auto outcome = co_await BASE::AttemptRequestCoro(endpoint_, request, method);
+    if (outcome.isSuccess()) {
+        co_return OssOutcome(buildResult(request, outcome.result()));
+    } else {
+        co_return OssOutcome(buildError(outcome.error()));
+    }
+}
+#endif
+
 #if !defined(OSS_DISABLE_BUCKET)
 
 ListBucketsOutcome OssClientImpl::ListBuckets(const ListBucketsRequest &request) const
@@ -1380,6 +1401,19 @@ PutObjectOutcome OssClientImpl::UploadPart(const UploadPartRequest &request)cons
         return PutObjectOutcome(outcome.error());
     }
 }
+
+#ifdef USE_CORO
+async_simple::coro::Lazy<PutObjectOutcome> OssClientImpl::UploadPartCoro(const UploadPartRequest &request)const
+{
+    auto outcome = co_await MakeRequestCoro(request, Http::Put);
+    if(outcome.isSuccess()){
+        const HeaderCollection& header = outcome.result().headerCollection();
+        co_return PutObjectOutcome(PutObjectResult(header));
+    }else{
+        co_return PutObjectOutcome(outcome.error());
+    }
+}
+#endif
 
 UploadPartCopyOutcome OssClientImpl::UploadPartCopy(const UploadPartCopyRequest &request) const
 {

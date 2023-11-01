@@ -135,6 +135,9 @@ namespace OSS
         VoidOutcome AbortMultipartUpload(const AbortMultipartUploadRequest &request) const;
         ListMultipartUploadsOutcome ListMultipartUploads(const ListMultipartUploadsRequest &request) const;
         ListPartsOutcome ListParts(const ListPartsRequest &request) const;
+#ifdef USE_CORO
+        async_simple::coro::Lazy<PutObjectOutcome> UploadPartCoro(const UploadPartRequest& request) const;
+#endif
         
         /*Generate URL*/
         StringOutcome GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const;
@@ -173,7 +176,9 @@ namespace OSS
         virtual std::shared_ptr<HttpRequest> buildHttpRequest(const std::string & endpoint, const ServiceRequest &msg, Http::Method method) const;
         virtual bool hasResponseError(const std::shared_ptr<HttpResponse>&response)  const;
         OssOutcome MakeRequest(const OssRequest &request, Http::Method method) const;
-
+#ifdef USE_CORO
+        async_simple::coro::Lazy<OssOutcome> MakeRequestCoro(const OssRequest &request, Http::Method method) const;
+#endif
     private:
         void addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const HeaderCollection &headers) const;
         void addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5 = false) const;

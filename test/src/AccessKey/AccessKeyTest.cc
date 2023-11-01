@@ -166,7 +166,6 @@ TEST_F(AccessKeyTest, GenerateRTMPSignatureUrlCredentialsProviderTest)
     EXPECT_EQ(generateOutcome.isSuccess(), true);
 
     auto outcome = generateOutcome;
-    outcome = outcome;
     EXPECT_EQ(outcome.isSuccess(), generateOutcome.isSuccess());
     EXPECT_EQ(outcome.result(), generateOutcome.result());
 

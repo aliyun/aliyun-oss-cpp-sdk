@@ -22,6 +22,9 @@
 #include <condition_variable>
 #include <alibabacloud/oss/http/HttpRequest.h>
 #include <alibabacloud/oss/http/HttpResponse.h>
+#ifdef USE_CORO
+#include <ylt/coro_http/coro_http_client.hpp>
+#endif
 
 namespace AlibabaCloud
 {
@@ -35,7 +38,11 @@ namespace OSS
         virtual ~HttpClient();
 
         virtual std::shared_ptr<HttpResponse> makeRequest(const std::shared_ptr<HttpRequest> &request) = 0;
-
+#ifdef USE_CORO
+        virtual async_simple::coro::Lazy<std::shared_ptr<HttpResponse>> makeRequestCoro(const std::shared_ptr<HttpRequest> &request) {
+            co_return nullptr;
+        }
+#endif
         bool isEnable();
         void disable();
         void enable();
