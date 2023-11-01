@@ -29,7 +29,7 @@ set(TARGET_OUTPUT_NAME_PREFIX "alibabacloud-oss-" CACHE STRING "The target's out
 #Options
 option(BUILD_SHARED_LIBS  "Enable shared library" OFF)
 option(BUILD_SAMPLE "Build sample" ON)
-option(BUILD_TESTS "Build unit and perfermence tests" ON)
+option(BUILD_TESTS "Build unit and perfermence tests" OFF)
 option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
 option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
 option(USE_COROUTINE "Use C++ 20 coroutine" OFF)
