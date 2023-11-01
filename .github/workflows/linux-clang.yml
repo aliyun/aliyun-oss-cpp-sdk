@@ -18,12 +18,18 @@ jobs:
     - name: check out
       uses: actions/checkout@v3
 
+    - name: Install newer Clang
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x ./llvm.sh
+        sudo ./llvm.sh 17
+
     - name: Install Dependencies
       run: |
         sudo apt-get install curl libssl-dev libcurl4-openssl-dev
               
     - name: configure cmake
-      run: CXX=clang++ CC=clang cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCPP_STANDARD=${{ matrix.cpp_version }}
+      run: CXX=clang++-17 CC=clang-17 cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCPP_STANDARD=${{ matrix.cpp_version }}
       
     - name: build project
       run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.mode }}
