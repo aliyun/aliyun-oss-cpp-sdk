@@ -41,8 +41,12 @@ protected:
         ClientConfiguration config{};
         config.httpClient = std::make_shared<CoroHttpClient>();
 		Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, config);
-		BucketName = TestUtils::GetBucketName("cpp-sdk-coro");
-		Client->CreateBucket(CreateBucketRequest(BucketName));
+
+        BucketName = "cpp-sdk-coro";
+		auto outcome = Client->CreateBucket(CreateBucketRequest(BucketName));
+        if(outcome.isSuccess()){
+            std::cout << "Create Bucket "<<BucketName<<" Successfully" << std::endl;
+        }
 	}
 
 	// Tears down the stuff shared by all tests in this test case.
@@ -85,8 +89,8 @@ TEST_F(CoroTest, MultipartUploadCoroBasicTest)
     auto fileInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, fileKey));
     EXPECT_EQ(fileInitOutcome.isSuccess(), true);
 
-    auto mem_request = UploadPartRequest(BucketName, memKey,1, memInitOutcome.result().UploadId(), memContent);
-    auto file_request = UploadPartRequest(BucketName, fileKey,1, fileInitOutcome.result().UploadId(), fileContent);
+    auto mem_request = UploadPartRequest(BucketName, memKey, 1, memInitOutcome.result().UploadId(), memContent);
+    auto file_request = UploadPartRequest(BucketName, fileKey, 1, fileInitOutcome.result().UploadId(), tmpFile);
     
     auto memOutcomeCallable = Client->UploadPartCoro(mem_request);
     auto fileOutcomeCallable = Client->UploadPartCoro(file_request);

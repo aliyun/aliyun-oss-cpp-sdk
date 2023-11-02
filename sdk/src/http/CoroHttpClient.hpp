@@ -74,9 +74,18 @@ public:
       result = co_await client.async_get(url, std::move(headers));
       break;
     case Http::Method::Put:
-      result = co_await client.async_upload_chunked(
-          url, coro_http::http_method::PUT, request->Body(), coro_http::req_content_type::none,
+    {
+      auto filename = request->MultipartFilename();
+      if(filename.empty()){
+        result = co_await client.async_upload_chunked(
+          url, coro_http::http_method::PUT, body, coro_http::req_content_type::none,
           std::move(headers));
+      }else {
+        result = co_await client.async_upload_chunked(
+          url, coro_http::http_method::PUT, filename, coro_http::req_content_type::none,
+          std::move(headers));
+      }
+    }
       break;
     case Http::Method::Post:
       if (has_content) {

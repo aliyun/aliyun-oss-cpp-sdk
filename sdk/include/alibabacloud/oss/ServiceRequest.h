@@ -20,6 +20,9 @@
 #include <iostream>
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/Types.h>
+#ifdef USE_CORO  
+#include <string_view>
+#endif
 
 namespace AlibabaCloud
 {
@@ -39,7 +42,9 @@ namespace OSS
         virtual HeaderCollection Headers() const = 0;
         virtual ParameterCollection Parameters() const = 0;
         virtual std::shared_ptr<std::iostream> Body() const = 0;
-
+#ifdef USE_CORO
+        virtual std::string_view filename() const { return ""; }
+#endif
         int Flags() const;
         void setFlags(int flags);
 

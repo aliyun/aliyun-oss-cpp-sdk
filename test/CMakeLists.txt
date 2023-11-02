@@ -42,6 +42,7 @@ add_executable(${PROJECT_NAME}
 	${test_object_src}
 	${test_presignedurl_src}
 	${test_multipartupload_src}
+	${test_coro_multipartupload_src}
 	${test_resumable_src}
 	${test_other_src}
 	${test_livechannel_src}

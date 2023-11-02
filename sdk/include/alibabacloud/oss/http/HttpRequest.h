@@ -51,7 +51,10 @@ namespace OSS
 
             void setTransferedBytes(int64_t value) { transferedBytes_ = value; }
             uint64_t TransferedBytes() const { return transferedBytes_;}
-
+#ifdef USE_CORO
+            void setMultipartFilename(std::string filename) { multipartFilename_ = std::move(filename); }
+            const std::string& MultipartFilename() const { return multipartFilename_;}
+#endif
         private:
             Http::Method method_;
             Url url_;
@@ -60,6 +63,9 @@ namespace OSS
             bool hasCheckCrc64_;
             uint64_t crc64Result_;
             int64_t transferedBytes_;
+#ifdef USE_CORO
+            std::string multipartFilename_;
+#endif
     };
 }
 }

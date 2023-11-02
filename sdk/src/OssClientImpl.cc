@@ -74,6 +74,11 @@ std::shared_ptr<HttpRequest> OssClientImpl::buildHttpRequest(const std::string &
     httpRequest->setResponseStreamFactory(msg.ResponseStreamFactory());
     addHeaders(httpRequest, msg.Headers());
     addBody(httpRequest, msg.Body(), calcContentMD5);
+#ifdef USE_CORO
+    if(!msg.filename().empty()) {
+        httpRequest->setMultipartFilename(std::string(msg.filename()));
+    }
+#endif
     if (paramInPath) {
         httpRequest->setUrl(Url(msg.Path()));
     }
