@@ -907,6 +907,14 @@ UploadPartCopyOutcomeCallable OssClient::UploadPartCopyCallable(const UploadPart
     return task->get_future();
 }
 
+#ifdef USE_CORO
+/*Coro APIs*/
+async_simple::coro::Lazy<PutObjectOutcome> OssClient::UploadPartCoro(const UploadPartRequest& request) const
+{
+    co_return co_await client_->UploadPartCoro(request);
+}
+#endif
+
 /*Extended APIs*/
 #if !defined(OSS_DISABLE_BUCKET)
 bool OssClient::DoesBucketExist(const std::string &bucket) const

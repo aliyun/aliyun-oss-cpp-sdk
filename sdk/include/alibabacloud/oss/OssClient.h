@@ -271,6 +271,10 @@ namespace OSS
         PutObjectOutcomeCallable UploadPartCallable(const UploadPartRequest& request) const;
         UploadPartCopyOutcomeCallable UploadPartCopyCallable(const UploadPartCopyRequest& request) const;
 
+#ifdef USE_CORO
+        /*Coro APIs*/
+        async_simple::coro::Lazy<PutObjectOutcome> UploadPartCoro(const UploadPartRequest& request) const;
+#endif
         /*Extended APIs*/
 #if !defined(OSS_DISABLE_BUCKET)
         bool DoesBucketExist(const std::string& bucket) const;

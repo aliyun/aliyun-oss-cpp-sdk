@@ -33,6 +33,14 @@ namespace OSS
         UploadPartRequest(const std::string &bucket, const std::string& key,
             int partNumber, const std::string& uploadId,
             const std::shared_ptr<std::iostream>& content);
+#ifdef USE_CORO
+        UploadPartRequest(const std::string &bucket, const std::string& key,
+            int partNumber, const std::string& uploadId,
+            std::string filename);
+        virtual std::string_view filename() const;
+        void setMultipartFilename(std::string filename);
+        const std::string & getMultipartFilename();
+#endif
         virtual std::shared_ptr<std::iostream> Body() const;
         void setPartNumber(int partNumber);
         void setUploadId(const std::string& uploadId);
@@ -57,6 +65,9 @@ namespace OSS
         std::string userAgent_;
         std::string contentMd5_;
         bool contentMd5IsSet_;
+#ifdef USE_CORO
+        std::string multipartFilename_;
+#endif        
     };
 } 
 }

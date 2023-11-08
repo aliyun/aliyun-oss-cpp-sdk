@@ -46,6 +46,10 @@ namespace OSS
     protected:
         ClientOutcome AttemptRequest(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const;
         ClientOutcome AttemptOnceRequest(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const;
+#ifdef USE_CORO
+        async_simple::coro::Lazy<Client::ClientOutcome> AttemptRequestCoro(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const;
+        async_simple::coro::Lazy<Client::ClientOutcome> AttemptOnceRequestCoro(const std::string & endpoint, const ServiceRequest &request, Http::Method method) const;
+#endif
         virtual std::shared_ptr<HttpRequest> buildHttpRequest(const std::string & endpoint, const ServiceRequest &msg, Http::Method method) const = 0;
         virtual bool hasResponseError(const std::shared_ptr<HttpResponse>&response) const;
         

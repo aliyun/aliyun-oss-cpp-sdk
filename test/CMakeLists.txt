@@ -23,6 +23,11 @@ file(GLOB test_bucket_src "src/Bucket/*")
 file(GLOB test_object_src "src/Object/*")
 file(GLOB test_presignedurl_src "src/PresignedUrl/*")
 file(GLOB test_multipartupload_src "src/MultipartUpload/*")
+if (USE_COROUTINE)
+file(GLOB test_coro_multipartupload_src "src/CoroMultipartUpload/*")
+else()
+file(GLOB test_coro_multipartupload_src "")
+endif()
 file(GLOB test_resumable_src "src/Resumable/*")
 file(GLOB test_other_src "src/Other/*")
 file(GLOB test_livechannel_src "src/LiveChannel/*")
@@ -37,6 +42,7 @@ add_executable(${PROJECT_NAME}
 	${test_object_src}
 	${test_presignedurl_src}
 	${test_multipartupload_src}
+	${test_coro_multipartupload_src}
 	${test_resumable_src}
 	${test_other_src}
 	${test_livechannel_src}

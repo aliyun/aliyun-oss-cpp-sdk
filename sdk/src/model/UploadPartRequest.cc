@@ -42,6 +42,27 @@ UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::strin
     setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
 }
 
+#ifdef USE_CORO
+UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::string& key,
+            int partNumber, const std::string& uploadId,
+            std::string filename) : UploadPartRequest(bucket, key, partNumber, uploadId, std::make_shared<std::stringstream>())
+{
+    multipartFilename_ = std::move(filename);
+}
+
+std::string_view UploadPartRequest::filename() const {
+    return multipartFilename_;
+}
+
+void UploadPartRequest::setMultipartFilename(std::string filename) {
+    multipartFilename_ = std::move(filename);
+}
+
+const std::string & UploadPartRequest::getMultipartFilename() {
+    return multipartFilename_;
+}
+#endif
+
 void UploadPartRequest::setPartNumber(int partNumber)
 {
     partNumber_ = partNumber;
@@ -128,6 +149,11 @@ int UploadPartRequest::validate() const
     {
         return ret;
     }
+#ifdef USE_CORO
+    if(!multipartFilename_.empty()){
+        return 0;
+    }
+#endif    
 
     if (content_ == nullptr) {
         return ARG_ERROR_REQUEST_BODY_NULLPTR;
