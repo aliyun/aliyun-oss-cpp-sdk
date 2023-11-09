@@ -45,7 +45,7 @@ protected:
         BucketName = "cpp-sdk-coro";
 		auto outcome = Client->CreateBucket(CreateBucketRequest(BucketName));
         if(outcome.isSuccess()){
-            std::cout << "Create Bucket "<<BucketName<<" Successfully" << std::endl;
+        std::cout << "Create Bucket "<<BucketName<<" Successfully" << std::endl;
         }
 	}
 
@@ -76,6 +76,20 @@ std::string CoroTest::BucketName = "";
 
 TEST_F(CoroTest, MultipartUploadCoroBasicTest)
 {
+    {
+    std::string key = "GetObjectUsingRangeTest";
+    auto content = TestUtils::GetRandomStream(1024);
+
+    auto pOutcome = Client->PutObject(BucketName, key, content);
+    EXPECT_EQ(pOutcome.isSuccess(), true);
+
+    GetObjectRequest request(BucketName, key);
+    request.setRange(10, 19);
+    auto outome = async_simple::coro::syncAwait(Client->GetObjectCoro(request));
+    EXPECT_EQ(outome.isSuccess(), true);
+    EXPECT_EQ(outome.result().Content()->tellp(), 10);
+    }
+
     auto memKey = TestUtils::GetObjectKey("MultipartUploadCoro-MemObject");
     auto memContent = TestUtils::GetRandomStream(102400);
     auto memInitOutcome = Client->InitiateMultipartUpload(InitiateMultipartUploadRequest(BucketName, memKey));

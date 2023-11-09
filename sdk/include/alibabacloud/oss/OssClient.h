@@ -274,6 +274,7 @@ namespace OSS
 #ifdef USE_CORO
         /*Coro APIs*/
         async_simple::coro::Lazy<PutObjectOutcome> UploadPartCoro(const UploadPartRequest& request) const;
+        async_simple::coro::Lazy<GetObjectOutcome> GetObjectCoro(const GetObjectRequest& request) const;
 #endif
         /*Extended APIs*/
 #if !defined(OSS_DISABLE_BUCKET)

@@ -137,6 +137,7 @@ namespace OSS
         ListPartsOutcome ListParts(const ListPartsRequest &request) const;
 #ifdef USE_CORO
         async_simple::coro::Lazy<PutObjectOutcome> UploadPartCoro(const UploadPartRequest& request) const;
+        async_simple::coro::Lazy<GetObjectOutcome> GetObjectCoro(const GetObjectRequest &request) const;
 #endif
         
         /*Generate URL*/
