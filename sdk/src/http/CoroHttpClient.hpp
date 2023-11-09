@@ -21,7 +21,7 @@
 #include "../utils/LogUtils.h"
 
 namespace AlibabaCloud::OSS {
-inline const char* CORO_TAG = "CurlHttpClient";
+inline const char* CORO_TAG = "CoroHttpClient";
 
 class CoroHttpClient : public HttpClient {
 public:
@@ -53,7 +53,7 @@ public:
     bool has_content = (body != nullptr);
     std::string content;
 
-    if (has_content) {
+    if (has_content && method != Http::Method::Put) {
         body->seekg(0, std::ios::end);
         int size = body->tellg();
         content.resize(size);

@@ -913,6 +913,11 @@ async_simple::coro::Lazy<PutObjectOutcome> OssClient::UploadPartCoro(const Uploa
 {
     co_return co_await client_->UploadPartCoro(request);
 }
+
+async_simple::coro::Lazy<GetObjectOutcome> OssClient::GetObjectCoro(const GetObjectRequest &request) const
+{
+    co_return co_await client_->GetObjectCoro(request);
+}
 #endif
 
 /*Extended APIs*/

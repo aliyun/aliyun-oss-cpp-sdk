@@ -1418,6 +1418,17 @@ async_simple::coro::Lazy<PutObjectOutcome> OssClientImpl::UploadPartCoro(const U
         co_return PutObjectOutcome(outcome.error());
     }
 }
+
+async_simple::coro::Lazy<GetObjectOutcome> OssClientImpl::GetObjectCoro(const GetObjectRequest &request) const {
+    auto outcome = co_await MakeRequestCoro(request, Http::Method::Get);
+    if (outcome.isSuccess()) {
+        co_return GetObjectOutcome(GetObjectResult(request.Bucket(), request.Key(),
+            outcome.result().payload(),outcome.result().headerCollection()));
+    }
+    else {
+        co_return GetObjectOutcome(outcome.error());
+    }
+}
 #endif
 
 UploadPartCopyOutcome OssClientImpl::UploadPartCopy(const UploadPartCopyRequest &request) const
