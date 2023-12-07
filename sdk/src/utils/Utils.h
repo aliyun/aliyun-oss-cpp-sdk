@@ -66,6 +66,7 @@ namespace OSS
     bool IsIp(const std::string &host);
     bool IsValidBucketName(const std::string &bucketName);
     bool IsValidObjectKey(const std::string &key);
+    bool IsValidObjectKey(const std::string& key, bool strict);
     bool IsValidLoggingPrefix(const std::string &prefix);
     bool IsValidChannelName(const std::string &channelName);
     bool IsValidPlayListName(const std::string &playListName);

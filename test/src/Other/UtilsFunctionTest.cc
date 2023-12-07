@@ -1069,5 +1069,24 @@ TEST_F(UtilsFunctionTest, IsValidEndpointTest)
     EXPECT_EQ(IsValidEndpoint(""), false);
 }
 
+TEST_F(UtilsFunctionTest, IsValidObjectKeyTest)
+{
+    EXPECT_EQ(IsValidObjectKey("123"), true);
+    EXPECT_EQ(IsValidObjectKey(""), false);
+
+    EXPECT_EQ(IsValidObjectKey("123", true), true);
+    EXPECT_EQ(IsValidObjectKey("", true), false);
+
+    EXPECT_EQ(IsValidObjectKey("?123", true), false);
+    EXPECT_EQ(IsValidObjectKey("?", true), false);
+    EXPECT_EQ(IsValidObjectKey("1?23", true), true);
+    EXPECT_EQ(IsValidObjectKey(" ?", true), true);
+
+    EXPECT_EQ(IsValidObjectKey("?123", false), true);
+    EXPECT_EQ(IsValidObjectKey("?", false), true);
+    EXPECT_EQ(IsValidObjectKey("123?", false), true);
+    EXPECT_EQ(IsValidObjectKey(" ?", false), true);
+}
+
 }
 }

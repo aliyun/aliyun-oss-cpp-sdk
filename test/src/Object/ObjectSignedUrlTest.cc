@@ -667,6 +667,56 @@ TEST_F(ObjectSignedUrlTest, UnencodedSlashTest)
 }
 
 
+TEST_F(ObjectSignedUrlTest, VerifyObjctNameStrictTest)
+{
+    std::string key = "123?";
+    GeneratePresignedUrlRequest request= GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    auto urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    EXPECT_TRUE(urlOutcome.result().find("123%3F?") != std::string::npos);
+
+    key = "123?321";
+    request = GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    EXPECT_TRUE(urlOutcome.result().find("123%3F321?") != std::string::npos);
+
+    key = "?123";
+    request = GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), false);
+    EXPECT_TRUE(urlOutcome.error().Message().find("The Bucket or Key is invalid.") != std::string::npos);
+
+    key = "?";
+    request = GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    urlOutcome = Client->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), false);
+    EXPECT_TRUE(urlOutcome.error().Message().find("The Bucket or Key is invalid.") != std::string::npos);
+
+    ClientConfiguration conf;
+    EXPECT_TRUE(conf.isVerifyObjectStrict);
+    conf.isVerifyObjectStrict = false;
+    auto c = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+
+    key = "123?321";
+    request = GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    urlOutcome = c->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    EXPECT_TRUE(urlOutcome.result().find("/123%3F321?") != std::string::npos);
+
+    key = "?123";
+    request = GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    urlOutcome = c->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    EXPECT_TRUE(urlOutcome.result().find("/%3F123") != std::string::npos);
+
+    key = "?";
+    request = GeneratePresignedUrlRequest(BucketName, key, Http::Put);
+    urlOutcome = c->GeneratePresignedUrl(request);
+    EXPECT_EQ(urlOutcome.isSuccess(), true);
+    EXPECT_TRUE(urlOutcome.result().find("/%3F?") != std::string::npos);
+}
+
 
 }
 }

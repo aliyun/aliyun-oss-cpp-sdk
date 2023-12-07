@@ -1288,7 +1288,7 @@ GetObjectTaggingOutcome OssClientImpl::GetObjectTagging(const GetObjectTaggingRe
 StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
     if (!IsValidBucketName(request.bucket_) ||
-        !IsValidObjectKey(request.key_)) {
+        !IsValidObjectKey(request.key_, configuration().isVerifyObjectStrict)) {
         return StringOutcome(OssError("ValidateError", "The Bucket or Key is invalid."));
     }
 
