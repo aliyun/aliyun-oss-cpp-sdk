@@ -598,6 +598,17 @@ bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
     return key.size() <= ObjectNameLengthLimit;
 }
 
+ bool AlibabaCloud::OSS::IsValidObjectKey(const std::string& key, bool strict)
+ {
+     if (key.empty() || !key.compare(0, 1, "\\", 1))
+         return false;
+
+     if (strict && !key.compare(0, 1, "?", 1))
+         return false;
+
+     return key.size() <= ObjectNameLengthLimit;
+ }
+
  bool AlibabaCloud::OSS::IsValidLoggingPrefix(const std::string &prefix)
  {
      if (prefix.empty())

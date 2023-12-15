@@ -125,6 +125,10 @@ namespace OSS
         * enable or disable path style, default is false.
         */
         bool isPathStyle;
+        /**
+        * enable or disable verify object name strictly. defualt is true
+        */
+        bool isVerifyObjectStrict;
     };
 }
 }

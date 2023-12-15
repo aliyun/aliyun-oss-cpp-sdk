@@ -116,7 +116,8 @@ ClientConfiguration::ClientConfiguration() :
     recvRateLimiter(nullptr),
     executor(nullptr),
     httpClient(nullptr),
-    isPathStyle(false)
+    isPathStyle(false),
+    isVerifyObjectStrict(true)
 {
 
 }
