@@ -505,5 +505,23 @@ TEST_F(HttpClientTest, HttpMessageClassFunctionTest)
     HttpMessage message1(req);
     HttpMessage message4(static_cast<HttpMessage&&>(message1));
 }
+
+TEST_F(HttpClientTest, ClientBuilderTest) {
+    ClientConfiguration conf;
+    OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
+                                           .configuration(conf)
+                                           .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
+                                           .build<OssClient>();
+    std::string bucketName = TestUtils::GetBucketName("client-builder-test");
+    auto outcome = client.CreateBucket(CreateBucketRequest(bucketName));
+    if (!outcome.isSuccess())
+    {
+        std::cerr << "CreateBucket fail"
+                    << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
+    }
+
+    EXPECT_EQ(outcome.isSuccess(), true);
+}
+
 }
 }

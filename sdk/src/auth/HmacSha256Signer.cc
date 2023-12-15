@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "HmacSha1Signer.h"
+#include "HmacSha256Signer.h"
+#include "../utils/Utils.h"
 #if 0//def _WIN32
 #include <windows.h>
 #include <wincrypt.h>
@@ -27,19 +28,24 @@
 
 using namespace AlibabaCloud::OSS;
 
-HmacSha1Signer::HmacSha1Signer() :
-    Signer(HmacSha1, "HMAC-SHA1", "1.0")
+HmacSha256Signer::HmacSha256Signer() :
+    Signer(HmacSha256, "HMAC-SHA256", "2.0")
 {
 }
 
-HmacSha1Signer::~HmacSha1Signer()
+HmacSha256Signer::~HmacSha256Signer()
 {
 }
 
-std::string HmacSha1Signer::generate(const std::string & src, const std::string & secret) const
+std::string HmacSha256Signer::generate(const std::string & src, const std::string & secret) const {
+    OSS_LOG(LogLevel::LogError, "HmacSha256Signer", "no implemented, src = %s, secret = %s", src.c_str(), secret.c_str());
+    return "";
+}
+
+ByteBuffer HmacSha256Signer::calculate(const std::string &src, const ByteBuffer & secret) const
 {
-    if (src.empty())
-        return std::string();
+    if (src.size() == 0)
+        return ByteBuffer{};
 
 #if 0//def _WIN32
     typedef struct _my_blob {
@@ -64,7 +70,7 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
     DWORD dwDataLen = 32;
     HMAC_INFO HmacInfo;
     ZeroMemory(&HmacInfo, sizeof(HmacInfo));
-    HmacInfo.HashAlgid = CALG_SHA1;
+    HmacInfo.HashAlgid = CALG_SHA256;
 
     CryptAcquireContext(&hProv, NULL, MS_ENHANCED_PROV, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT | CRYPT_NEWKEYSET);
     CryptImportKey(hProv, (BYTE*)kb, kbLen, 0, CRYPT_IPSEC_HMAC_KEY, &hKey);
@@ -87,23 +93,19 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
     delete dest;
     return ret;
 #else
-    unsigned char md[32];
-    unsigned int mdLen = 32;
+    ByteBuffer md(EVP_MAX_MD_SIZE);
+    unsigned int mdLen = EVP_MAX_MD_SIZE;
 
-    if (HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.size()),
-        reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
-        md, &mdLen) == nullptr)
-        return std::string();
+    if (HMAC(EVP_sha256(), 
+             secret.data(), 
+             static_cast<int>(secret.size()),
+             reinterpret_cast<unsigned char const*>(src.data()), 
+             static_cast<int>(src.size()),
+             md.data(), &mdLen) == nullptr)
+        return ByteBuffer{};
 
-    char encodedData[100];
-    EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md, mdLen);
-    return encodedData;
+    md.resize(mdLen);
+
+    return md;
 #endif
-}
-
-ByteBuffer HmacSha1Signer::calculate(const std::string &src, const ByteBuffer & secret) const
-{
-    (void)src;
-    (void)secret;
-    return ByteBuffer{};
 }

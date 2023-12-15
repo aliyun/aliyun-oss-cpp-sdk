@@ -97,6 +97,102 @@ OssClient::~OssClient()
 {
 }
 
+OssClient::OssClientBuiderImpl::OssClientBuiderImpl():
+    endpoint_(""),
+    credentialsProvider_(std::make_shared<SimpleCredentialsProvider>("", "", "")),
+    configuration_(ClientConfiguration())
+{
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::endpoint(const std::string& endpoint)
+{
+    endpoint_ = endpoint;
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::credentialsProvider(const std::shared_ptr<CredentialsProvider>& credentialsProvider)
+{
+    credentialsProvider_ = credentialsProvider;
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::configuration(const ClientConfiguration& configuration)
+{
+    configuration_ = configuration;
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::authVersion(const std::string& authVersion)
+{
+    authVersion_ = authVersion;
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::region(const std::string& region)
+{
+    region_ = region;
+    product_ = "oss";
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::cloudBoxId(const std::string& cloudBoxId)
+{
+    region_ = cloudBoxId;
+    product_ = "oss-cloudbox";
+    return *this;
+}
+
+OssClient::OssClientBuiderImpl& OssClient::OssClientBuiderImpl::additionalHeaders(const std::vector<std::string> &additionalHeaders)
+{
+    additionalHeaders_ = additionalHeaders;
+    return *this;
+}
+
+namespace AlibabaCloud {
+namespace OSS {
+template <>
+OssClient OssClient::OssClientBuiderImpl::build<OssClient>()
+{
+    auto c = OssClient(endpoint_, credentialsProvider_, configuration_);
+    init(&c);
+    return c;
+}
+
+
+template <>
+OssClient* OssClient::OssClientBuiderImpl::build<OssClient *>()
+{
+    auto c = new OssClient(endpoint_, credentialsProvider_, configuration_);
+    init(c);
+    return c;
+}
+
+template <>
+std::shared_ptr<OssClient> OssClient::OssClientBuiderImpl::build<std::shared_ptr<OssClient>>()
+{
+    auto c = std::make_shared<OssClient>(endpoint_, credentialsProvider_, configuration_);
+    init(c.get());
+    return c;
+}
+}
+}
+
+void OssClient::OssClientBuiderImpl::init(OssClient *client)
+{
+    if (client == nullptr) {
+        return;
+    }
+
+    if (!region_.empty() && !authVersion_.empty()) {
+        client->client_->initSigner(region_, authVersion_, product_);
+    }
+
+    if (!additionalHeaders_.empty()) {
+        client->client_->setAdditionalHeaders(additionalHeaders_);
+    }
+}
+
+
 #if !defined(OSS_DISABLE_BUCKET)
 
 ListBucketsOutcome OssClient::ListBuckets() const
@@ -1006,3 +1102,7 @@ GetObjectOutcome OssClient::ResumableDownloadObject(const DownloadObjectRequest 
     return client_->ResumableDownloadObject(request);
 }
 #endif
+
+void OssClient::setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
+    client_->setAdditionalHeaders(additionalHeaders);
+}

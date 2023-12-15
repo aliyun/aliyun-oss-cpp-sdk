@@ -23,6 +23,7 @@
 #include <memory>
 #include <functional>
 #include <alibabacloud/oss/Export.h>
+#include <set>
 
 namespace AlibabaCloud
 {
@@ -201,5 +202,6 @@ namespace OSS
     using ParameterCollection = std::map<std::string, std::string, caseSensitiveLess>;
     using IOStreamFactory = std::function< std::shared_ptr<std::iostream>(void)>;
     using ByteBuffer = std::vector<unsigned char>;
+    using HeaderSet = std::set<std::string, caseInsensitiveLess>;
 }
 }

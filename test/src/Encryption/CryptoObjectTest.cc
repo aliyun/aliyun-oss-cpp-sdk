@@ -637,7 +637,7 @@ TEST_F(CryptoObjectTest, PutObjectFullSettingsTest)
     auto content = TestUtils::GetRandomStream(1024);
     key.append("/attachement_test.data");
 
-    std::string saveAs = "abc²âÊÔ123.zip";
+    std::string saveAs = "abcï¿½ï¿½ï¿½ï¿½123.zip";
     std::string contentDisposition = "attachment;filename*=utf-8''";
     contentDisposition.append(UrlEncode(saveAs));
 
@@ -652,7 +652,7 @@ TEST_F(CryptoObjectTest, PutObjectFullSettingsTest)
     //user metadata
     request.MetaData().UserMetaData()["MyKey1"] = "MyValue1";
     request.MetaData().UserMetaData()["MyKey2"] = "MyValue2";
-    request.MetaData().UserMetaData()["MyKey3"] = "ÖÐÎÄÄÚÈÝ";
+    request.MetaData().UserMetaData()["MyKey3"] = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
 
     auto outcome = Client->PutObject(request);
     EXPECT_EQ(outcome.isSuccess(), true);
@@ -666,7 +666,7 @@ TEST_F(CryptoObjectTest, PutObjectFullSettingsTest)
 
     EXPECT_EQ(metaOutcome.result().UserMetaData().at("MyKey1"), "MyValue1");
     EXPECT_EQ(metaOutcome.result().UserMetaData().at("MyKey2"), "MyValue2");
-    EXPECT_EQ(metaOutcome.result().UserMetaData().at("MyKey3"), "ÖÐÎÄÄÚÈÝ");
+    EXPECT_EQ(metaOutcome.result().UserMetaData().at("MyKey3"), "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
 }
 
 TEST_F(CryptoObjectTest, PutObjectDefaultMetadataTest)
@@ -743,7 +743,7 @@ TEST_F(CryptoObjectTest, PutObjectFullSettingsFromFileTest)
     EXPECT_EQ(file->good(), true);
     key.append("/attachement_test.data");
 
-    std::string saveAs = "abc²âÊÔ123.zip";
+    std::string saveAs = "abcï¿½ï¿½ï¿½ï¿½123.zip";
     std::string contentDisposition = "attachment;filename*=utf-8''";
     contentDisposition.append(UrlEncode(saveAs));
 

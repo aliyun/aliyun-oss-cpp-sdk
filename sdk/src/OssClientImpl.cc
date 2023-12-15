@@ -51,17 +51,33 @@ OssClientImpl::OssClientImpl(const std::string &endpoint, const std::shared_ptr<
     executor_(configuration.executor ? configuration.executor :std::make_shared<ThreadExecutor>()),
     isValidEndpoint_(IsValidEndpoint(endpoint))
 {
+    initSigner();
 }
 
 OssClientImpl::~OssClientImpl()
 {
 }
 
+void OssClientImpl::initSigner(const std::string &region, const std::string &version, const std::string &product) {
+    authSigner_ = AuthSigner::CreateSigner(region, version, product);
+}
+
+void OssClientImpl::setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
+    if (!additionalHeaders.empty()) {
+        for (const auto &header : additionalHeaders) {
+            std::string lowerKey = Trim(ToLower(header.c_str()).c_str());
+            if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "content-md5" && lowerKey != "content-type") {
+                additionalHeaders_.insert(lowerKey);
+            }
+        }
+    }
+}
+
 int OssClientImpl::asyncExecute(Runnable * r) const
 {
     if (executor_ == nullptr)
         return 1;
-    
+
     executor_->execute(r);
     return 0;
 }
@@ -78,8 +94,7 @@ std::shared_ptr<HttpRequest> OssClientImpl::buildHttpRequest(const std::string &
         httpRequest->setUrl(Url(msg.Path()));
     }
     else {
-        addSignInfo(httpRequest, msg);
-        addUrl(httpRequest, endpoint, msg);
+        addUrlAndSignRequest(httpRequest, endpoint, msg);
     }
     addOther(httpRequest, msg);
     return httpRequest;
@@ -127,16 +142,6 @@ void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, 
 
     //common headers
     httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
-
-    //Date
-    if (httpRequest->hasHeader("x-oss-date")) {
-        httpRequest->addHeader(Http::DATE, httpRequest->Header("x-oss-date"));
-    }
-    if (!httpRequest->hasHeader(Http::DATE)) {
-        std::time_t t = std::time(nullptr);
-        t += getRequestDateOffset();
-        httpRequest->addHeader(Http::DATE, ToGmtTime(t));
-    }
 }
 
 void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5) const
@@ -163,78 +168,6 @@ void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, con
     httpRequest->addBody(body);
 }
 
-void OssClientImpl::addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const
-{
-    const Credentials credentials = credentialsProvider_->getCredentials();
-    if (!credentials.SessionToken().empty()) {
-        httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
-    }
-
-    //Sort the parameters
-    ParameterCollection parameters;
-    for (auto const&param : request.Parameters()) {
-        parameters[param.first] = param.second;
-    }
-
-    std::string method = Http::MethodToString(httpRequest->method());
-
-    const OssRequest& ossRequest = static_cast<const OssRequest&>(request);
-    std::string resource;
-    resource.append("/");
-    if (!ossRequest.bucket().empty()) {
-        resource.append(ossRequest.bucket());
-        resource.append("/");
-    }
-    if (!ossRequest.key().empty()) {
-        resource.append(ossRequest.key());
-    }
-
-    std::string date = httpRequest->Header(Http::DATE);
-
-    SignUtils signUtils(signer_->version());
-    signUtils.build(method, resource, date, httpRequest->Headers(), parameters);
-    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
-
-    std::stringstream authValue;
-    authValue
-        << "OSS "
-        << credentials.AccessKeyId()
-        << ":"
-        << signature;
-
-    httpRequest->addHeader(Http::AUTHORIZATION, authValue.str());
-
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) CanonicalString:%s", this, httpRequest.get(), signUtils.CanonicalString().c_str());
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) Authorization:%s", this, httpRequest.get(), authValue.str().c_str());
-}
-
-void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, const std::string &endpoint, const ServiceRequest &request) const
-{
-    const OssRequest& ossRequest = static_cast<const OssRequest&>(request);
-
-    auto host = CombineHostString(endpoint, ossRequest.bucket(), configuration().isCname, configuration().isPathStyle);
-    auto path = CombinePathString(endpoint, ossRequest.bucket(), ossRequest.key(), configuration().isPathStyle);
-
-    Url url(host);
-    url.setPath(path);
-
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) host:%s, path:%s", this, httpRequest.get(), host.c_str(), path.c_str());
-    
-    auto parameters = request.Parameters();
-    if (!parameters.empty()) {
-        std::stringstream queryString;
-        for (const auto &p : parameters)
-        {
-            if (p.second.empty())
-                queryString << "&" << UrlEncode(p.first);
-            else
-                queryString << "&" << UrlEncode(p.first) << "=" << UrlEncode(p.second);
-        }
-        url.setQuery(queryString.str().substr(1));
-    }
-    httpRequest->setUrl(url);
-}
-
 void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const
 {
     //progress
@@ -251,6 +184,51 @@ void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, co
 #endif
     }
 }
+
+void OssClientImpl::addUrlAndSignRequest(const std::shared_ptr<HttpRequest>& httpRequest, const std::string& endpoint, const ServiceRequest& request) const
+{
+    //build request url
+    const OssRequest& ossRequest = static_cast<const OssRequest&>(request);
+    auto bucket = ossRequest.bucket();
+    auto key = ossRequest.key();
+    auto parameters = request.Parameters();
+
+    auto host = CombineHostString(endpoint, ossRequest.bucket(), configuration().isCname, configuration().isPathStyle);
+    auto path = CombinePathString(endpoint, ossRequest.bucket(), ossRequest.key(), configuration().isPathStyle);
+
+    Url url(host);
+    url.setPath(path);
+
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) host:%s, path:%s", this, httpRequest.get(), host.c_str(), path.c_str());
+
+    if (!parameters.empty()) {
+        std::stringstream queryString;
+        for (const auto &p : parameters)
+        {
+            if (p.second.empty())
+                queryString << "&" << UrlEncode(p.first);
+            else
+                queryString << "&" << UrlEncode(p.first) << "=" << UrlEncode(p.second);
+        }
+        url.setQuery(queryString.str().substr(1));
+    }
+    httpRequest->setUrl(url);
+
+    //sign request
+    Credentials credentials = credentialsProvider_->getCredentials();
+    if (!credentials.SessionToken().empty()) {
+        httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
+    }
+
+    //TODO anonymous request 
+    std::time_t requestTime = std::time(nullptr);
+    requestTime += getRequestDateOffset();
+    AuthSignerParam param(std::move(bucket), std::move(key), std::move(credentials), std::move(requestTime));
+    param.setAdditionalHeaders(additionalHeaders_);
+    param.setParameters(parameters);
+    authSigner_->signRequest(*httpRequest.get(), param);
+}
+
 
 OssError OssClientImpl::buildError(const Error &error) const
 {
