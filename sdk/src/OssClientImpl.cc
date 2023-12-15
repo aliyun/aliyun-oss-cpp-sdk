@@ -193,8 +193,8 @@ void OssClientImpl::addUrlAndSignRequest(const std::shared_ptr<HttpRequest>& htt
     auto key = ossRequest.key();
     auto parameters = request.Parameters();
 
-    auto host = CombineHostString(endpoint, bucket, configuration().isCname);
-    auto path = CombinePathString(endpoint, bucket, key);
+    auto host = CombineHostString(endpoint, ossRequest.bucket(), configuration().isCname, configuration().isPathStyle);
+    auto path = CombinePathString(endpoint, ossRequest.bucket(), ossRequest.key(), configuration().isPathStyle);
 
     Url url(host);
     url.setPath(path);
@@ -1266,7 +1266,7 @@ GetObjectTaggingOutcome OssClientImpl::GetObjectTagging(const GetObjectTaggingRe
 StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequest &request) const
 {
     if (!IsValidBucketName(request.bucket_) ||
-        !IsValidObjectKey(request.key_)) {
+        !IsValidObjectKey(request.key_, configuration().isVerifyObjectStrict)) {
         return StringOutcome(OssError("ValidateError", "The Bucket or Key is invalid."));
     }
 
@@ -1293,9 +1293,9 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
 
     //host
     std::stringstream ss;
-    ss << CombineHostString(endpoint_, request.bucket_, configuration().isCname);
+    ss << CombineHostString(endpoint_, request.bucket_, configuration().isCname, configuration().isPathStyle);
     //path
-    auto path = CombinePathString(endpoint_, request.bucket_, request.key_);
+    auto path = CombinePathString(endpoint_, request.bucket_, request.key_, configuration().isPathStyle);
     if (request.unencodedSlash_) {
         StringReplace(path, "%2F", "/");
     }
@@ -1727,9 +1727,9 @@ StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRe
     parameters["Signature"] = signature;
 
     ss.str("");
-    ss << CombineRTMPString(endpoint_, request.bucket_, configuration().isCname);
+    ss << CombineRTMPString(endpoint_, request.bucket_, configuration().isCname, configuration().isPathStyle);
     ss << "/live";
-    ss << CombinePathString(endpoint_, request.bucket_, request.key_);
+    ss << CombinePathString(endpoint_, request.bucket_, request.key_, configuration().isPathStyle);
     ss << "?";
     ss << CombineQueryString(parameters);
 

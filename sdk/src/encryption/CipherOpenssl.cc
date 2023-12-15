@@ -21,6 +21,9 @@
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <cstring>
+#if defined(OPENSSL_API_LEVEL) && OPENSSL_API_LEVEL >= 30000
+#include <openssl/decoder.h>
+#endif
 
 using namespace AlibabaCloud::OSS;
 
@@ -160,6 +163,75 @@ AsymmetricCipherOpenssl::~AsymmetricCipherOpenssl()
 
 ByteBuffer AsymmetricCipherOpenssl::Encrypt(const ByteBuffer& data)
 {
+#if defined(OPENSSL_API_LEVEL) && OPENSSL_API_LEVEL >= 30000
+    BIO* bio = NULL;
+    OSSL_DECODER_CTX* dctx = NULL;
+    EVP_PKEY* pkey = NULL;
+    EVP_PKEY_CTX* ctx = NULL;
+    ByteBuffer enc;
+
+    do {
+
+        if (data.empty()) {
+            break;
+        }
+
+        dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, "PEM", NULL, "RSA", EVP_PKEY_PUBLIC_KEY, NULL, NULL);
+
+        if (dctx == NULL) {
+            break;
+        }
+
+        bio = BIO_new(BIO_s_mem());
+        BIO_puts(bio, PublicKey().c_str());
+
+        if (OSSL_DECODER_from_bio(dctx, bio) == 0) {
+            break;
+        }
+
+        ctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL);
+        if (ctx == NULL) {
+            break;
+        }
+
+        if (EVP_PKEY_encrypt_init_ex(ctx, NULL) <= 0) {
+            break;
+        }
+
+        if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING) <= 0) {
+            break;
+        }
+
+        size_t enc_len = 0;
+        if (EVP_PKEY_encrypt(ctx, NULL, &enc_len, (unsigned char*)data.data(), data.size()) <= 0) {
+            break;
+        }
+        enc.resize(enc_len, 0);
+        
+        if (EVP_PKEY_encrypt(ctx, (unsigned char*)enc.data(), &enc_len, (unsigned char*)data.data(), data.size()) <= 0) {
+            enc.resize(0);
+            break;
+        }
+    } while (0);
+
+    if (bio) {
+        BIO_free(bio);
+    }
+
+    if (dctx != NULL) {
+        OSSL_DECODER_CTX_free(dctx);
+    }
+
+    if (pkey) {
+        EVP_PKEY_free(pkey);
+    }
+
+    if (ctx != NULL) {
+        EVP_PKEY_CTX_free(ctx);
+    }
+
+    return enc;
+#else 
     RSA* rsa = NULL;
     BIO* bio = NULL;
     EVP_PKEY* pkey = NULL;
@@ -177,7 +249,7 @@ ByteBuffer AsymmetricCipherOpenssl::Encrypt(const ByteBuffer& data)
         }
         else {
             pkey = PEM_read_bio_PUBKEY(bio, &pkey, NULL, NULL);
-            rsa = pkey? EVP_PKEY_get1_RSA(pkey) : NULL;
+            rsa = pkey ? EVP_PKEY_get1_RSA(pkey) : NULL;
         }
 
         if (rsa == NULL) {
@@ -206,10 +278,69 @@ ByteBuffer AsymmetricCipherOpenssl::Encrypt(const ByteBuffer& data)
     }
 
     return enc;
+
+#endif
 }
 
 ByteBuffer AsymmetricCipherOpenssl::Decrypt(const ByteBuffer& data)
 {
+#if defined(OPENSSL_API_LEVEL) && OPENSSL_API_LEVEL >= 30000
+    BIO* bio = NULL;
+    EVP_PKEY* pkey = NULL;
+    EVP_PKEY_CTX* ctx = NULL;
+    ByteBuffer dec;
+
+    do {
+
+        if (data.empty()) {
+            break;
+        }
+
+        bio = BIO_new(BIO_s_mem());
+        BIO_puts(bio, PrivateKey().c_str());
+
+        pkey = PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+
+        ctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL);
+        if (ctx == NULL) {
+            break;
+        }
+
+        if (EVP_PKEY_decrypt_init_ex(ctx, NULL) <= 0) {
+            break;
+        }
+
+        if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING) <= 0) {
+            break;
+        }
+
+        size_t dec_len = 0;
+        if (EVP_PKEY_decrypt(ctx, NULL, &dec_len, (unsigned char*)data.data(), data.size()) <= 0) {
+            break;
+        }
+        dec.resize(dec_len, 0);
+        
+        if (EVP_PKEY_decrypt(ctx, (unsigned char*)dec.data(), &dec_len, (unsigned char*)data.data(), data.size()) <= 0) {
+            dec_len = 0;
+        }
+        dec.resize(dec_len);
+
+    } while (0);
+
+    if (bio) {
+        BIO_free(bio);
+    }
+
+    if (pkey) {
+        EVP_PKEY_free(pkey);
+    }
+
+    if (ctx != NULL) {
+        EVP_PKEY_CTX_free(ctx);
+    }
+
+    return dec;
+#else
     RSA* rsa = NULL;
     BIO* bio = NULL;
     EVP_PKEY* pkey = NULL;
@@ -255,4 +386,5 @@ ByteBuffer AsymmetricCipherOpenssl::Decrypt(const ByteBuffer& data)
     }
 
     return dec;
+#endif
 }

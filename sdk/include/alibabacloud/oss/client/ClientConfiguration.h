@@ -90,7 +90,7 @@ namespace OSS
         */
         std::string caFile;
         /**
-        * your certificate file.
+        * enable or disable cname, default is false.
         */
         bool isCname;
         /**
@@ -121,6 +121,14 @@ namespace OSS
         * Your http client' implement
         */
         std::shared_ptr<HttpClient> httpClient;
+        /**
+        * enable or disable path style, default is false.
+        */
+        bool isPathStyle;
+        /**
+        * enable or disable verify object name strictly. defualt is true
+        */
+        bool isVerifyObjectStrict;
     };
 }
 }

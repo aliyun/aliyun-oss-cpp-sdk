@@ -66,7 +66,7 @@ std::string BucketWebsiteSettingsTest::BucketName = "";
 TEST_F(BucketWebsiteSettingsTest, InvalidBucketNameTest)
 {
     std::string indexDoc = "index.html";
-    for (auto const invalidBucketName : TestUtils::InvalidBucketNamesList()) {
+    for (auto const& invalidBucketName : TestUtils::InvalidBucketNamesList()) {
         auto outcome = Client->SetBucketWebsite(invalidBucketName, indexDoc);
         EXPECT_EQ(outcome.isSuccess(), false);
         EXPECT_STREQ(outcome.error().Code().c_str(), "ValidateError");

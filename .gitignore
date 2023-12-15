@@ -1,4 +1,3 @@
+.cache
+build
 .vscode/
-build/
-oss.ini
-.gitignore

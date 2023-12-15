@@ -66,7 +66,7 @@ std::string BucketPolicySettingsTest::BucketName = "";
 TEST_F(BucketPolicySettingsTest, InvalidBucketNameTest)
 {
     std::string policy = "invalidpolicy";
-    for (auto const invalidBucketName : TestUtils::InvalidBucketNamesList()) {
+    for (auto const& invalidBucketName : TestUtils::InvalidBucketNamesList()) {
         SetBucketPolicyRequest  request(invalidBucketName);
         request.setPolicy(policy);
         auto outcome = Client->SetBucketPolicy(request);

@@ -16,7 +16,6 @@
 
 #include <alibabacloud/oss/auth/CredentialsProvider.h>
 
-
 using namespace AlibabaCloud::OSS;
 
 SimpleCredentialsProvider::SimpleCredentialsProvider(const Credentials &credentials):

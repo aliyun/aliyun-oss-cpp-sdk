@@ -127,8 +127,11 @@ ListObjectsResult& ListObjectsResult::operator =(const std::string& result)
                     sub_node = node->FirstChildElement("DisplayName");
                     if (sub_node && sub_node->GetText()) owner_DisplayName = sub_node->GetText();
                 }
-
                 content.owner_ = Owner(owner_ID, owner_DisplayName);
+
+                node = contents_node->FirstChildElement("RestoreInfo");
+                if (node && node->GetText()) content.restoreInfo_ = node->GetText();
+
                 objectSummarys_.push_back(content);
             }
 

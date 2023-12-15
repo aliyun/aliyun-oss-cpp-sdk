@@ -536,27 +536,74 @@ TEST_F(UtilsFunctionTest, GetIOStreamLengthResetContentPositionTest)
 
 TEST_F(UtilsFunctionTest, CombineHostStringTest)
 {
-    EXPECT_STREQ(CombineHostString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", false).c_str(),
+    EXPECT_STREQ(CombineHostString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, false).c_str(),
         "http://test-bucket.oss-cn-hangzhou.aliyuncs.com");
-    EXPECT_STREQ(CombineHostString("oss-cn-hangzhou.aliyuncs.com", "test-bucket", false).c_str(),
+    EXPECT_STREQ(CombineHostString("oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, false).c_str(),
         "http://test-bucket.oss-cn-hangzhou.aliyuncs.com");
-    EXPECT_STREQ(CombineHostString("http://192.168.1.1", "test-bucket", false).c_str(),
+    EXPECT_STREQ(CombineHostString("http://192.168.1.1", "test-bucket", false, false).c_str(),
         "http://192.168.1.1");
 
-    EXPECT_STREQ(CombineHostString("http://cname.com", "test-bucket", true).c_str(),
+    EXPECT_STREQ(CombineHostString("http://cname.com", "test-bucket", true, false).c_str(),
         "http://cname.com");
-    EXPECT_STREQ(CombineHostString("cname.com", "test-bucket", true).c_str(),
+    EXPECT_STREQ(CombineHostString("cname.com", "test-bucket", true, false).c_str(),
         "http://cname.com");
-    EXPECT_STREQ(CombineHostString("http://192.168.1.1", "test-bucket", true).c_str(),
+    EXPECT_STREQ(CombineHostString("http://192.168.1.1", "test-bucket", true, false).c_str(),
+        "http://192.168.1.1");
+
+    //path style
+    EXPECT_STREQ(CombineHostString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, true).c_str(),
+        "http://oss-cn-hangzhou.aliyuncs.com");
+    EXPECT_STREQ(CombineHostString("oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, true).c_str(),
+        "http://oss-cn-hangzhou.aliyuncs.com");
+    EXPECT_STREQ(CombineHostString("http://cname.com", "test-bucket", true, true).c_str(),
+        "http://cname.com");
+    EXPECT_STREQ(CombineHostString("cname.com", "test-bucket", true, true).c_str(),
+        "http://cname.com");
+    EXPECT_STREQ(CombineHostString("http://192.168.1.1", "test-bucket", true, true).c_str(),
         "http://192.168.1.1");
 }
 
 TEST_F(UtilsFunctionTest, CombinePathStringTest)
 {
-    EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key").c_str(),
+    EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key", false).c_str(),
         "/test-key");
-    EXPECT_STREQ(CombinePathString("http://192.168.1.1", "test-bucket", "test-key").c_str(),
+    EXPECT_STREQ(CombinePathString("http://192.168.1.1", "test-bucket", "test-key", false).c_str(),
         "/test-bucket/test-key");
+
+    //path style
+    EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key", true).c_str(),
+        "/test-bucket/test-key");
+    EXPECT_STREQ(CombinePathString("http://192.168.1.1", "test-bucket", "test-key", true).c_str(),
+        "/test-bucket/test-key");
+}
+
+TEST_F(UtilsFunctionTest, CombineRTMPStringTest)
+{
+    EXPECT_STREQ(CombineRTMPString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, false).c_str(),
+        "rtmp://test-bucket.oss-cn-hangzhou.aliyuncs.com");
+    EXPECT_STREQ(CombineRTMPString("oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, false).c_str(),
+        "rtmp://test-bucket.oss-cn-hangzhou.aliyuncs.com");
+    EXPECT_STREQ(CombineRTMPString("http://192.168.1.1", "test-bucket", false, false).c_str(),
+        "rtmp://192.168.1.1");
+
+    EXPECT_STREQ(CombineRTMPString("http://cname.com", "test-bucket", true, false).c_str(),
+        "rtmp://cname.com");
+    EXPECT_STREQ(CombineRTMPString("cname.com", "test-bucket", true, false).c_str(),
+        "rtmp://cname.com");
+    EXPECT_STREQ(CombineRTMPString("http://192.168.1.1", "test-bucket", true, false).c_str(),
+        "rtmp://192.168.1.1");
+
+    //path style
+    EXPECT_STREQ(CombineRTMPString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, true).c_str(),
+        "rtmp://oss-cn-hangzhou.aliyuncs.com");
+    EXPECT_STREQ(CombineRTMPString("oss-cn-hangzhou.aliyuncs.com", "test-bucket", false, true).c_str(),
+        "rtmp://oss-cn-hangzhou.aliyuncs.com");
+    EXPECT_STREQ(CombineRTMPString("http://cname.com", "test-bucket", true, true).c_str(),
+        "rtmp://cname.com");
+    EXPECT_STREQ(CombineRTMPString("cname.com", "test-bucket", true, true).c_str(),
+        "rtmp://cname.com");
+    EXPECT_STREQ(CombineRTMPString("http://192.168.1.1", "test-bucket", true, true).c_str(),
+        "rtmp://192.168.1.1");
 }
 
 TEST_F(UtilsFunctionTest, CombineQueryStringTest)
@@ -1112,5 +1159,25 @@ TEST_F(UtilsFunctionTest, CaseInsensitiveLessTest) {
     EXPECT_EQ(true, set.find(AuthSignerV4::X_OSS_CONTENT_SHA256) != set.end());
     EXPECT_EQ(true, set.find("x-oss-content-sha256") != set.end());
 }
+
+TEST_F(UtilsFunctionTest, IsValidObjectKeyTest)
+{
+    EXPECT_EQ(IsValidObjectKey("123"), true);
+    EXPECT_EQ(IsValidObjectKey(""), false);
+
+    EXPECT_EQ(IsValidObjectKey("123", true), true);
+    EXPECT_EQ(IsValidObjectKey("", true), false);
+
+    EXPECT_EQ(IsValidObjectKey("?123", true), false);
+    EXPECT_EQ(IsValidObjectKey("?", true), false);
+    EXPECT_EQ(IsValidObjectKey("1?23", true), true);
+    EXPECT_EQ(IsValidObjectKey(" ?", true), true);
+
+    EXPECT_EQ(IsValidObjectKey("?123", false), true);
+    EXPECT_EQ(IsValidObjectKey("?", false), true);
+    EXPECT_EQ(IsValidObjectKey("123?", false), true);
+    EXPECT_EQ(IsValidObjectKey(" ?", false), true);
+}
+
 }
 }

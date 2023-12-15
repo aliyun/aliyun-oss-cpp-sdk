@@ -43,5 +43,11 @@ namespace OSS
     private:
         Credentials credentials_;
     };
+
+    class ALIBABACLOUD_OSS_EXPORT EnvironmentVariableCredentialsProvider : public CredentialsProvider
+    {
+    public:
+        Credentials getCredentials() override;
+    };
 }
 }

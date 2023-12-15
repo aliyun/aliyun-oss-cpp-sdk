@@ -1049,8 +1049,8 @@ TEST_F(CryptoResumableObjectTest, UnnormalResumableDownloadWithNotExitsCheckpoin
     auto outcome = Client->ResumableDownloadObject(request);
     std::shared_ptr<std::iostream> content = nullptr;
     outcome.result().setContent(content);
-    EXPECT_EQ(outcome.isSuccess(), true);
-    //EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    EXPECT_EQ(outcome.error().Code(), "ValidateError");
+    EXPECT_EQ(outcome.isSuccess(), false);
 
     RemoveFile(targetFile.append(".temp"));
     RemoveFile(tmpFile);
