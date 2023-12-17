@@ -281,6 +281,10 @@ namespace OSS
         /*Requests control*/
         void DisableRequest();
         void EnableRequest();
+
+        /*Others*/
+        void SetRegion(const std::string& region);
+        void SetCloudBoxId(const std::string& cloudboxId);
     protected:
         std::shared_ptr<OssClientImpl> client_;
     };

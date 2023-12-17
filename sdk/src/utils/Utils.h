@@ -38,6 +38,7 @@ namespace OSS
     std::string GenerateUuid();
     std::string UrlEncode(const std::string &src);
     std::string UrlDecode(const std::string &src);
+    std::string UrlEncodePath(const std::string & src, bool ignoreSlash);
 
     std::string Base64Encode(const std::string &src);
     std::string Base64Encode(const ByteBuffer& buffer);
@@ -62,6 +63,8 @@ namespace OSS
     std::string ToGmtTime(std::time_t &t);
     std::string ToUtcTime(std::time_t &t);
     std::time_t UtcToUnixTime(const std::string &t);
+    std::time_t ToUnixTime(const std::string &str, const std::string &fmt);
+    std::string FormatUnixTime(const std::time_t &t, const std::string &fmt);
 
     bool IsIp(const std::string &host);
     bool IsValidBucketName(const std::string &bucketName);
@@ -76,7 +79,7 @@ namespace OSS
 
     const std::string &LookupMimeType(const std::string& name);
     std::string CombineHostString(const std::string &endpoint, const std::string &bucket, bool isCname, bool isPathStyle);
-    std::string CombinePathString(const std::string &endpoint, const std::string &bucket, const std::string &key, bool isPathStyle);
+    std::string CombinePathString(const std::string &endpoint, const std::string &bucket, const std::string &key, bool isPathStyle, bool ignoreSlash = true);
     std::string CombineQueryString(const ParameterCollection &parameters);
     std::string CombineRTMPString(const std::string &endpoint, const std::string &bucket, bool isCname, bool isPathStyle);
 

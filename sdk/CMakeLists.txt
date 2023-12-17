@@ -44,6 +44,7 @@ file(GLOB sdk_auth_src "src/auth/*.cc")
 file(GLOB sdk_client_src "src/client/*.cc")
 file(GLOB sdk_http_src "src/http/*.cc")
 file(GLOB sdk_utils_src "src/utils/*.cc")
+file(GLOB sdk_signer_src "src/signer/*.cc")
 file(GLOB sdk_public_src "src/*.cc")
 
 #add source by DISABLE_XX option
@@ -115,6 +116,7 @@ file(GLOB sdk_src
     ${sdk_client_src}
     ${sdk_http_src}
     ${sdk_utils_src}
+    ${sdk_signer_src}
     ${sdk_model_src}
     ${sdk_public_src}
     ${sdk_resumable_src}

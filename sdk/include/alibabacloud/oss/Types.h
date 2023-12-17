@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <memory>
 #include <functional>
 #include <alibabacloud/oss/Export.h>
@@ -158,6 +159,13 @@ namespace OSS
         Bulk
     };
 
+    enum class SignatureVersionType
+    {
+        V1,
+        V4,
+    };
+
+
     typedef void(*LogCallback)(LogLevel level, const std::string& stream);
 
     struct  ALIBABACLOUD_OSS_EXPORT caseSensitiveLess
@@ -201,5 +209,6 @@ namespace OSS
     using ParameterCollection = std::map<std::string, std::string, caseSensitiveLess>;
     using IOStreamFactory = std::function< std::shared_ptr<std::iostream>(void)>;
     using ByteBuffer = std::vector<unsigned char>;
+    using HeaderSet = std::set<std::string, caseInsensitiveLess>;
 }
 }

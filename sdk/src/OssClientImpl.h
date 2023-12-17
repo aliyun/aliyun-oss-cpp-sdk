@@ -23,7 +23,7 @@
 #include <alibabacloud/oss/OssResponse.h>
 #include <alibabacloud/oss/utils/Executor.h>
 #include <alibabacloud/oss/OssFwd.h>
-#include "auth/Signer.h"
+#include "signer/Signer.h"
 #include "client/Client.h"
 #ifdef GetObject
 #undef GetObject
@@ -169,6 +169,10 @@ namespace OSS
         void DisableRequest();
         void EnableRequest();
 
+        /*Others*/
+        void SetRegion(const std::string &region);
+        void SetCloudBoxId(const std::string &cloudboxId);
+
     protected:
         virtual std::shared_ptr<HttpRequest> buildHttpRequest(const std::string & endpoint, const ServiceRequest &msg, Http::Method method) const;
         virtual bool hasResponseError(const std::shared_ptr<HttpResponse>&response)  const;
@@ -190,6 +194,8 @@ namespace OSS
         std::shared_ptr<Signer> signer_;
         std::shared_ptr<Executor> executor_;
         bool isValidEndpoint_;
+        std::string region_;
+        std::string cloudboxId_;
     };
 }
 }

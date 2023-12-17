@@ -34,8 +34,7 @@ GeneratePresignedUrlRequest::GeneratePresignedUrlRequest(const std::string &buck
     unencodedSlash_(false)
 {
     //defalt 15 min
-    std::time_t t = std::time(nullptr) + 15*60;
-    metaData_.setExpirationTime(std::to_string(t));
+    expires_ = (int64_t)(std::time(nullptr) + 15*60);
 }
 
 void GeneratePresignedUrlRequest::setBucket(const std::string &bucket)
@@ -60,7 +59,7 @@ void GeneratePresignedUrlRequest::setContentMd5(const std::string &value)
 
 void GeneratePresignedUrlRequest::setExpires(int64_t unixTime)
 {
-    metaData_.setExpirationTime(std::to_string(unixTime));
+    expires_ = unixTime;
 }
 
 void GeneratePresignedUrlRequest::setProcess(const std::string &value)
@@ -104,7 +103,18 @@ MetaData &GeneratePresignedUrlRequest::UserMetaData()
     return metaData_.UserMetaData();
 }
 
+MetaData &GeneratePresignedUrlRequest::HttpMetaData()
+{
+    return metaData_.HttpMetaData();
+}
+
+
 void GeneratePresignedUrlRequest::setUnencodedSlash(bool value)
 {
     unencodedSlash_ = value;
+}
+
+void GeneratePresignedUrlRequest::addAdditionalSignHeader(const std::string&key)
+{
+    additionalSignHeaders_.emplace(key);
 }

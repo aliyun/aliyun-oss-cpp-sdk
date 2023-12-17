@@ -23,7 +23,7 @@
 #include <fstream>
 #include "src/utils/FileSystemUtils.h"
 #include "src/utils/StreamBuf.h"
-#include "src/auth/HmacSha1Signer.h"
+#include "src/signer/Signer.h"
 
 namespace AlibabaCloud {
 namespace OSS {
@@ -114,6 +114,13 @@ static std::vector<std::string> urlPat =
     "hello%20world%21"
 };
 
+static std::vector<std::string> urlPatIgnoreSlash =
+{
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_~",
+    "%60%21%40%23%24%25%5E%26%2A%28%29%2B%3D%7B%7D%5B%5D%3A%3B%27%5C%7C%3C%3E%2C%3F/%20%22",
+    "hello%20world%21"
+};
+
 TEST_F(UtilsFunctionTest, UrlEncodeTest)
 {
     auto i = urlOri.size();
@@ -123,6 +130,23 @@ TEST_F(UtilsFunctionTest, UrlEncodeTest)
     }
     EXPECT_TRUE((i == urlOri.size()));
 }
+
+TEST_F(UtilsFunctionTest, UrlEncodePathTest)
+{
+    auto i = urlOri.size();
+    for (i = 0; i < urlOri.size(); i++) {
+        auto result = UrlEncodePath(urlOri[i], true);
+        EXPECT_STREQ(result.c_str(), urlPatIgnoreSlash[i].c_str());
+    }
+    EXPECT_TRUE((i == urlOri.size()));
+
+    for (i = 0; i < urlOri.size(); i++) {
+        auto result = UrlEncodePath(urlOri[i], false);
+        EXPECT_STREQ(result.c_str(), urlPat[i].c_str());
+    }
+    EXPECT_TRUE((i == urlOri.size()));
+}
+
 
 TEST_F(UtilsFunctionTest, UrlDecodeTest)
 {
@@ -184,11 +208,11 @@ TEST_F(UtilsFunctionTest, ToCopyActionNameTest)
 
 TEST_F(UtilsFunctionTest, TrimSpaceChTest)
 {
-    std::string str = " ÖÐÎÄ  ";
-    EXPECT_STREQ(Trim(str.c_str()).c_str(), "ÖÐÎÄ");
+    std::string str = " ï¿½ï¿½ï¿½ï¿½  ";
+    EXPECT_STREQ(Trim(str.c_str()).c_str(), "ï¿½ï¿½ï¿½ï¿½");
 
-    str = " ÖÐ  ÎÄ  ";
-    EXPECT_STREQ(Trim(str.c_str()).c_str(), "ÖÐ  ÎÄ");
+    str = " ï¿½ï¿½  ï¿½ï¿½  ";
+    EXPECT_STREQ(Trim(str.c_str()).c_str(), "ï¿½ï¿½  ï¿½ï¿½");
 }
 
 TEST_F(UtilsFunctionTest, TrimSpaceTest)
@@ -569,11 +593,25 @@ TEST_F(UtilsFunctionTest, CombinePathStringTest)
     EXPECT_STREQ(CombinePathString("http://192.168.1.1", "test-bucket", "test-key", false).c_str(),
         "/test-bucket/test-key");
 
+    EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key/123/456+/1.txt", false).c_str(),
+        "/test-key/123/456%2B/1.txt");
+
     //path style
     EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key", true).c_str(),
         "/test-bucket/test-key");
     EXPECT_STREQ(CombinePathString("http://192.168.1.1", "test-bucket", "test-key", true).c_str(),
         "/test-bucket/test-key");
+    EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key/123/456+/1.txt", true).c_str(),
+        "/test-bucket/test-key/123/456%2B/1.txt");
+
+    // encode slash
+    EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key/123/456+/1.txt", false, false).c_str(),
+        "/test-key%2F123%2F456%2B%2F1.txt");
+    EXPECT_STREQ(CombinePathString("http://192.168.1.1", "test-bucket-ip", "test-key/123/456+/1.txt", true, false).c_str(),
+        "/test-bucket-ip/test-key%2F123%2F456%2B%2F1.txt");
+    EXPECT_STREQ(CombinePathString("http://oss-cn-hangzhou.aliyuncs.com", "test-bucket", "test-key/123/456+/1.txt", true, false).c_str(),
+        "/test-bucket/test-key%2F123%2F456%2B%2F1.txt");
+
 }
 
 TEST_F(UtilsFunctionTest, CombineRTMPStringTest)
@@ -859,7 +897,7 @@ TEST_F(UtilsFunctionTest, UrlFunctionTest)
 
 TEST_F(UtilsFunctionTest, SignerFunctionTest)
 {
-    HmacSha1Signer s;
+    SignerV1 s;
     s.name();
     s.type();
     std::string str;
@@ -1086,6 +1124,112 @@ TEST_F(UtilsFunctionTest, IsValidObjectKeyTest)
     EXPECT_EQ(IsValidObjectKey("?", false), true);
     EXPECT_EQ(IsValidObjectKey("123?", false), true);
     EXPECT_EQ(IsValidObjectKey(" ?", false), true);
+}
+
+TEST_F(UtilsFunctionTest, FormatUnixTimeTest)
+{
+    // GMT
+    std::string gmt_foramt = "%a, %d %b %Y %H:%M:%S GMT";
+    std::time_t t = 0;
+    std::string timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Thu, 01 Jan 1970 00:00:00 GMT");
+
+    t = 1520411719;
+    timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Wed, 07 Mar 2018 08:35:19 GMT");
+
+    t = 1554703347;
+    timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 06:02:27 GMT");
+
+    t = 1554739347;
+    timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 16:02:27 GMT");
+
+    auto oldLoc = std::cout.getloc();
+    std::locale::global(std::locale(""));
+
+    t = 0;
+    timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Thu, 01 Jan 1970 00:00:00 GMT");
+
+    t = 1520411719;
+    timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Wed, 07 Mar 2018 08:35:19 GMT");
+
+    t = 1554703347;
+    timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 06:02:27 GMT");
+
+    t = 1554739347;
+    timeStr = FormatUnixTime(t, gmt_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "Mon, 08 Apr 2019 16:02:27 GMT");
+
+    std::locale::global(oldLoc);
+
+    // UTC
+    std::string utc_foramt = "%Y-%m-%dT%H:%M:%S.000Z";
+    t = 0;
+    timeStr = FormatUnixTime(t, utc_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "1970-01-01T00:00:00.000Z");
+
+    t = 1520411719;
+    timeStr = FormatUnixTime(t, utc_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "2018-03-07T08:35:19.000Z");
+
+    oldLoc = std::cout.getloc();
+    std::locale::global(std::locale(""));
+
+    t = 0;
+    timeStr = FormatUnixTime(t, utc_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "1970-01-01T00:00:00.000Z");
+
+    t = 1520411719;
+    timeStr = FormatUnixTime(t, utc_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "2018-03-07T08:35:19.000Z");
+
+    t = 1520433319;
+    timeStr = FormatUnixTime(t, utc_foramt);
+    EXPECT_STREQ(timeStr.c_str(), "2018-03-07T14:35:19.000Z");
+
+    std::locale::global(oldLoc);
+
+
+    // V4 TIME FORMAT
+
+}
+
+TEST_F(UtilsFunctionTest, ToUnixTimeTest)
+{
+    std::string utc_foramt = "%Y-%m-%dT%H:%M:%S";
+    std::string date = "1970-01-01T00:00:00.000Z";
+    std::time_t t = ToUnixTime(date, utc_foramt);
+    EXPECT_EQ(t, 0);
+
+    date = "2018-03-07T08:35:19.123Z";
+    t = ToUnixTime(date, utc_foramt);
+    EXPECT_EQ(t, 1520411719);
+
+    date = "2018-03-07T08:35:19Z";
+    t = ToUnixTime(date, utc_foramt);
+    EXPECT_EQ(t, 1520411719);
+
+    date = "2018-03-07T08:35:19.abcZ";
+    t = ToUnixTime(date, utc_foramt);
+    EXPECT_EQ(t, 1520411719);
+
+    date = "18-03-07T08:35:19.000Z";
+    t = ToUnixTime(date, utc_foramt);
+    EXPECT_EQ(t, -1);
+
+    //invalid case
+    date = "ab-03-07T08:35:19.000Z";
+    t = ToUnixTime(date, utc_foramt);
+    EXPECT_EQ(t, -1);
+
+    date = "";
+    t = ToUnixTime(date, utc_foramt);
+    EXPECT_EQ(t, -1);
 }
 
 }
