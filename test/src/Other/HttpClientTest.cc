@@ -468,7 +468,7 @@ TEST_F(HttpClientTest, SetDateTimeTest)
     std::string key = TestUtils::GetObjectKey("SetDateTimeTest");
     auto content = std::make_shared<std::stringstream>("test");
     auto meta = ObjectMetaData();
-    auto localTime = std::time(nullptr) - 20*60LL;
+    auto localTime = std::time(nullptr) - 20*60;
     meta.addHeader("x-oss-date", ToGmtTime(localTime));
     auto outcome = Client->PutObject(BucketName, key, content, meta);
     EXPECT_EQ(outcome.isSuccess(), false);

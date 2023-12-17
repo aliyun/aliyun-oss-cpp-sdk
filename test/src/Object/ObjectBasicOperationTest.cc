@@ -1453,11 +1453,11 @@ TEST_F(ObjectBasicOperationTest, HeadObjectsNegativeTest)
 {
     auto outcome = Client->HeadObject("no-exist-bucket", "object");
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(outcome.error().Code(), "NoSuchBucket");
 
     outcome = Client->HeadObject(BucketName, "object");
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(outcome.error().Code(), "NoSuchKey");
     EXPECT_EQ(outcome.error().RequestId().empty(), false);
 }
 

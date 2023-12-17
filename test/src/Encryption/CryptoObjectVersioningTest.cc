@@ -190,7 +190,7 @@ TEST_F(CryptoObjectVersioningTest, ObjectBasicWithVersioningEnableTest)
     GetObjectMetaRequest gmRequest(BucketName, key);
     auto gmOutcome = Client->GetObjectMeta(gmRequest);
     EXPECT_EQ(gmOutcome.isSuccess(), false);
-    EXPECT_EQ(gmOutcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(gmOutcome.error().Code(), "NoSuchKey");
 
     gmRequest.setVersionId(versionId1);
     gmOutcome = Client->GetObjectMeta(gmRequest);
@@ -355,7 +355,7 @@ TEST_F(CryptoObjectVersioningTest, ResumableDownloadWithVersioningEnableTest)
     rdRequest.setThreadNum(3);
     auto rdOutcome = Client->ResumableDownloadObject(rdRequest);
     EXPECT_EQ(rdOutcome.isSuccess(), false);
-    EXPECT_EQ(rdOutcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(rdOutcome.error().Code(), "NoSuchKey");
 
     rdRequest.setVersionId(pOutcome.result().VersionId());
     rdOutcome = Client->ResumableDownloadObject(rdRequest);
@@ -371,7 +371,7 @@ TEST_F(CryptoObjectVersioningTest, ResumableDownloadWithVersioningEnableTest)
     rdRequest1.setPartSize(4 * 1024 * 1024);
     rdOutcome = Client->ResumableDownloadObject(rdRequest1);
     EXPECT_EQ(rdOutcome.isSuccess(), false);
-    EXPECT_EQ(rdOutcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(rdOutcome.error().Code(), "NoSuchKey");
 
     rdRequest1.setVersionId(pOutcome.result().VersionId());
     rdOutcome = Client->ResumableDownloadObject(rdRequest1);

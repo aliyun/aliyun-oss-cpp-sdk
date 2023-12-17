@@ -162,7 +162,7 @@ TEST_F(ObjectVersioningTest, ObjectBasicWithVersioningEnableTest)
     GetObjectMetaRequest gmRequest(BucketName, key);
     auto gmOutcome = Client->GetObjectMeta(gmRequest);
     EXPECT_EQ(gmOutcome.isSuccess(), false);
-    EXPECT_EQ(gmOutcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(gmOutcome.error().Code(), "NoSuchKey");
 
     gmRequest.setVersionId(versionId1);
     gmOutcome = Client->GetObjectMeta(gmRequest);
@@ -1272,7 +1272,7 @@ TEST_F(ObjectVersioningTest, ResumableDownloadWithVersioningEnableTest)
     rdRequest.setThreadNum(3);
     auto rdOutcome = Client->ResumableDownloadObject(rdRequest);
     EXPECT_EQ(rdOutcome.isSuccess(), false);
-    EXPECT_EQ(rdOutcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(rdOutcome.error().Code(), "NoSuchKey");
 
     rdRequest.setVersionId(pOutcome.result().VersionId());
     rdOutcome = Client->ResumableDownloadObject(rdRequest);
@@ -1288,7 +1288,7 @@ TEST_F(ObjectVersioningTest, ResumableDownloadWithVersioningEnableTest)
     rdRequest1.setPartSize(4 * 1024 * 1024);
     rdOutcome = Client->ResumableDownloadObject(rdRequest1);
     EXPECT_EQ(rdOutcome.isSuccess(), false);
-    EXPECT_EQ(rdOutcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(rdOutcome.error().Code(), "NoSuchKey");
 
     rdRequest1.setVersionId(pOutcome.result().VersionId());
     rdOutcome = Client->ResumableDownloadObject(rdRequest1);
@@ -1334,7 +1334,7 @@ TEST_F(ObjectVersioningTest, ResumableCopyWithVersioningEnableTest)
     mcRequest.setThreadNum(3);
     auto rcOutcome = Client->ResumableCopyObject(mcRequest);
     EXPECT_EQ(rcOutcome.isSuccess(), false);
-    EXPECT_EQ(rcOutcome.error().Code(), "ServerError:404");
+    EXPECT_EQ(rcOutcome.error().Code(), "NoSuchKey");
 
     mcRequest.setVersionId(pOutcome.result().VersionId());
     rcOutcome = Client->ResumableCopyObject(mcRequest);
@@ -1354,7 +1354,7 @@ TEST_F(ObjectVersioningTest, ResumableCopyWithVersioningEnableTest)
     mcRequest1.setThreadNum(3);
     auto rcOutcome1 = Client->ResumableCopyObject(mcRequest1);
     EXPECT_EQ(rcOutcome1.isSuccess(), false);
-    EXPECT_EQ(rcOutcome1.error().Code(), "ServerError:404");
+    EXPECT_EQ(rcOutcome1.error().Code(), "NoSuchKey");
 
     mcRequest1.setVersionId(pOutcome.result().VersionId());
     rcOutcome1 = Client->ResumableCopyObject(mcRequest1);

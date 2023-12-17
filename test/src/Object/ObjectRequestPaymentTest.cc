@@ -203,7 +203,7 @@ TEST_F(ObjectRequestPaymentTest, GetObjectMetaTest)
     GetObjectMetaRequest request(BucketName, "GetObjectMeta");
     auto outcome = PayerClient->GetObjectMeta(request);
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
 
     request.setRequestPayer(RequestPayer::Requester);
     outcome = PayerClient->GetObjectMeta(request);
@@ -230,7 +230,7 @@ TEST_F(ObjectRequestPaymentTest, HeadObjectTest)
     HeadObjectRequest request(BucketName, "HeadObject");
     auto outcome = PayerClient->HeadObject(request);
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
 
     request.setRequestPayer(RequestPayer::Requester);
     outcome = PayerClient->HeadObject(request);
@@ -1444,7 +1444,7 @@ TEST_F(ObjectRequestPaymentTest, NormalResumableDownloadWithSizeOverPartSizeTest
     request.setThreadNum(1);
     auto outcome = PayerClient->ResumableDownloadObject(request);
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
 
     request.setRequestPayer(RequestPayer::Requester);
     outcome = PayerClient->ResumableDownloadObject(request);
@@ -1475,7 +1475,7 @@ TEST_F(ObjectRequestPaymentTest, NormalResumableDownloadWithSizeUnderPartSizeTes
     request.setThreadNum(1);
     auto outcome = PayerClient->ResumableDownloadObject(request);
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
 
     request.setRequestPayer(RequestPayer::Requester);
     outcome = PayerClient->ResumableDownloadObject(request);
@@ -1506,7 +1506,7 @@ TEST_F(ObjectRequestPaymentTest, NormalResumableCopyWithSizeOverPartSizeTest)
     request.setThreadNum(1);
     auto outcome = PayerClient->ResumableCopyObject(request);
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
 
     request.setRequestPayer(RequestPayer::Requester);
     outcome = PayerClient->ResumableCopyObject(request);
@@ -1529,7 +1529,7 @@ TEST_F(ObjectRequestPaymentTest, NormalResumableCopyWithSizeUnderPartSizeTest)
     request.setPartSize(100 * 1024 + 1);
     auto outcome = PayerClient->ResumableCopyObject(request);
     EXPECT_EQ(outcome.isSuccess(), false);
-    EXPECT_EQ(outcome.error().Code(), "ServerError:403");
+    EXPECT_EQ(outcome.error().Code(), "AccessDenied");
 
     request.setRequestPayer(RequestPayer::Requester);
     outcome = PayerClient->ResumableCopyObject(request);

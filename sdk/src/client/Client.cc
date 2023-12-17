@@ -131,6 +131,11 @@ Error Client::buildError(const std::shared_ptr<HttpResponse> &response) const
             std::istreambuf_iterator<char> isb(*response->Body().get()), end;
             error.setMessage(std::string(isb, end));
         }
+        // get error xml from header
+        if (error.Message().empty() && response->hasHeader("x-oss-err")) {
+            auto errstr = Base64Decode(response->Header("x-oss-err"));
+            error.setMessage(std::string(errstr.begin(), errstr.end()));
+        }
     } else {
         ss << "ClientError:" << responseCode;
         error.setCode(ss.str());
