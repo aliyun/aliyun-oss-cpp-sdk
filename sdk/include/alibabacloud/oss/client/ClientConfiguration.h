@@ -17,6 +17,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <alibabacloud/oss/Types.h>
 #include <alibabacloud/oss/auth/CredentialsProvider.h>
 #include <alibabacloud/oss/http/HttpClient.h>
 #include <alibabacloud/oss/utils/Executor.h>
@@ -129,6 +130,11 @@ namespace OSS
         * enable or disable verify object name strictly. defualt is true
         */
         bool isVerifyObjectStrict;
+
+        /**
+        * signature version. default is V1.
+        */
+        SignatureVersionType signatureVersion;
     };
 }
 }

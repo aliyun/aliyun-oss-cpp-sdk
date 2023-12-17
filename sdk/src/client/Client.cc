@@ -20,7 +20,7 @@
 #include "Client.h"
 #include "../http/CurlHttpClient.h"
 #include "../utils/Utils.h"
-#include "../auth/Signer.h"
+#include "../signer/Signer.h"
 #include <sstream>
 #include <ctime>
 

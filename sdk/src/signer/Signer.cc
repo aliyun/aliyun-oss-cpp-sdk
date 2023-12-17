@@ -14,23 +14,40 @@
  * limitations under the License.
  */
 
-#pragma once
-
 #include "Signer.h"
 
+using namespace AlibabaCloud::OSS;
 
-namespace AlibabaCloud
+Signer::Signer(Type type, const std::string & name, const std::string & version) :
+    type_(type),
+    name_(name),
+    version_(version)
 {
-namespace OSS
-{
-
-    class  HmacSha1Signer : public Signer
-    {
-    public:
-        HmacSha1Signer();
-        ~HmacSha1Signer();
-        
-        virtual std::string generate(const std::string &src, const std::string &secret)const override;
-    };
 }
+
+Signer::~Signer()
+{
+}
+
+std::string Signer::name() const
+{
+    return name_;
+}
+
+Signer::Type Signer::type() const
+{
+    return type_;
+}
+
+std::string Signer::version() const
+{
+    return version_;
+}
+
+std::shared_ptr<Signer> Signer::createSigner(SignatureVersionType version)
+{
+    if (version == SignatureVersionType::V4) {
+        return std::make_shared<SignerV4>();
+    }
+    return std::make_shared<SignerV1>();
 }

@@ -25,7 +25,7 @@
 #include "utils/Utils.h"
 #include "utils/SignUtils.h"
 #include "utils/ThreadExecutor.h"
-#include "auth/HmacSha1Signer.h"
+#include "signer/Signer.h"
 #include "OssClientImpl.h"
 #include "utils/LogUtils.h"
 #include "utils/FileSystemUtils.h"
@@ -41,13 +41,16 @@ namespace
 {
 const std::string SERVICE_NAME = "OSS";
 const char *TAG = "OssClientImpl";
+
+const std::string DEFAULT_PRODUCT_NAME = "oss";
+const std::string CLOUDBOX_PRODUCT_NAME = "oss-cloudbox";
 }
 
 OssClientImpl::OssClientImpl(const std::string &endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration & configuration) :
     Client(SERVICE_NAME, configuration),
     endpoint_(endpoint),
     credentialsProvider_(credentialsProvider),
-    signer_(std::make_shared<HmacSha1Signer>()),
+    signer_(Signer::createSigner(configuration.signatureVersion)),
     executor_(configuration.executor ? configuration.executor :std::make_shared<ThreadExecutor>()),
     isValidEndpoint_(IsValidEndpoint(endpoint))
 {
@@ -127,16 +130,6 @@ void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, 
 
     //common headers
     httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
-
-    //Date
-    if (httpRequest->hasHeader("x-oss-date")) {
-        httpRequest->addHeader(Http::DATE, httpRequest->Header("x-oss-date"));
-    }
-    if (!httpRequest->hasHeader(Http::DATE)) {
-        std::time_t t = std::time(nullptr);
-        t += getRequestDateOffset();
-        httpRequest->addHeader(Http::DATE, ToGmtTime(t));
-    }
 }
 
 void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5) const
@@ -165,47 +158,28 @@ void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, con
 
 void OssClientImpl::addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const
 {
-    const Credentials credentials = credentialsProvider_->getCredentials();
-    if (!credentials.SessionToken().empty()) {
-        httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
+    auto credentials = credentialsProvider_->getCredentials();
+    auto parameters = request.Parameters();
+    auto ossRequest = static_cast<const OssRequest&>(request);
+    auto bucket = ossRequest.bucket();
+    auto key = ossRequest.key();
+    auto region = region_;
+    auto product = DEFAULT_PRODUCT_NAME;
+    auto t = std::time(nullptr) + getRequestDateOffset();
+
+    if (!cloudboxId_.empty()) {
+        region = cloudboxId_;
+        product = CLOUDBOX_PRODUCT_NAME;
     }
 
-    //Sort the parameters
-    ParameterCollection parameters;
-    for (auto const&param : request.Parameters()) {
-        parameters[param.first] = param.second;
+    if (httpRequest->hasHeader("x-oss-date")) {
+        t = ToUnixTime(httpRequest->Header(Http::DATE), "%a, %d %b %Y %H:%M:%S GMT");
     }
 
-    std::string method = Http::MethodToString(httpRequest->method());
+    SignerParam signerParam(std::move(region), std::move(product), 
+        std::move(bucket), std::move(key), std::move(credentials), t);
 
-    const OssRequest& ossRequest = static_cast<const OssRequest&>(request);
-    std::string resource;
-    resource.append("/");
-    if (!ossRequest.bucket().empty()) {
-        resource.append(ossRequest.bucket());
-        resource.append("/");
-    }
-    if (!ossRequest.key().empty()) {
-        resource.append(ossRequest.key());
-    }
-
-    std::string date = httpRequest->Header(Http::DATE);
-
-    SignUtils signUtils(signer_->version());
-    signUtils.build(method, resource, date, httpRequest->Headers(), parameters);
-    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
-
-    std::stringstream authValue;
-    authValue
-        << "OSS "
-        << credentials.AccessKeyId()
-        << ":"
-        << signature;
-
-    httpRequest->addHeader(Http::AUTHORIZATION, authValue.str());
-
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) CanonicalString:%s", this, httpRequest.get(), signUtils.CanonicalString().c_str());
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) Authorization:%s", this, httpRequest.get(), authValue.str().c_str());
+    signer_->sign(httpRequest, parameters, signerParam);
 }
 
 void OssClientImpl::addUrl(const std::shared_ptr<HttpRequest> &httpRequest, const std::string &endpoint, const ServiceRequest &request) const
@@ -1292,36 +1266,35 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
         return StringOutcome(OssError("ValidateError", "The Bucket or Key is invalid."));
     }
 
-    HeaderCollection headers = request.metaData_.toHeaderCollection();
+    auto credentials = credentialsProvider_->getCredentials();
+    auto bucket = request.bucket_;
+    auto key = request.key_;
+    auto region = region_;
+    auto product = DEFAULT_PRODUCT_NAME;
+    auto t = std::time(nullptr)  + getRequestDateOffset();
 
-    ParameterCollection parameters;
-    const Credentials credentials = credentialsProvider_->getCredentials();
-    if (!credentials.SessionToken().empty()) {
-        parameters["security-token"] = credentials.SessionToken();
-    }
-    for (auto const&param : request.parameters_) {
-        parameters[param.first] = param.second;
+    if (!cloudboxId_.empty()) {
+        region = cloudboxId_;
+        product = CLOUDBOX_PRODUCT_NAME;
     }
 
-    SignUtils signUtils(signer_->version());
-    auto method = Http::MethodToString(request.method_);
-    auto resource = std::string().append("/").append(request.bucket_).append("/").append(request.key_);
-    auto date = headers[Http::EXPIRES];
-    signUtils.build(method, resource, date, headers, parameters);
-    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
-    parameters["Expires"] = date;
-    parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
-    parameters["Signature"] = signature;
+    auto httpRequest = std::make_shared<HttpRequest>(request.method_);
+    for (auto const& header : request.metaData_.toHeaderCollection()) {
+        httpRequest->addHeader(header.first, header.second);
+    }
+    auto parameters = request.parameters_;
+
+    SignerParam signerParam(std::move(region), std::move(product), 
+        std::move(bucket), std::move(key), std::move(credentials), t);
+    signerParam.setExpires(request.expires_);
+
+    signer_->presign(httpRequest, parameters, signerParam);
 
     //host
     std::stringstream ss;
-    ss << CombineHostString(endpoint_, request.bucket_, configuration().isCname, configuration().isPathStyle);
+    ss << CombineHostString(endpoint_, bucket, configuration().isCname, configuration().isPathStyle);
     //path
-    auto path = CombinePathString(endpoint_, request.bucket_, request.key_, configuration().isPathStyle);
-    if (request.unencodedSlash_) {
-        StringReplace(path, "%2F", "/");
-    }
-    ss << path;
+    ss << CombinePathString(endpoint_, bucket, key, configuration().isPathStyle, request.unencodedSlash_);
     //query
     ss << "?";
     ss << CombineQueryString(parameters);
@@ -1770,4 +1743,17 @@ void OssClientImpl::EnableRequest()
 {
     BASE::enableRequest();
     OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) EnableRequest", this);
+}
+
+/*Others*/
+void OssClientImpl::SetRegion(const std::string &region)
+{
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) SetRegion, from:%s  to:%s", this, region_.c_str(), region.c_str());
+    region_ = region;
+}
+
+void OssClientImpl::SetCloudBoxId(const std::string &cloudboxId)
+{
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) SetCloudBoxId, from:%s  to:%s", this, cloudboxId_.c_str(), cloudboxId.c_str());
+    cloudboxId_ = cloudboxId;
 }

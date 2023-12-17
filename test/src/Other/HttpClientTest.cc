@@ -462,6 +462,19 @@ TEST_F(HttpClientTest, ResponseBodyNegativeTest)
 
 }
 
+TEST_F(HttpClientTest, SetDateTimeTest)
+{
+    //don't write error response to user content
+    std::string key = TestUtils::GetObjectKey("SetDateTimeTest");
+    auto content = std::make_shared<std::stringstream>("test");
+    auto meta = ObjectMetaData();
+    auto localTime = std::time(nullptr) - 20*60LL;
+    meta.addHeader("x-oss-date", ToGmtTime(localTime));
+    auto outcome = Client->PutObject(BucketName, key, content, meta);
+    EXPECT_EQ(outcome.isSuccess(), false);
+    EXPECT_EQ(outcome.error().Message(), "The difference between the request time and the current time is too large.");
+}
+
 class Classtest : public Client
 {
 public:

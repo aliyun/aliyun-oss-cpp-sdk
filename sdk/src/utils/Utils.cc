@@ -28,6 +28,7 @@
 #include <map>
 #include <regex>
 #include <iomanip>
+#include <locale>
 #include <alibabacloud/oss/Const.h>
 #include <alibabacloud/oss/http/HttpType.h>
 #include <alibabacloud/oss/http/Url.h>
@@ -48,7 +49,7 @@ std::string AlibabaCloud::OSS::GenerateUuid()
     return "";
 }
 
-std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
+std::string urlEncode(const std::string & src, bool ignoreSlash)
 {
     std::stringstream dest;
     static const char *hex = "0123456789ABCDEF";
@@ -60,12 +61,24 @@ std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
             dest << c;
         } else if (c == ' ') {
             dest << "%20";
+        } else if (ignoreSlash && c == '/') {
+            dest << c;
         } else {
             dest << '%' << hex[c >> 4] << hex[c & 15];
         }
     }
 
     return dest.str();
+}
+
+std::string AlibabaCloud::OSS::UrlEncodePath(const std::string & src, bool ignoreSlash)
+{
+    return urlEncode(src, ignoreSlash);
+}
+
+std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
+{
+    return urlEncode(src, false);
 }
 
 std::string AlibabaCloud::OSS::UrlDecode(const std::string & src)
@@ -571,6 +584,50 @@ std::time_t AlibabaCloud::OSS::UtcToUnixTime(const std::string &t)
     return tt < 0 ? -1 : tt;
 }
 
+std::time_t AlibabaCloud::OSS::ToUnixTime(const std::string &str, const std::string &fmt)
+{
+    std::tm tm;
+    std::time_t tt = -1;
+    memset(&tm, 0, sizeof(tm));
+#if defined(__GNUG__) && __GNUC__ < 5
+    strptime(str.c_str(), fmt.c_str(), &tm);
+#else
+    std::istringstream input(str);
+    input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+    input >> std::get_time(&tm, fmt.c_str());
+    if (input.fail()) {
+        return -1;
+    }
+#endif
+
+#ifdef _WIN32
+    tt = _mkgmtime64(&tm);
+#else
+    tt = timegm(&tm);
+#endif // _WIN32
+    return tt < 0 ? -1 : tt;
+}
+
+std::string AlibabaCloud::OSS::FormatUnixTime(const std::time_t &t, const std::string &fmt)
+{
+    std::stringstream date;
+    std::tm tm;
+#ifdef _WIN32
+    ::gmtime_s(&tm, &t);
+#else
+    ::gmtime_r(&t, &tm);
+#endif
+#if defined(__GNUG__) && __GNUC__ < 5
+    char tmbuff[64];
+    strftime(tmbuff, 64, fmt.c_str(), &tm);
+    date << tmbuff;
+#else
+    date.imbue(std::locale::classic());
+    date << std::put_time(&tm, fmt.c_str());
+#endif
+    return date.str();
+}
+
 bool AlibabaCloud::OSS::IsValidBucketName(const std::string &bucketName)
 {
 #if defined(__GNUG__) && __GNUC__ < 5
@@ -886,7 +943,8 @@ std::string AlibabaCloud::OSS::CombinePathString(
     const std::string &endpoint,
     const std::string &bucket,
     const std::string &key,
-    bool isPathStyle)
+    bool isPathStyle,
+    bool ignoreSlash)
 {
     Url url(endpoint);
     std::string path;
@@ -894,7 +952,7 @@ std::string AlibabaCloud::OSS::CombinePathString(
     if (IsIp(url.host()) || isPathStyle) {
         path.append(bucket).append("/");
     }
-    path.append(UrlEncode(key));
+    path.append(UrlEncodePath(key, ignoreSlash));
     return path;
 }
 

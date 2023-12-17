@@ -1006,3 +1006,14 @@ GetObjectOutcome OssClient::ResumableDownloadObject(const DownloadObjectRequest 
     return client_->ResumableDownloadObject(request);
 }
 #endif
+
+/*Others*/
+void OssClient::SetRegion(const std::string& region)
+{
+    return client_->SetRegion(region);
+}
+
+void OssClient::SetCloudBoxId(const std::string& cloudboxId)
+{
+    return client_->SetCloudBoxId(cloudboxId);
+}
