@@ -30,6 +30,7 @@ static std::string dataPath_;
 std::string Config::AccessKeyId = "";
 std::string Config::AccessKeySecret = "";
 std::string Config::Endpoint = "";
+std::string Config::Region = "";
 std::string Config::SecondEndpoint = "";
 std::string Config::CallbackServer = "";
 std::string Config::CfgFilePath = "oss.ini";
@@ -113,6 +114,9 @@ static void LoadCfgFromFile()
         else if (!strncmp(buffer, "Endpoint", 8)) {
             Config::Endpoint = TrimQuotes(Trim(ptr + 1).c_str());
         }
+        else if (!strncmp(buffer, "Region", 6)) {
+            Config::Region = TrimQuotes(Trim(ptr + 1).c_str());
+        }
         else if (!strncmp(buffer, "SecondEndpoint", 14)) {
             Config::SecondEndpoint = TrimQuotes(Trim(ptr + 1).c_str());
         }
@@ -157,6 +161,11 @@ static void LoadCfgFromEnv()
     value = std::getenv("TEST_OSS_ENDPOINT");
     if (value) {
         Config::Endpoint = TrimQuotes(Trim(value).c_str());
+    }
+
+    value = std::getenv("TEST_OSS_REGION");
+    if (value) {
+        Config::Region = TrimQuotes(Trim(value).c_str());
     }
 
     value = std::getenv("TEST_OSS_CALLBACKSERVER");

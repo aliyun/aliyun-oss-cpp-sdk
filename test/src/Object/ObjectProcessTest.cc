@@ -37,7 +37,7 @@ protected:
     // Sets up the stuff shared by all tests in this test case.
     static void SetUpTestCase() 
     {
-        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        Client = TestUtils::GetOssClientDefault();
         BucketName = TestUtils::GetBucketName("cpp-sdk-objectprocess");
         ImageFilePath = Config::GetDataPath();
         ImageFilePath.append("example.jpg");
@@ -205,7 +205,7 @@ TEST_F(ObjectProcessTest, ProcessObjectRequestTest)
 
     std::istreambuf_iterator<char> isb(*gOutcome.result().Content()), end;
     std::string json_str = std::string(isb, end);
-    std::cout << json_str << std::endl;
+    //std::cout << json_str << std::endl;
     EXPECT_TRUE(json_str.find(key1) != std::string::npos);
 
     std::string imageInfo = GetOssImageObjectInfo(BucketName, key1);
@@ -222,7 +222,7 @@ TEST_F(ObjectProcessTest, ProcessObjectRequestTest)
 
     std::istreambuf_iterator<char> isb1(*gOutcome.result().Content()), end1;
     json_str = std::string(isb1, end1);
-    std::cout << json_str << std::endl;
+    //std::cout << json_str << std::endl;
     EXPECT_TRUE(json_str.find(key2) != std::string::npos);
     imageInfo = GetOssImageObjectInfo(BucketName, key2);
     EXPECT_TRUE(CompareImageInfo(imageInfo, ImageInfo));

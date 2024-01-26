@@ -45,7 +45,7 @@ protected:
     // Sets up the stuff shared by all tests in this test case.
     static void SetUpTestCase()
     {
-        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        Client = TestUtils::GetOssClientDefault();
         PayerClient = std::make_shared<OssClient>(Config::Endpoint, Config::PayerAccessKeyId, Config::PayerAccessKeySecret, ClientConfiguration());
 
         BucketName = TestUtils::GetBucketName("cpp-sdk-objectcopy1");
@@ -1314,7 +1314,7 @@ TEST_F(ObjectRequestPaymentTest, ProcessObjectRequestTest)
 
     std::istreambuf_iterator<char> isb(*gOutcome.result().Content()), end;
     std::string json_str = std::string(isb, end);
-    std::cout << json_str << std::endl;
+    //std::cout << json_str << std::endl;
     EXPECT_TRUE(json_str.find(key1) != std::string::npos);
 
     std::string imageInfo = GetOssImageObjectInfo(BucketName, key1);

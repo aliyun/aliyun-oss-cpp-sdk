@@ -46,7 +46,7 @@ protected:
     {
         ClientConfiguration conf;
         conf.enableCrc64 = false;
-        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        Client = TestUtils::GetOssClientDefault();
 
         BucketName1 = TestUtils::GetBucketName("cpp-sdk-objectcopy1");
         CreateBucketOutcome outCome = Client->CreateBucket(CreateBucketRequest(BucketName1));

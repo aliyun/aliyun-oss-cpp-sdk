@@ -16,13 +16,10 @@
 
 #include <sstream>
 #include "Signer.h"
+#include "HmacSha1Signer.h"
 #include "../utils/SignUtils.h"
 #include "../utils/Utils.h"
 #include "../utils/LogUtils.h"
-#include <openssl/hmac.h>
-#ifdef OPENSSL_IS_BORINGSSL 
-#include <openssl/base64.h>
-#endif
 
 using namespace AlibabaCloud::OSS;
 
@@ -56,20 +53,7 @@ static std::string buildResource(const std::string &bucket, const std::string &k
 
 std::string SignerV1::generate(const std::string & src, const std::string & secret) const
 {
-    if (src.empty())
-        return std::string();
-
-    unsigned char md[32];
-    unsigned int mdLen = 32;
-
-    if (HMAC(EVP_sha1(), secret.c_str(), static_cast<int>(secret.size()),
-        reinterpret_cast<const unsigned char*>(src.c_str()), src.size(),
-        md, &mdLen) == nullptr)
-        return std::string();
-
-    char encodedData[100];
-    EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encodedData), md, mdLen);
-    return encodedData;
+    return HmacSha1Signer::generate(src, secret);
 }
 
 void SignerV1::sign(const std::shared_ptr<HttpRequest> &httpRequest, ParameterCollection &parameters,

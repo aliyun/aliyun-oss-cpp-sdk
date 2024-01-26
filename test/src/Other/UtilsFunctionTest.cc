@@ -702,7 +702,7 @@ TEST_F(UtilsFunctionTest, UploadAndDownloadObject)
     // create client and bucket
     auto BucketName = TestUtils::GetBucketName("utils-function-bucket-test");
     auto key = TestUtils::GetObjectKey("utils-function-object-test");
-    std::shared_ptr<OssClient> Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+    std::shared_ptr<OssClient> Client = TestUtils::GetOssClientDefault();
     TestUtils::EnsureBucketExist(*Client, BucketName);
 
     // create local file
