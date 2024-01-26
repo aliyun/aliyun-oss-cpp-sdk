@@ -36,7 +36,7 @@ namespace OSS
         // Sets up the stuff shared by all tests in this test case.
         static void SetUpTestCase()
         {
-            Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+            Client = TestUtils::GetOssClientDefault();
             BucketName = TestUtils::GetBucketName("cpp-sdk-bucketqosinfo");
             Client->CreateBucket(CreateBucketRequest(BucketName));
         }

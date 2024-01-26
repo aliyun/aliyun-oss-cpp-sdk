@@ -36,6 +36,7 @@
 #include <src/utils/Utils.h>
 #include <src/utils/Crc64.h>
 #include <cstring>
+#include "Config.h"
 
 #ifdef GetObject
 #undef GetObject
@@ -106,6 +107,14 @@ std::string TestUtils::GetTargetFileName(const std::string &prefix)
     return ss.str();
 }
 
+std::shared_ptr<OssClient> TestUtils::GetOssClientDefault()
+{
+    auto conf = ClientConfiguration();
+    conf.signatureVersion = SignatureVersionType::V1;
+    auto client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, conf);
+    client->SetRegion(Config::Region);
+    return client;
+}
 
 bool TestUtils::BucketExists(const OssClient &client, const std::string &bucketName)
 {

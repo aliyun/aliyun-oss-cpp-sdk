@@ -38,7 +38,7 @@ protected:
     {
         ClientConfiguration conf;
         conf.enableCrc64 = false;
-        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        Client = TestUtils::GetOssClientDefault();
         
 		BucketName = TestUtils::GetBucketName("cpp-sdk-objectrestore-standard");
         CreateBucketOutcome outCome = Client->CreateBucket(CreateBucketRequest(BucketName));

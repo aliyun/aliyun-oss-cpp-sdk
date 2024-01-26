@@ -32,6 +32,7 @@ public:
     static std::string GetObjectKey(const std::string& prefix);
     static std::string GetTargetFileName(const std::string& prefix);
 
+    static std::shared_ptr<OssClient> GetOssClientDefault();
     static bool BucketExists(const OssClient &client, const std::string &prefix);
     static void EnsureBucketExist(const OssClient &client, const std::string &bucketName);
     static bool ObjectExists(const OssClient& client, const std::string& bucketName, const std::string& keyName);

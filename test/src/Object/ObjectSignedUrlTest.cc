@@ -38,7 +38,7 @@ protected:
     // Sets up the stuff shared by all tests in this test case.
     static void SetUpTestCase() 
     {
-        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        Client = TestUtils::GetOssClientDefault();
         BucketName = TestUtils::GetBucketName("cpp-sdk-objectsignedurl");
         Client->CreateBucket(CreateBucketRequest(BucketName));
     }
@@ -139,7 +139,13 @@ TEST_F(ObjectSignedUrlTest, GetPreSignedUriDefaultNegativeTest)
 
     auto gOutcome = Client->GetObjectByUrl(urlOutcome.result());
     EXPECT_EQ(gOutcome.isSuccess(), false);
-    EXPECT_STREQ(gOutcome.error().Code().c_str(), "AccessDenied");
+    // v1
+    auto url = urlOutcome.result();
+     if (url.find("x-oss-date=") == url.npos) {
+        EXPECT_STREQ(gOutcome.error().Code().c_str(), "AccessDenied");
+    } else {
+        EXPECT_STREQ(gOutcome.error().Code().c_str(), "AuthorizationArgumentError");
+    }
 }
 
 TEST_F(ObjectSignedUrlTest, GetPreSignedUriDefaultPositiveTest)
@@ -429,7 +435,12 @@ TEST_F(ObjectSignedUrlTest, PutPreSignedUriDefaultNegativeTest)
 
     auto pOutcome = Client->PutObjectByUrl(urlOutcome.result(), content);
     EXPECT_EQ(pOutcome.isSuccess(), false);
-    EXPECT_STREQ(pOutcome.error().Code().c_str(), "AccessDenied");
+    auto url = urlOutcome.result();
+    if (url.find("x-oss-date=") == url.npos) {
+        EXPECT_STREQ(pOutcome.error().Code().c_str(), "AccessDenied");
+    } else {
+        EXPECT_STREQ(pOutcome.error().Code().c_str(), "AuthorizationArgumentError");
+    }    
 }
 
 TEST_F(ObjectSignedUrlTest, PutObjectWithPreSignedUriWithParameter)

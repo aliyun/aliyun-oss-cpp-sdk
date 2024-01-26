@@ -196,6 +196,9 @@ static std::string buildCanonicalReuqest(const std::shared_ptr<HttpRequest> &htt
     for (const auto &header : httpRequest->Headers()) {
         std::string lowerKey = ToLower(header.first.c_str());
         std::string value = Trim(header.second.c_str());
+        if (value.empty()) {
+            continue;
+        }
         if (lowerKey == "content-type" ||
             lowerKey == "content-md5" ||
             lowerKey.compare(0, 6, "x-oss-") == 0) {
@@ -287,6 +290,10 @@ void SignerV4::sign(const std::shared_ptr<HttpRequest> &httpRequest, ParameterCo
 
     httpRequest->addHeader(Http::DATE, ToGmtTime(requestTime));
     httpRequest->addHeader("x-oss-date", datetime);
+
+    if (!httpRequest->hasHeader("x-oss-content-sha256")) {
+        httpRequest->addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
+    }
 
     auto additionalHeaders = getCommonAdditionalHeaders(httpRequest->Headers(), signerParam.AdditionalHeaders());
 

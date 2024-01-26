@@ -26,6 +26,7 @@
 #include "utils/SignUtils.h"
 #include "utils/ThreadExecutor.h"
 #include "signer/Signer.h"
+#include "signer/HmacSha1Signer.h"
 #include "OssClientImpl.h"
 #include "utils/LogUtils.h"
 #include "utils/FileSystemUtils.h"
@@ -173,7 +174,7 @@ void OssClientImpl::addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest,
     }
 
     if (httpRequest->hasHeader("x-oss-date")) {
-        t = ToUnixTime(httpRequest->Header(Http::DATE), "%a, %d %b %Y %H:%M:%S GMT");
+        t = ToUnixTime(httpRequest->Header("x-oss-date"), "%a, %d %b %Y %H:%M:%S GMT");
     }
 
     SignerParam signerParam(std::move(region), std::move(product), 
@@ -1716,7 +1717,7 @@ StringOutcome OssClientImpl::GenerateRTMPSignedUrl(const GenerateRTMPSignedUrlRe
     SignUtils signUtils(signer_->version());
     auto resource = std::string().append("/").append(request.Bucket()).append("/").append(request.ChannelName());
     signUtils.build(expireStr, resource, parameters);
-    auto signature = signer_->generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
+    auto signature = HmacSha1Signer::generate(signUtils.CanonicalString(), credentials.AccessKeySecret());
     parameters["Expires"] = expireStr;
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
     parameters["Signature"] = signature;

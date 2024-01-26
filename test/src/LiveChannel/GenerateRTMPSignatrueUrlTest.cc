@@ -42,7 +42,7 @@ protected:
     {
 		ClientConfiguration conf;
 		conf.enableCrc64 = false;
-        Client = std::make_shared<OssClient>(Config::Endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
+        Client = TestUtils::GetOssClientDefault();
         BucketName = TestUtils::GetBucketName("cpp-sdk-delete-live-channel");
     }
 
@@ -90,6 +90,39 @@ TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlUT)
 
 	std::string signedURL = generateOutcome.result();
 	EXPECT_TRUE(signedURL.find("playlistName") != std::string::npos);
+}
+
+TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlUT2)
+{
+    // v1
+    auto conf = ClientConfiguration();
+    auto client = std::make_shared<OssClient>(Config::Endpoint, "ak", "sk", conf);
+
+    GenerateRTMPSignedUrlRequest request("cpp-sdk-live-channel-bucket", "channel", "", 0);
+    request.setPlayList("test.m3u8");
+
+    time_t tExpire = (time_t)1706289617;
+    request.setExpires(tExpire);
+    EXPECT_EQ(request.Expires(), (uint64_t)tExpire);
+
+    auto generateOutcome = client->GenerateRTMPSignedUrl(request);
+    EXPECT_EQ(generateOutcome.isSuccess(), true);
+    EXPECT_EQ(generateOutcome.result().empty(), false);
+
+    std::string path = "/live/channel?Expires=1706289617&OSSAccessKeyId=ak&Signature=Y1LCM2PzyECssQhTdi%2BGKra7iXE%3D&playlistName=test.m3u8";
+    std::string signedURL = generateOutcome.result();
+    EXPECT_TRUE(signedURL.find(path) != std::string::npos);
+
+    // v4
+    auto conf1 = ClientConfiguration();
+    conf1.signatureVersion = SignatureVersionType::V4;
+    auto client1 = std::make_shared<OssClient>(Config::Endpoint, "ak", "sk", conf1);
+
+    auto generateOutcome1 = client1->GenerateRTMPSignedUrl(request);
+    EXPECT_EQ(generateOutcome1.isSuccess(), true);
+    EXPECT_EQ(generateOutcome1.result().empty(), false);
+    std::string signedURL1 = generateOutcome1.result();
+    EXPECT_TRUE(signedURL1.find(path) != std::string::npos);
 }
 
 TEST_F(GenerateRTMPSignatureUrlTest, GenerateRTMPSignatureUrlInvalidBucketTest)
