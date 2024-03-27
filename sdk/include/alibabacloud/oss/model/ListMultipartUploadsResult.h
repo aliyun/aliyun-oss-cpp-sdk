@@ -52,7 +52,7 @@ namespace OSS
         const std::string& NextUploadIdMarker() const { return nextUploadIdMarker_; }
         uint32_t MaxUploads() const { return maxUploads_; }
         bool IsTruncated() const { return isTruncated_; }
-        const CommonPrefixeList& CommonPrefixes() const { return commonPrefixes_; }
+        const CommonPrefixList& CommonPrefixes() const { return commonPrefixes_; }
         const AlibabaCloud::OSS::MultipartUploadList& MultipartUploadList() const { return multipartUploadList_; }
     private:
         std::string bucket_;
@@ -63,7 +63,7 @@ namespace OSS
         std::string nextUploadIdMarker_;
         uint32_t maxUploads_;
         bool isTruncated_;
-        CommonPrefixeList commonPrefixes_;
+        CommonPrefixList commonPrefixes_;
         AlibabaCloud::OSS::MultipartUploadList multipartUploadList_;
     };
 } 

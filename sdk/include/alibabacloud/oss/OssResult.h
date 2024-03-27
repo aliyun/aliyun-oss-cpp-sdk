@@ -25,7 +25,7 @@ namespace AlibabaCloud
 {
 namespace OSS
 {
-    using CommonPrefixeList = std::vector<std::string>;
+    using CommonPrefixList = std::vector<std::string>;
 
     class OssClientImpl;
     class ALIBABACLOUD_OSS_EXPORT OssResult

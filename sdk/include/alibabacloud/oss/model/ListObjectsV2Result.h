@@ -44,7 +44,7 @@ namespace OSS
         int MaxKeys() const { return maxKeys_; }
         int KeyCount() const { return keyCount_; }
         bool IsTruncated() const { return isTruncated_; }
-        const CommonPrefixeList& CommonPrefixes() const { return commonPrefixes_; }
+        const CommonPrefixList& CommonPrefixes() const { return commonPrefixes_; }
         const ObjectSummaryList& ObjectSummarys() const { return objectSummarys_; }
     private:
         std::string name_;
@@ -57,7 +57,7 @@ namespace OSS
         int         maxKeys_;
         int         keyCount_;
         bool        isTruncated_;
-        CommonPrefixeList commonPrefixes_;
+        CommonPrefixList commonPrefixes_;
         ObjectSummaryList objectSummarys_;
     };
 } 
