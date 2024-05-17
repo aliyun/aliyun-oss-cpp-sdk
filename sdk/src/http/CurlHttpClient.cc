@@ -418,8 +418,13 @@ CurlHttpClient::CurlHttpClient(const ClientConfiguration &configuration) :
     caFile_(configuration.caFile),
     networkInterface_(configuration.networkInterface),
     sendRateLimiter_(configuration.sendRateLimiter),
-    recvRateLimiter_(configuration.recvRateLimiter)
+    recvRateLimiter_(configuration.recvRateLimiter),
+    dnsResolver_(configuration.dnsResolver)
 {
+    curl_version_info_data* ver = curl_version_info(CURLVERSION_NOW);
+    if (ver != nullptr) {
+        curlVersionNum_ = ver->version_num;
+    }
 }
 
 CurlHttpClient::~CurlHttpClient()
@@ -567,6 +572,41 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, speed);
     }
 
+    // custom dns
+    curl_slist* dns_list = nullptr;
+    if (dnsResolver_ != nullptr) {
+        auto host = request->url().host();
+        auto ips = dnsResolver_->resolve(host);
+        if (!ips.empty()) {
+            std::string dns;
+            //7.75 support +, means non-permanent
+            if ((((curlVersionNum_ >> 16) & 0xff) >= 7) &&
+                (((curlVersionNum_ >> 8) & 0xff) >= 75)) {
+                dns += "+";
+            }
+
+            //host
+            dns += host;
+
+            //port
+            auto port = request->url().port();
+            if (port <= 0) {
+                port = 80;
+                if (!std::strncmp("https", request->url().scheme().c_str(), 5)) {
+                    port = 443;
+                }
+            }
+            dns += ":" + std::to_string(port);
+
+            //ips
+            dns += ":" + ips;
+            dns_list = curl_slist_append(NULL, dns.c_str());
+            curl_easy_setopt(curl, CURLOPT_RESOLVE, dns_list);
+
+            OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) custom dns:%s", request.get(), dns.c_str());
+        }
+    }
+
     CURLcode res = curl_easy_perform(curl);
     long response_code= 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
@@ -616,6 +656,7 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
     curlContainer_->Release(curl, (res != CURLE_OK));
 
     curl_slist_free_all(list);
+    curl_slist_free_all(dns_list);
 
     auto & body = response->Body();
     if (body != nullptr) {

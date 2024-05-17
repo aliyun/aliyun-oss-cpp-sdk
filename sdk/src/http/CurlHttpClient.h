@@ -52,6 +52,10 @@ namespace OSS
     public:
         std::shared_ptr<RateLimiter> sendRateLimiter_;
         std::shared_ptr<RateLimiter> recvRateLimiter_;
+        std::shared_ptr<DnsResolver> dnsResolver_;
+
+    private:
+        unsigned int curlVersionNum_;
     };
 }
 }
