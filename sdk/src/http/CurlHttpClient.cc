@@ -17,6 +17,7 @@
 #include "CurlHttpClient.h"
 #include <curl/curl.h>
 #include <cassert>
+#include <cstring>
 #include <sstream>
 #include <vector>
 #include <mutex>
@@ -36,6 +37,7 @@ namespace AlibabaCloud
 namespace OSS
 {
     const char * TAG = "CurlHttpClient";
+    const unsigned int CURL_VERSION_7_75_0 = 0x074800;
     ////////////////////////////////////////////////////////////////////////////////////////////
     template< typename RESOURCE_TYPE>
     class ResourceManager_
@@ -580,8 +582,7 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         if (!ips.empty()) {
             std::string dns;
             //7.75 support +, means non-permanent
-            if ((((curlVersionNum_ >> 16) & 0xff) >= 7) &&
-                (((curlVersionNum_ >> 8) & 0xff) >= 75)) {
+            if (curlVersionNum_ >= CURL_VERSION_7_75_0) {
                 dns += "+";
             }
 
