@@ -135,6 +135,14 @@ namespace OSS
         * signature version. default is V1.
         */
         SignatureVersionType signatureVersion;
+        /**
+        * your SSL client certificate.
+        */
+        std::string sslCert;
+        /**
+        * your private key file for TLS and SSL client cert.
+        */
+        std::string sslKey;
     };
 }
 }

@@ -49,6 +49,8 @@ namespace OSS
         std::string caPath_;
         std::string caFile_;
         std::string networkInterface_;
+        std::string sslCert_;
+        std::string sslKey_;
     public:
         std::shared_ptr<RateLimiter> sendRateLimiter_;
         std::shared_ptr<RateLimiter> recvRateLimiter_;

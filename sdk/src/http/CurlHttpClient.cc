@@ -417,6 +417,8 @@ CurlHttpClient::CurlHttpClient(const ClientConfiguration &configuration) :
     caPath_(configuration.caPath),
     caFile_(configuration.caFile),
     networkInterface_(configuration.networkInterface),
+    sslCert_(configuration.sslCert),
+    sslKey_(configuration.sslKey),
     sendRateLimiter_(configuration.sendRateLimiter),
     recvRateLimiter_(configuration.recvRateLimiter)
 {
@@ -533,6 +535,13 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
 
     if (!networkInterface_.empty()) {
         curl_easy_setopt(curl, CURLOPT_INTERFACE, networkInterface_.c_str());
+    }
+
+    if (!sslCert_.empty()) {
+        curl_easy_setopt(curl, CURLOPT_SSLCERT, sslCert_.c_str());
+    }
+    if (!sslKey_.empty()) {
+        curl_easy_setopt(curl, CURLOPT_SSLKEY, sslKey_.c_str());
     }
 
     //debug
