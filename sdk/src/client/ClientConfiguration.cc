@@ -118,7 +118,8 @@ ClientConfiguration::ClientConfiguration() :
     httpClient(nullptr),
     isPathStyle(false),
     isVerifyObjectStrict(true),
-    signatureVersion(SignatureVersionType::V1)
+    signatureVersion(SignatureVersionType::V1),
+    httpHandler(nullptr)
 {
 
 }
