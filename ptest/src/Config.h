@@ -42,6 +42,13 @@ namespace PTest
         static bool Debug;
         static bool DumpDetail;
         static bool PrintPercentile;
+
+        //list test
+        static std::string Prefix;
+        static int FolderCount;
+        static int FileCount;
+        static bool Dirs;
+        static bool GenTestData;
     };
 }
 }

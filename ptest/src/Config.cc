@@ -34,6 +34,13 @@ bool Config::Debug = false;
 bool Config::DumpDetail = false;
 bool Config::PrintPercentile = false;
 
+//list
+std::string Config::Prefix = "";
+int Config::FolderCount = 0;
+int Config::FileCount = 1;
+bool Config::Dirs = false;
+bool Config::GenTestData = false;
+
 static std::string LeftTrim(const char* source)
 {
     std::string copy(source);
@@ -98,6 +105,11 @@ void Config::PrintHelp()
     std::cout << "  --detail            print detail inforamtion for each testcase. \n";
     std::cout << "  --percentile        print the 90th and 95th percentile value. \n";
 
+    std::cout << "  --prefix            the key or folder prefix. \n";
+    std::cout << "  --folderCount       how many folders under the prefix. \n";
+    std::cout << "  --fileCount         how many files under each folder. \n";
+    std::cout << "  --dirs              return matching subdirectory names instead of contents of the subdirectory. \n";
+    std::cout << "  --genTestData       generate test data before runing test. \n";
 
     std::cout << "\nExamples :  \n";
     std::cout << "    cpp-sdk-ptest -c upload -f mylocalfilename -k myobjectkeyname \n";
@@ -115,6 +127,7 @@ void Config::PrintHelp()
     std::cout << "    cpp-sdk-ptest -c download_async -f mylocalfilename -k myobjectkeyname \n";
     std::cout << "    cpp-sdk-ptest -c dna -f mylocalfilename -k myobjectkeyname -m 5 \n";
     std::cout << "    cpp-sdk-ptest -c dn -f mylocalfilename -k myobjectkeyname -m 5 \n";
+    std::cout << "    cpp-sdk-ptest -c list -f mylocalfilename --prefix myprefix --folderCount 20 --fileCount 5000 -p 4 --dirs\n";
 }
 
 void Config::PrintCfgInfo()
@@ -138,6 +151,12 @@ void Config::PrintCfgInfo()
     std::cout << "persistent      : " << Config::Persistent << std::endl;
     std::cout << "differentsource : " << Config::DifferentSource << std::endl;
     std::cout << "limit speed     : " << Config::SpeedKBPerSec << std::endl;
+    if (Config::Command.compare("list")) {
+    std::cout << "prefix          : " << Config::Prefix<< std::endl;
+    std::cout << "folder count    : " << Config::FolderCount << std::endl;
+    std::cout << "file count      : " << Config::FileCount << std::endl;
+    std::cout << "dirs            : " << Config::Dirs << std::endl;
+    }
 }
 
 int Config::ParseArg(int argc, char **argv)
@@ -187,6 +206,10 @@ int Config::ParseArg(int argc, char **argv)
                 else if (Config::Command == "dna")
                 {
                     Config::Command = "download_async";
+                }
+                else if (Config::Command == "list")
+                {
+                    Config::Command = "list";
                 }
                 i++;
             }
@@ -243,6 +266,24 @@ int Config::ParseArg(int argc, char **argv)
             }
             else if (!strcmp("--percentile", argv[i])) {
                 Config::PrintPercentile = true;
+            }
+            else if (!strcmp("--prefix", argv[i])) {
+                Config::Prefix = argv[i + 1];
+                i++;
+            }
+            else if (!strcmp("--folderCount", argv[i])) {
+                Config::FolderCount = std::atoi(argv[i + 1]);
+                i++;
+            }
+            else if (!strcmp("--fileCount", argv[i])) {
+                Config::FileCount = std::atoi(argv[i + 1]);
+                i++;
+                }
+            else if (!strcmp("--dirs", argv[i])) {
+                Config::Dirs = true;
+            }
+            else if (!strcmp("--genTestData", argv[i])) {
+                Config::GenTestData = true;
             }
         }
         i++;

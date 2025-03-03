@@ -419,6 +419,68 @@ static taskResult download_resumable(const OssClient &client, const std::string 
     return result;
 }
 
+static taskResult list_all(const OssClient& client, int taskId)
+{
+    // gen test datas
+    if (Config::GenTestData) {
+        for (int n = taskId; n < Config::FolderCount; n += Config::Multithread) {
+            for (int i = 0; i < Config::FileCount; i++) {
+                std::stringstream ss;
+                ss << Config::Prefix;
+                ss << "sub-folder-";
+                ss << std::setw(4) << std::setfill('0') << n << "/";
+                auto content = std::make_shared<std::stringstream>();
+                ss << "test-file-" << std::setw(8) << std::setfill('0') << i;
+                auto putOutcome = client.PutObject(PutObjectRequest(Config::BucketName, ss.str(), content));
+                if (!putOutcome.isSuccess()) {
+                    log_msg(std::cout, "GenTestData fail\n");
+                }
+            }
+        }
+    }
+
+    taskResult result;
+    result.startTimePoint = std::chrono::system_clock::now();
+
+    bool isSuccess = true;
+
+    for (int n = taskId; n < Config::FolderCount; n += Config::Multithread) {
+        std::stringstream ss;
+        ss << Config::Prefix;
+        ss << "sub-folder-";
+        ss << std::setw(4) << std::setfill('0') << n << "/";
+        auto prefix = ss.str();
+
+        std::string nextMarker = "";
+        bool isTruncated = false;
+        do {
+            ListObjectsRequest request(Config::BucketName);
+            request.setPrefix(prefix);
+            if (Config::Dirs) {
+                request.setDelimiter("/");
+            }
+            request.setMarker(nextMarker);
+            auto outcome = client.ListObjects(request);
+            if (!outcome.isSuccess()) {
+                isSuccess = false;
+                break;
+            }
+            nextMarker = outcome.result().NextMarker();
+            isTruncated = outcome.result().IsTruncated();
+        } while (isTruncated);
+
+
+        if (!isSuccess) {
+            break;
+        }
+    }
+
+    result.stopTimePoint = std::chrono::system_clock::now();
+    result.success = isSuccess;
+    result.transferSize = 0;
+    return result;
+}
+
 static void runSingleTask(int taskId)
 {
     taskResult result;
@@ -483,7 +545,10 @@ static void runSingleTask(int taskId)
         }
         else if (Config::Command == "download_async") {
             result = download_async(client, key, fileName);
-        } 
+        }
+        else if (Config::Command == "list") {
+            result = list_all(client, taskId);
+        }
         else {
             std::cout << "The Command Type Error " << Config::Command << std::endl;
             Config::PrintHelp();
