@@ -52,6 +52,7 @@ namespace OSS
     public:
         std::shared_ptr<RateLimiter> sendRateLimiter_;
         std::shared_ptr<RateLimiter> recvRateLimiter_;
+        std::shared_ptr<HttpInterceptor> httpInterceptor_;
     };
 }
 }
