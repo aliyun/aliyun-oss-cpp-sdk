@@ -389,6 +389,16 @@ namespace OSS
 
         return 0;
     }
+
+    bool static ignoreHeader(const std::string& header, const std::string expect)
+    {
+        if ((expect.length() == header.length()) &&
+            std::equal(header.begin(), header.end(), expect.begin(),
+                [](char a, char b) {return ::tolower(a) == ::tolower(b); })) {
+            return true;
+        }
+        return false;
+    }
 }
 }
 
@@ -439,6 +449,10 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         if (p.second.empty())
             continue;
         std::string str = p.first;
+        // ignore content-length
+        if (request->chunkedEncoding() && ignoreHeader(str, "Content-Length")) {
+            continue;
+        }
         str.append(": ").append(p.second);
         list = curl_slist_append(list, str.c_str());
     }
@@ -475,8 +489,10 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         0, 0
     };
 
+    int64_t contentlength = -1;
     if (request->hasHeader(Http::CONTENT_LENGTH)) {
         transferState.total = std::atoll(request->Header(Http::CONTENT_LENGTH).c_str());
+        contentlength = transferState.total;
     }
 
     std::string url = request->url().toString();
@@ -488,6 +504,17 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         break;
     case Http::Method::Put:
         curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+        if (contentlength < 0) {
+            // if nobody, set it to 0
+            if (request->Body() == nullptr) {
+                curl_easy_setopt(curl, CURLOPT_INFILESIZE, 0);
+            }
+        }
+        else {
+            if (!request->chunkedEncoding()) {
+                curl_easy_setopt(curl, CURLOPT_INFILESIZE, contentlength);
+            }
+        }
         break;
     case Http::Method::Post:
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -646,3 +673,4 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
 
     return response;
 }
+
