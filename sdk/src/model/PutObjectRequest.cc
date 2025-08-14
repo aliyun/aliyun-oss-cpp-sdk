@@ -27,7 +27,7 @@ PutObjectRequest::PutObjectRequest(const std::string &bucket, const std::string 
     OssObjectRequest(bucket, key),
     content_(content)
 {
-    setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
+    setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64 | REQUEST_FLAG_CHUNKED_ENCODING);
 }
 
 PutObjectRequest::PutObjectRequest(const std::string &bucket, const std::string &key,
@@ -36,7 +36,7 @@ PutObjectRequest::PutObjectRequest(const std::string &bucket, const std::string 
     content_(content),
     metaData_(metaData)
 {
-    setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
+    setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64 | REQUEST_FLAG_CHUNKED_ENCODING);
 }
 
 void PutObjectRequest::setCacheControl(const std::string &value)

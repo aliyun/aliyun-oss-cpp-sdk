@@ -52,6 +52,9 @@ namespace OSS
             void setTransferedBytes(int64_t value) { transferedBytes_ = value; }
             uint64_t TransferedBytes() const { return transferedBytes_;}
 
+            void setChunkedEncoding(bool value) { chunkedEncoding_ = value; }
+            bool chunkedEncoding() const { return chunkedEncoding_; }
+
         private:
             Http::Method method_;
             Url url_;
@@ -60,6 +63,7 @@ namespace OSS
             bool hasCheckCrc64_;
             uint64_t crc64Result_;
             int64_t transferedBytes_;
+            bool chunkedEncoding_;
     };
 }
 }

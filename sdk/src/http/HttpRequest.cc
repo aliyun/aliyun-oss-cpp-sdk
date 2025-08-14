@@ -59,7 +59,8 @@ HttpRequest::HttpRequest(Http::Method method) :
     responseStreamFactory_(nullptr),
     hasCheckCrc64_(false),
     crc64Result_(0),
-    transferedBytes_(0)
+    transferedBytes_(0),
+    chunkedEncoding_(false)
 {
 }
 

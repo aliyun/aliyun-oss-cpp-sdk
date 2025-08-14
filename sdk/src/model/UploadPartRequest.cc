@@ -39,7 +39,7 @@ UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::strin
     userAgent_(),
     contentMd5IsSet_(false)
 {
-    setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
+    setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64 | REQUEST_FLAG_CHUNKED_ENCODING);
 }
 
 void UploadPartRequest::setPartNumber(int partNumber)
