@@ -418,7 +418,8 @@ CurlHttpClient::CurlHttpClient(const ClientConfiguration &configuration) :
     caFile_(configuration.caFile),
     networkInterface_(configuration.networkInterface),
     sendRateLimiter_(configuration.sendRateLimiter),
-    recvRateLimiter_(configuration.recvRateLimiter)
+    recvRateLimiter_(configuration.recvRateLimiter),
+    httpInterceptor_(configuration.httpInterceptor)
 {
 }
 
@@ -565,6 +566,10 @@ std::shared_ptr<HttpResponse> CurlHttpClient::makeRequest(const std::shared_ptr<
         auto speed = static_cast<curl_off_t>(transferState.recvSpeed);
         speed = speed * 1024;
         curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, speed);
+    }
+
+    if (httpInterceptor_ != nullptr) {
+        httpInterceptor_->preSendRequest(curl, request);
     }
 
     CURLcode res = curl_easy_perform(curl);
