@@ -264,6 +264,10 @@ static inline void fixNumericLocaleInput(char* begin, char* end) {
 #pragma warning(disable : 4996)
 #endif
 
+#if defined(__GNUG__) && __GNUC__ > 8
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
 // Define JSONCPP_DEPRECATED_STACK_LIMIT as an appropriate integer at compile time to change the stack limit
 #if !defined(JSONCPP_DEPRECATED_STACK_LIMIT)
 #define JSONCPP_DEPRECATED_STACK_LIMIT 1000
