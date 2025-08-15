@@ -196,11 +196,11 @@ void CryptoModule::addMetaData(const ContentCryptoMaterial& content, ObjectMetaD
 {
     //x-oss-meta-client-side-encryption-key
     meta.addUserHeader("client-side-encryption-key",
-        Base64Encode((const char*)content.EncryptedContentKey().data(), content.EncryptedContentKey().size()));
+        Base64Encode((const char*)content.EncryptedContentKey().data(), static_cast<int>(content.EncryptedContentKey().size())));
 
     //x-oss-meta-client-side-encryption-start //iv
     meta.addUserHeader("client-side-encryption-start",
-        Base64Encode((const char*)content.EncryptedContentIV().data(), content.EncryptedContentIV().size()));
+        Base64Encode((const char*)content.EncryptedContentIV().data(), static_cast<int>(content.EncryptedContentIV().size())));
 
     //x-oss-meta-client-side-encryption-cek-alg 
     meta.addUserHeader("client-side-encryption-cek-alg", content.CipherName());
