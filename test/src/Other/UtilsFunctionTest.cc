@@ -83,7 +83,7 @@ TEST_F(UtilsFunctionTest, Base64DecodeTest)
     for (i = 0; i < ori.size(); i++) {
         auto result = Base64Decode(ori[i]);
         EXPECT_EQ(result.size(), pat[i].size());
-        EXPECT_TRUE(TestUtils::IsByteBufferEQ(reinterpret_cast<const char *>(result.data()), pat[i].data(), result.size()));
+        EXPECT_TRUE(TestUtils::IsByteBufferEQ(reinterpret_cast<const char *>(result.data()), pat[i].data(), (int)result.size()));
     }
     EXPECT_TRUE((i == ori.size()));
 }
@@ -94,7 +94,7 @@ TEST_F(UtilsFunctionTest, Base64EncodeAndDecodeTest)
         ByteBuffer data = TestUtils::GetRandomByteBuffer(i);
         EXPECT_EQ(data.size(), static_cast<size_t>(i));
         auto result = Base64Encode(data);
-        auto data1 = Base64Decode(result.c_str(), result.size());
+        auto data1 = Base64Decode(result.c_str(), (int)result.size());
         EXPECT_EQ(data1.size(), static_cast<size_t>(i));
         EXPECT_TRUE(TestUtils::IsByteBufferEQ(data.data(), data1.data(), i));
     }

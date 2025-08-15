@@ -583,7 +583,6 @@ bool TestUtils::IsByteBufferEQ(const ByteBuffer& src, const ByteBuffer& pat)
     return (src == pat);
 }
 
-
 ByteBuffer TestUtils::GetRandomByteBuffer(int length)
 {
     ByteBuffer buff(length);
