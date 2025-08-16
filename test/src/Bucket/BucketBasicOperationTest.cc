@@ -921,33 +921,30 @@ TEST_F(BucketBasicOperationTest, ListBucketsResultBranchTest)
 
 TEST_F(BucketBasicOperationTest, BucketColdArchiveTest)
 {
-    std::string endpoint = "http://oss-ap-southeast-2.aliyuncs.com";
-    auto client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
-
     //get a random bucketName
     auto bucketName = TestUtils::GetBucketName(testPrefix);
 
     //assert bucket does not exist
-    EXPECT_EQ(TestUtils::BucketExists(*client, bucketName), false);
+    EXPECT_EQ(TestUtils::BucketExists(*Client, bucketName), false);
 
     //create a new bucket
-    client->CreateBucket(CreateBucketRequest(bucketName, StorageClass::ColdArchive));
-    EXPECT_EQ(TestUtils::BucketExists(*client, bucketName), true);
+    Client->CreateBucket(CreateBucketRequest(bucketName, StorageClass::ColdArchive));
+    EXPECT_EQ(TestUtils::BucketExists(*Client, bucketName), true);
 
     //get bucket info
-    auto bfOutcome = client->GetBucketInfo(GetBucketInfoRequest(bucketName));
+    auto bfOutcome = Client->GetBucketInfo(GetBucketInfoRequest(bucketName));
     EXPECT_EQ(bfOutcome.isSuccess(), true);
     EXPECT_EQ(bfOutcome.result().Acl(), CannedAccessControlList::Private);
     EXPECT_EQ(bfOutcome.result().StorageClass(), StorageClass::ColdArchive);
 
     //list buckets
-    auto lbOutcome = client->ListBuckets(ListBucketsRequest(bucketName, ""));
+    auto lbOutcome = Client->ListBuckets(ListBucketsRequest(bucketName, ""));
     EXPECT_EQ(lbOutcome.isSuccess(), true);
     EXPECT_EQ(lbOutcome.result().Buckets().size(), 1U);
     EXPECT_EQ(lbOutcome.result().Buckets().at(0).StorageClass(), StorageClass::ColdArchive);
 
     //delete the bucket
-    client->DeleteBucket(DeleteBucketRequest(bucketName));
+    Client->DeleteBucket(DeleteBucketRequest(bucketName));
 }
 
 }

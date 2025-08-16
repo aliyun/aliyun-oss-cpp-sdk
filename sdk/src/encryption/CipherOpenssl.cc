@@ -259,7 +259,7 @@ ByteBuffer AsymmetricCipherOpenssl::Encrypt(const ByteBuffer& data)
         int rsa_len = RSA_size(rsa);
         enc.resize(rsa_len, 0);
 
-        if (RSA_public_encrypt(data.size(), (unsigned char*)data.data(), (unsigned char*)enc.data(), rsa, RSA_PKCS1_PADDING) < 0) {
+        if (RSA_public_encrypt((int)data.size(), (unsigned char*)data.data(), (unsigned char*)enc.data(), rsa, RSA_PKCS1_PADDING) < 0) {
             enc.resize(0);
         }
 

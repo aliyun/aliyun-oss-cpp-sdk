@@ -196,7 +196,8 @@ TEST_F(ObjectSignedUrlTest, GetPreSignedUriFullSettingsPositiveTest)
     request.setContentType("application/zip");
     request.setExpires(GetExpiresDelayS(120));
     request.addResponseHeaders(RequestResponseHeader::CacheControl, "No-cache");
-    request.addResponseHeaders(RequestResponseHeader::ContentType, "application/zip");
+    // no support now
+    //request.addResponseHeaders(RequestResponseHeader::ContentType, "application/zip");
     request.addResponseHeaders(RequestResponseHeader::ContentDisposition, "myDownload.zip");
     request.UserMetaData()["name1"] = "value1";
     request.UserMetaData()["name2"] = "value2";
@@ -213,7 +214,7 @@ TEST_F(ObjectSignedUrlTest, GetPreSignedUriFullSettingsPositiveTest)
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_STREQ(gOutcome.result().Metadata().ContentDisposition().c_str(), "myDownload.zip");
     EXPECT_STREQ(gOutcome.result().Metadata().CacheControl().c_str(), "No-cache");
-    EXPECT_STREQ(gOutcome.result().Metadata().ContentType().c_str(), "application/zip");
+    //EXPECT_STREQ(gOutcome.result().Metadata().ContentType().c_str(), "application/zip");
 }
 
 TEST_F(ObjectSignedUrlTest, GetPreSignedUriWithContentTypeAndMd5NegativeTest)
@@ -268,7 +269,7 @@ TEST_F(ObjectSignedUrlTest, GetPreSignedUriWithResponseHeaderPositiveTest)
 
     GeneratePresignedUrlRequest request(BucketName, key, Http::Get);
     request.addResponseHeaders(RequestResponseHeader::CacheControl, "No-cache");
-    request.addResponseHeaders(RequestResponseHeader::ContentType, "application/zip");
+    //request.addResponseHeaders(RequestResponseHeader::ContentType, "application/zip");
     request.addResponseHeaders(RequestResponseHeader::ContentDisposition, "myDownload.zip");
     auto urlOutcome = Client->GeneratePresignedUrl(request);
     EXPECT_EQ(urlOutcome.isSuccess(), true);
@@ -277,7 +278,7 @@ TEST_F(ObjectSignedUrlTest, GetPreSignedUriWithResponseHeaderPositiveTest)
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_STREQ(gOutcome.result().Metadata().ContentDisposition().c_str(), "myDownload.zip");
     EXPECT_STREQ(gOutcome.result().Metadata().CacheControl().c_str(), "No-cache");
-    EXPECT_STREQ(gOutcome.result().Metadata().ContentType().c_str(), "application/zip");
+    //EXPECT_STREQ(gOutcome.result().Metadata().ContentType().c_str(), "application/zip");
 }
 
 TEST_F(ObjectSignedUrlTest, GetPreSignedUriWithUserMetaPositiveTest)

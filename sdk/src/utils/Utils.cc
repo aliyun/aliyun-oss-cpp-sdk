@@ -265,7 +265,7 @@ ByteBuffer AlibabaCloud::OSS::Base64Decode(const char *data, int len)
 
 ByteBuffer AlibabaCloud::OSS::Base64Decode(const std::string &src)
 {
-    return Base64Decode(src.c_str(), src.size());
+    return Base64Decode(src.c_str(), static_cast<int>(src.size()));
 }
 
 

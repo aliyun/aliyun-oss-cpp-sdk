@@ -20,6 +20,7 @@
 #include <alibabacloud/oss/Types.h>
 #include <alibabacloud/oss/auth/CredentialsProvider.h>
 #include <alibabacloud/oss/http/HttpClient.h>
+#include <alibabacloud/oss/http/HttpInterceptor.h>
 #include <alibabacloud/oss/utils/Executor.h>
 
 namespace AlibabaCloud
@@ -135,6 +136,11 @@ namespace OSS
         * signature version. default is V1.
         */
         SignatureVersionType signatureVersion;
+
+        /**
+        * Your http interceptor implement
+        */
+        std::shared_ptr<HttpInterceptor> httpInterceptor;
     };
 }
 }

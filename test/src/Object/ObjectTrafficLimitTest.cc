@@ -107,7 +107,7 @@ TEST_F(ObjectTrafficLimitTest, PutAndGetObject)
     auto pOutcome = Client->PutObject(putrequest);
     auto diff_put = timer.elapsed();
     EXPECT_EQ(pOutcome.isSuccess(), true);
-    EXPECT_NEAR(diff_put, theory_time, 1.0);
+    EXPECT_NEAR((double)diff_put, (double)theory_time, 1.0);
 
     GetObjectRequest getrequest(BucketName, key);
     getrequest.setTrafficLimit(8192000);
@@ -135,7 +135,7 @@ TEST_F(ObjectTrafficLimitTest, AppendObjectTest)
     auto pOutcome = Client->AppendObject(apprequest);
     auto time = timer.elapsed();
     EXPECT_EQ(pOutcome.isSuccess(), true);
-    EXPECT_NEAR(time, theory_time, 1.0);
+    EXPECT_NEAR((double)time, (double)theory_time, 1.0);
 
     DeleteObjectRequest delRequest(BucketName, key);
     auto delOutcome = Client->DeleteObject(delRequest);
@@ -194,7 +194,7 @@ TEST_F(ObjectTrafficLimitTest, UploadPartTest)
     auto uploadPartOutcome = Client->UploadPart(uprequest);
     auto time = timer.elapsed();
     EXPECT_EQ(uploadPartOutcome.isSuccess(), true);
-    EXPECT_NEAR(time, theory_time, 1.0);
+    EXPECT_NEAR((double)time, (double)theory_time, 1.0);
 
     auto lOutcome = Client->ListParts(ListPartsRequest(BucketName, key, initOutcome.result().UploadId()));
     EXPECT_EQ(lOutcome.isSuccess(), true);
@@ -305,7 +305,7 @@ TEST_F(ObjectTrafficLimitTest, ResumableUploadObjectTest)
     timer.reset();
     auto outcome = Client->ResumableUploadObject(request);
     auto time = timer.elapsed();
-    EXPECT_NEAR(time, theory_time, 1.0);
+    EXPECT_NEAR((double)time, (double)theory_time, 1.0);
     EXPECT_EQ(outcome.isSuccess(), true);
 
     auto getObjectOutcome = Client->GetObject(BucketName, key);
@@ -336,7 +336,7 @@ TEST_F(ObjectTrafficLimitTest, ResumableDownloadObjectMultipartTest)
     timer.reset();
     auto outcome = Client->ResumableDownloadObject(request);
     auto time = timer.elapsed();
-    EXPECT_NEAR(time, theory_time,1.0);
+    EXPECT_NEAR((double)time, (double)theory_time,1.0);
     EXPECT_EQ(outcome.isSuccess(), true);
 
     DeleteObjectRequest delRequest(BucketName, key);
@@ -361,7 +361,7 @@ TEST_F(ObjectTrafficLimitTest, ResumableUploadObjectMultipartTest)
     timer.reset();
     auto outcome = Client->ResumableUploadObject(request);
     auto time = timer.elapsed();
-    EXPECT_NEAR(time, theory_time, 2.0);
+    EXPECT_NEAR((double)time, (double)theory_time, 2.0);
     EXPECT_EQ(outcome.isSuccess(), true);
 
     auto getObjectOutcome = Client->GetObject(BucketName, key);
@@ -392,7 +392,7 @@ TEST_F(ObjectTrafficLimitTest, ResumableDownloadObjectTest)
     timer.reset();
     auto outcome = Client->ResumableDownloadObject(request);
     auto time = timer.elapsed();
-    EXPECT_NEAR(time, theory_time, 1.0);
+    EXPECT_NEAR((double)time, (double)theory_time, 1.0);
     EXPECT_EQ(outcome.isSuccess(), true);
 
     DeleteObjectRequest delRequest(BucketName, key);

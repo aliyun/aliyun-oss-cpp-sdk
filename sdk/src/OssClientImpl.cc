@@ -225,6 +225,11 @@ void OssClientImpl::addOther(const std::shared_ptr<HttpRequest> &httpRequest, co
         }
 #endif
     }
+
+    // if use chunked encoding mode
+    if (request.Flags() & REQUEST_FLAG_CHUNKED_ENCODING) {
+        httpRequest->setChunkedEncoding(true);
+    }
 }
 
 OssError OssClientImpl::buildError(const Error &error) const

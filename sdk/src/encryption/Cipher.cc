@@ -55,7 +55,7 @@ ByteBuffer SymmetricCipher::GenerateIV(size_t length)
 {
     //use openssl rand func
     ByteBuffer out = ByteBuffer(length);
-    RAND_bytes((unsigned char *)out.data(), length);
+    RAND_bytes((unsigned char *)out.data(), static_cast<int>(length));
     return out;
 }
 
@@ -63,7 +63,7 @@ ByteBuffer SymmetricCipher::GenerateKey(size_t length)
 {
     //use openssl rand func
     ByteBuffer out = ByteBuffer(length);
-    RAND_bytes((unsigned char *)out.data(), length);
+    RAND_bytes((unsigned char *)out.data(), static_cast<int>(length));
     return out;
 }
 

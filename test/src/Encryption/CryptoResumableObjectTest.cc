@@ -1717,7 +1717,7 @@ TEST_F(CryptoResumableObjectTest, ResumableUploadAndDownloadTrafficLimitTest)
     auto uOutcome = Client->ResumableUploadObject(request);
     EXPECT_EQ(uOutcome.isSuccess(), true);
     auto diff_put = timer.elapsed();
-    EXPECT_NEAR(diff_put, theory_time, 1.0);
+    EXPECT_NEAR((double)diff_put, (double)theory_time, 1.0);
 
     //download
     std::string targetKey = TestUtils::GetObjectKey("ResumableUploadAndDownloadTrafficLimitTest");

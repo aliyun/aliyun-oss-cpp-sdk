@@ -132,15 +132,15 @@ protected:
     {
         ResumableUploader::dumpRecordInfo(value);
         const ByteBuffer& buff1 = cryptoContext_.ContentMaterial().EncryptedContentKey();
-        value["encryption-key"] = Base64Encode((const char*)buff1.data(), buff1.size());
+        value["encryption-key"] = Base64Encode((const char*)buff1.data(), (int)buff1.size());
         const ByteBuffer& buff2 = cryptoContext_.ContentMaterial().EncryptedContentIV();
-        value["encryption-iv"] = Base64Encode((const char*)buff2.data(), buff2.size());
+        value["encryption-iv"] = Base64Encode((const char*)buff2.data(), (int)buff2.size());
         value["encryption-cek-alg"] = cryptoContext_.ContentMaterial().CipherName();
         value["encryption-wrap-alg"] = cryptoContext_.ContentMaterial().KeyWrapAlgorithm();
         value["encryption-matdesc"] = MapToJsonString(cryptoContext_.ContentMaterial().Description());
 
         const ByteBuffer& buff3 = cryptoContext_.ContentMaterial().ContentIV();
-        value["encryption-check-data"] = Base64Encode((const char*)buff3.data(), buff3.size());
+        value["encryption-check-data"] = Base64Encode((const char*)buff3.data(), (int)buff3.size());
     }
 
     virtual int validateRecord()

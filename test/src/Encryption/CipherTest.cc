@@ -83,15 +83,15 @@ TEST_F(CipherTest, GenerateKeyTest)
     key1 = key2;
     EXPECT_EQ(key1, key2);
 
-    key1 = SymmetricCipher::GenerateKey(16);
+    key1 = SymmetricCipher::GenerateKey((size_t)16);
     EXPECT_EQ(key1.size(), 16U);
     EXPECT_NE(key1, key2);
 }
 
 TEST_F(CipherTest, GenerateIVTest)
 {
-    ByteBuffer iv1 = SymmetricCipher::GenerateKey(32);
-    ByteBuffer iv2 = SymmetricCipher::GenerateKey(32);
+    ByteBuffer iv1 = SymmetricCipher::GenerateKey((size_t)32);
+    ByteBuffer iv2 = SymmetricCipher::GenerateKey((size_t)32);
     EXPECT_EQ(iv1.size(), 32U);
     EXPECT_EQ(iv2.size(), 32U);
     EXPECT_NE(iv1, iv2);
@@ -99,7 +99,7 @@ TEST_F(CipherTest, GenerateIVTest)
     iv1 = iv2;
     EXPECT_EQ(iv1, iv2);
 
-    iv1 = SymmetricCipher::GenerateKey(16);
+    iv1 = SymmetricCipher::GenerateKey((size_t)16);
     EXPECT_EQ(iv1.size(), 16U);
     EXPECT_NE(iv1, iv2);
 }
@@ -176,7 +176,7 @@ TEST_F(CipherTest, AES256_CTRTest)
     cipher->EncryptInit(key, iv);
     out.resize(16);
     memset(out.data(), 0, out.size());
-    auto ret = cipher->Encrypt(out.data(), data.size(), data.data(), data.size());
+    auto ret = cipher->Encrypt(out.data(), (int)data.size(), data.data(), (int)data.size());
     EXPECT_EQ(ret, 16);
     encryptedOut = Base64Encode(out);
     EXPECT_EQ(encryptedOut, "wrnuWSenVochXx3m0QzCBQ==");
@@ -189,7 +189,7 @@ TEST_F(CipherTest, AES256_CTRTest)
     cipher->DecryptInit(key, iv);
     reout.resize(16);
     memset(reout.data(), 0, reout.size());
-    ret = cipher->Decrypt(reout.data(), reout.size(), out.data(), out.size());
+    ret = cipher->Decrypt(reout.data(), (int)reout.size(), out.data(), (int)out.size());
     EXPECT_EQ(ret, 16);
     EXPECT_EQ(TestUtils::IsByteBufferEQ(reout, data), true);
 
@@ -199,20 +199,20 @@ TEST_F(CipherTest, AES256_CTRTest)
     out = cipher->Encrypt(ByteBuffer());
     EXPECT_EQ(out.empty(), true);
 
-    ret = cipher->Encrypt(nullptr, 0, out.data(), out.size());
+    ret = cipher->Encrypt(nullptr, 0, out.data(), (int)out.size());
     EXPECT_EQ(ret, -1);
 
-    ret = cipher->Encrypt(out.data(), out.size(), nullptr, out.size());
+    ret = cipher->Encrypt(out.data(), (int)out.size(), nullptr, (int)out.size());
     EXPECT_EQ(ret, -1);
 
     cipher->DecryptInit(key, iv);
     reout = cipher->Decrypt(ByteBuffer());
     EXPECT_EQ(reout.empty(), true);
 
-    ret = cipher->Decrypt(nullptr, 0, out.data(), out.size());
+    ret = cipher->Decrypt(nullptr, 0, out.data(), (int)out.size());
     EXPECT_EQ(ret, -1);
 
-    ret = cipher->Decrypt(reout.data(), reout.size(), nullptr, 0);
+    ret = cipher->Decrypt(reout.data(), (int)reout.size(), nullptr, 0);
     EXPECT_EQ(ret, -1);
 }
 
@@ -278,7 +278,7 @@ TEST_F(CipherTest, RSA_RSAPEMTest)
 
     auto decoded = cipher->Decrypt(encoded);
     EXPECT_EQ(decoded.size(), data.size());
-    EXPECT_TRUE(TestUtils::IsByteBufferEQ(data.data(), decoded.data(), data.size()));
+    EXPECT_TRUE(TestUtils::IsByteBufferEQ(data.data(), decoded.data(), (int)data.size()));
     EXPECT_EQ(cipher->Name(), "RSA/NONE/PKCS1Padding");
 }
 
@@ -323,7 +323,7 @@ TEST_F(CipherTest, RSA_PEMTest)
 
     auto decoded = cipher->Decrypt(encoded);
     EXPECT_EQ(decoded.size(), data.size());
-    EXPECT_TRUE(TestUtils::IsByteBufferEQ(data.data(), decoded.data(), data.size()));
+    EXPECT_TRUE(TestUtils::IsByteBufferEQ(data.data(), decoded.data(), (int)data.size()));
     EXPECT_EQ(cipher->Name(), "RSA/NONE/PKCS1Padding");
 }
 
@@ -517,8 +517,8 @@ TEST_F(CipherTest, SimpleRSAEncryptionMaterialsTest)
     content.setDescription(description2);
     ret = materials.DecryptCEK(content);
     EXPECT_EQ(0, ret);
-    EXPECT_TRUE(TestUtils::IsByteBufferEQ(key.data(), content.ContentKey().data(), key.size()));
-    EXPECT_TRUE(TestUtils::IsByteBufferEQ(iv.data(), content.ContentIV().data(), iv.size()));
+    EXPECT_TRUE(TestUtils::IsByteBufferEQ(key.data(), content.ContentKey().data(), (int)key.size()));
+    EXPECT_TRUE(TestUtils::IsByteBufferEQ(iv.data(), content.ContentIV().data(), (int)iv.size()));
 
     content.setContentKey(ByteBuffer());
     content.setContentIV(ByteBuffer());
@@ -527,8 +527,8 @@ TEST_F(CipherTest, SimpleRSAEncryptionMaterialsTest)
     content.setDescription(description1);
     ret = materials.DecryptCEK(content);
     EXPECT_EQ(0, ret);
-    EXPECT_TRUE(TestUtils::IsByteBufferEQ(key.data(), content.ContentKey().data(), key.size()));
-    EXPECT_TRUE(TestUtils::IsByteBufferEQ(iv.data(), content.ContentIV().data(), iv.size()));
+    EXPECT_TRUE(TestUtils::IsByteBufferEQ(key.data(), content.ContentKey().data(), (int)key.size()));
+    EXPECT_TRUE(TestUtils::IsByteBufferEQ(iv.data(), content.ContentIV().data(), (int)iv.size()));
 
     //EncryptCEK fail with no key or no iv
     content.setCipherName("AES/CTR/NoPadding");
