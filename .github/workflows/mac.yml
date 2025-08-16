@@ -2,25 +2,28 @@ name:  macOS Monterey 12
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, develop ]
     
 jobs:
   build:
     strategy:
       matrix:
-        mode: [ Debug, Release ]
+        mode: [ Debug ]  #mode: [Release, Debug]
         cpp_version: [11, 20]
         
-    runs-on: macos-12
+    runs-on: macos-latest
     
     steps:
     - name: check out
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: HOMEBREW_NO_INSTALL_CLEANUP=1 HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install openssl
       
     - name: configure cmake
-      run:  CXX=clang++ CC=clang cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }}
+      run:  OPENSSL_ROOT_DIR=/usr/local/opt/openssl@3 CXX=clang++ CC=clang cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }}
       
     - name: build project
       run: cmake --build ${{ github.workspace }}/build --config ${{ matrix.mode }}
