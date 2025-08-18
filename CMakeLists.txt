@@ -33,7 +33,6 @@ option(BUILD_TESTS "Build unit and perfermence tests" OFF)
 option(ENABLE_COVERAGE "Flag to enable/disable building code with -fprofile-arcs and -ftest-coverage. Gcc only" OFF)
 option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
 
-
 #Platform
 if (CMAKE_CROSSCOMPILING)
 	if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
@@ -99,11 +98,17 @@ else()
 endif()
 
 #Compiler flags
-list(APPEND SDK_COMPILER_FLAGS "-std=c++11")
+set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard to use")
+message(STATUS "CXX Standard: ${CMAKE_CXX_STANDARD}")
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	list(APPEND SDK_COMPILER_FLAGS "/MP")
 	if (NOT ENABLE_RTTI)
 	list(APPEND SDK_COMPILER_FLAGS "/GR-")
+	endif()
+	# disable some warning
+	list(APPEND SDK_COMPILER_FLAGS "/D_CRT_SECURE_NO_WARNINGS")
+	if(CMAKE_CXX_STANDARD GREATER_EQUAL 17)
+	list(APPEND SDK_COMPILER_FLAGS "/D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
 	endif()
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	list(APPEND SDK_COMPILER_FLAGS "-fno-exceptions" "-fPIC")

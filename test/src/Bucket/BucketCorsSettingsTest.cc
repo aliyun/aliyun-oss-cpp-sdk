@@ -71,7 +71,6 @@ std::string  BucketCorsSettingsTest::BucketName = "";
 static std::string GenSeqId()
 {
     auto tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-    tp.time_since_epoch().count();
     return std::to_string(tp.time_since_epoch().count());
 }
 

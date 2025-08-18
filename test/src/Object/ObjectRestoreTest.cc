@@ -132,33 +132,30 @@ TEST_F(ObjectRestoreTest, SetAndGetObjectRestoreSuccessTest)
 
 TEST_F(ObjectRestoreTest, RestoreWithColdArchiveTest)
 {
-    std::string endpoint = "http://oss-ap-southeast-2.aliyuncs.com";
-    auto client = std::make_shared<OssClient>(endpoint, Config::AccessKeyId, Config::AccessKeySecret, ClientConfiguration());
-
     std::string objName = TestUtils::GetObjectKey("RestoreWithTierTypeTest");
 
     std::string bucket = TestUtils::GetBucketName("cpp-sdk-objectrestore-ltarchive");
-    auto outcome = client->CreateBucket(CreateBucketRequest(bucket, StorageClass::ColdArchive));
+    auto outcome = Client->CreateBucket(CreateBucketRequest(bucket, StorageClass::ColdArchive));
     EXPECT_EQ(outcome.isSuccess(), true);
 
     // first: put object
     std::string text = "hellowworld";
-    auto putOutcome = client->PutObject(PutObjectRequest(bucket, objName, std::make_shared<std::stringstream>(text)));
+    auto putOutcome = Client->PutObject(PutObjectRequest(bucket, objName, std::make_shared<std::stringstream>(text)));
     EXPECT_EQ(putOutcome.isSuccess(), true);
 
     //second:restore object
     RestoreObjectRequest roRequest(bucket, objName);
     roRequest.setDays(2);
     roRequest.setTierType(TierType::Expedited);
-    auto restoreOutCome = client->RestoreObject(roRequest);
+    auto restoreOutCome = Client->RestoreObject(roRequest);
     EXPECT_EQ(restoreOutCome.isSuccess(), true);
 
     TestUtils::WaitForCacheExpire(5);
-    restoreOutCome = client->RestoreObject(roRequest);
+    restoreOutCome = Client->RestoreObject(roRequest);
     EXPECT_EQ(restoreOutCome.isSuccess(), false);
     EXPECT_EQ(restoreOutCome.error().Code(), "RestoreAlreadyInProgress");
 
-    TestUtils::CleanBucket(*client, bucket);
+    TestUtils::CleanBucket(*Client, bucket);
 }
 
 }}

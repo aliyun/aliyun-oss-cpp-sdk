@@ -552,7 +552,7 @@ TEST_F(ObjectBasicOperationTest, GetObjectUnmodifiedSinceNegativeTest)
     EXPECT_EQ(gOutcome.isSuccess(), false);
     EXPECT_STREQ(gOutcome.error().Code().c_str(), "PreconditionFailed");
 }
-
+/* no supported
 TEST_F(ObjectBasicOperationTest, GetObjectWithResponseHeadersSettingTest)
 {
     std::string key = TestUtils::GetObjectKey("GetObjectWithResponseHeadersSettingTest");
@@ -572,7 +572,7 @@ TEST_F(ObjectBasicOperationTest, GetObjectWithResponseHeadersSettingTest)
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_EQ(gOutcome.result().Metadata().ContentType(), "test/haah");
 }
-
+*/
 class GetObjectAsyncContex : public AsyncCallerContext
 {
 public:

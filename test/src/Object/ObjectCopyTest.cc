@@ -845,9 +845,8 @@ TEST_F(ObjectCopyTest, CopyObjectResultTest)
 TEST_F(ObjectCopyTest, CopyObjectWithSpecialKeyNameTest)
 {
     //put test file
-    //u8"中文名字+"
     unsigned char buff[] = { 0xE4, 0XB8, 0XAD, 0XE6, 0X96, 0X87, 0XE5, 0X90, 0X8D, 0XE5, 0XAD, 0X97, 0X2B, 0X0 };
-    std::string u8_str((char *)buff);//= u8"中文名字+";
+    std::string u8_str((char *)buff);
     auto testKey = u8_str;
     auto content = TestUtils::GetRandomStream(100);
     Client->PutObject(BucketName1, testKey, content);

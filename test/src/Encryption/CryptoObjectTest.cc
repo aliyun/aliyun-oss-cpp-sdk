@@ -446,6 +446,7 @@ TEST_F(CryptoObjectTest, GetObjectUnmodifiedSinceNegativeTest)
     EXPECT_STREQ(gOutcome.error().Code().c_str(), "PreconditionFailed");
 }
 
+/* no supported
 TEST_F(CryptoObjectTest, GetObjectWithResponseHeadersSettingTest)
 {
     std::string key = TestUtils::GetObjectKey("GetObjectWithResponseHeadersSettingTest");
@@ -465,6 +466,7 @@ TEST_F(CryptoObjectTest, GetObjectWithResponseHeadersSettingTest)
     EXPECT_EQ(gOutcome.isSuccess(), true);
     EXPECT_EQ(gOutcome.result().Metadata().ContentType(), "test/haah");
 }
+*/
 
 class GetObjectAsyncContex : public AsyncCallerContext
 {

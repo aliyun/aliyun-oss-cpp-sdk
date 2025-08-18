@@ -451,7 +451,7 @@ static void runSingleTask(int taskId)
         Config::Persistent = true;
     }
 
-    ss.str();
+    auto _ = ss.str();
     ss << "\n++++ START " << Config::Command << 
         " : taskID=" << taskId << 
         ", LocalFile=" << fileName <<

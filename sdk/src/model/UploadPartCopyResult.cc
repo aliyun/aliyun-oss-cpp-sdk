@@ -22,8 +22,6 @@
 using namespace AlibabaCloud::OSS;
 using namespace tinyxml2;
 
-static const std::string EMPTY;
-
 UploadPartCopyResult::UploadPartCopyResult() :
     OssObjectResult()
 {
