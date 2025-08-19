@@ -16,7 +16,7 @@
 
 #include "CipherOpenssl.h"
 #include <openssl/rand.h>
-
+#include <climits>
 using namespace AlibabaCloud::OSS;
 
 inline static std::string toAlgorithmName(CipherAlgorithm algo)
