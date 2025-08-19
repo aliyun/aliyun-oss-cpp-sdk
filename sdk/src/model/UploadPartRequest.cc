@@ -23,13 +23,13 @@ using namespace AlibabaCloud::OSS;
 
 UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::string &key,
     const std::shared_ptr<std::iostream> &content) :
-    UploadPartRequest(bucket, key, 0, "", content)
+    UploadPartRequest(bucket, key, 0, "", content, ObjectMetaData())
 {
 }
 
 UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::string &key,
     int partNumber, const std::string &uploadId,
-    const std::shared_ptr<std::iostream> &content) :
+    const std::shared_ptr<std::iostream> &content, const ObjectMetaData& metaData) :
     OssObjectRequest(bucket, key),
     partNumber_(partNumber),
     uploadId_(uploadId),
@@ -37,7 +37,8 @@ UploadPartRequest::UploadPartRequest(const std::string &bucket, const std::strin
     contentLengthIsSet_(false),
     trafficLimit_(0),
     userAgent_(),
-    contentMd5IsSet_(false)
+    contentMd5IsSet_(false),
+    metaData_(metaData)
 {
     setFlags(Flags() | REQUEST_FLAG_CHECK_CRC64);
 }
@@ -96,7 +97,9 @@ std::shared_ptr<std::iostream> UploadPartRequest::Body() const
 
 HeaderCollection UploadPartRequest::specialHeaders() const
 {
-    auto headers = OssObjectRequest::specialHeaders();
+    auto headers = metaData_.toHeaderCollection();
+    auto baseHeaders = OssObjectRequest::specialHeaders();
+    headers.insert(baseHeaders.begin(), baseHeaders.end());
     headers[Http::CONTENT_TYPE] = "";
     if (contentLengthIsSet_) {
         headers[Http::CONTENT_LENGTH] = std::to_string(contentLength_);
