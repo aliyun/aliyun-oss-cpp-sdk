@@ -655,6 +655,58 @@ public:
         EXPECT_EQ(RemoveDirectory(checkpointKey), true);
     }
 
+    TEST_F(ResumableObjectTest, NormalResumableUploadRetryWithUploadIdAbortTest)
+    {
+        std::string key = TestUtils::GetObjectKey("NormalResumableUploadRetryWithUploadIdAbortTest");
+        std::string tmpFile = TestUtils::GetTargetFileName("NormalResumableUploadRetryWithUploadIdAbortTest").append(".tmp");
+        int num = 2 + rand() % 10;
+        TestUtils::WriteRandomDatatoFile(tmpFile, 1024 * 100 * num);
+        std::string sourceFileMd5 = TestUtils::GetFileMd5(tmpFile);
+        std::string checkpointKey = TestUtils::GetObjectKey("checkpoint");
+        EXPECT_EQ(CreateDirectory(checkpointKey), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointKey), true);
+
+        // resumable upload object failed
+        UploadObjectRequest request(BucketName, key, tmpFile);
+        request.setThreadNum(1);
+        request.setPartSize(102400);
+        request.setFlags(request.Flags() | UploadPartFailedFlag);
+        request.setCheckpointDir(checkpointKey);
+        auto outcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+
+        // abort upload Id
+        ListMultipartUploadsRequest lmuRequest(BucketName);
+        lmuRequest.setPrefix(key);
+        auto lmuOutcome = Client->ListMultipartUploads(lmuRequest);
+        EXPECT_EQ(lmuOutcome.isSuccess(), true);
+        EXPECT_EQ(lmuOutcome.result().MultipartUploadList().size(), 1L);
+        auto uploadId = lmuOutcome.result().MultipartUploadList()[0].UploadId;
+        AbortMultipartUploadRequest abortRequest(BucketName, key, uploadId);
+        auto abortOutcome = Client->AbortMultipartUpload(abortRequest);
+        EXPECT_EQ(abortOutcome.isSuccess(), true);
+
+        // retry
+        request.setFlags(request.Flags() ^ UploadPartFailedFlag);
+        auto retryOutcome = Client->ResumableUploadObject(request);
+        EXPECT_EQ(retryOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, key), true);
+
+        // download target object
+        std::string targetFile = TestUtils::GetObjectKey("DownloadResumableUploadObject");
+        auto getObjectOutcome = Client->GetObject(BucketName, key, targetFile);
+        std::shared_ptr<std::iostream> getObjectContent = nullptr;
+        getObjectOutcome.result().setContent(getObjectContent);
+        EXPECT_EQ(getObjectOutcome.isSuccess(), true);
+
+        std::string targetFileMd5 = TestUtils::GetFileMd5(targetFile);
+        EXPECT_EQ(targetFileMd5, sourceFileMd5);
+
+        EXPECT_EQ(RemoveFile(tmpFile), true);
+        EXPECT_EQ(RemoveFile(targetFile), true);
+        EXPECT_EQ(RemoveDirectory(checkpointKey), true);
+    }
+
     TEST_F(ResumableObjectTest, NormalResumableUploadWithProgressCallbackTest)
     {
         std::string key = TestUtils::GetObjectKey("NormalResumableUploadObjectWithCallback");
@@ -2065,6 +2117,45 @@ public:
         recordStream.close();
         EXPECT_EQ(RemoveFile(checkpointFile), true);
         EXPECT_EQ(RenameFile(checkpointTmpFile, checkpointFile), true);
+
+        // retry
+        request.setFlags(request.Flags() ^ CopyPartFailedFlag);
+        auto retryOutcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(retryOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), true);
+        EXPECT_EQ(RemoveDirectory(checkpointDir), true);
+    }
+
+
+    TEST_F(ResumableObjectTest, NormalResumableCopyRetryWithUploadAbortTest)
+    {
+        std::string sourceKey = TestUtils::GetObjectKey("NormalResumableCopyRetryWithUploadAbortTest");
+        std::string targetKey = TestUtils::GetObjectKey("NormalResumableCopyRetryWithUploadAbortTest-target");
+        std::string checkpointDir = TestUtils::GetTargetFileName("checkpoint");
+        EXPECT_EQ(CreateDirectory(checkpointDir), true);
+        EXPECT_EQ(IsDirectoryExist(checkpointDir), true);
+
+        auto putObjectContent = TestUtils::GetRandomStream(102400 * (2 + rand() % 10));
+        auto putObjectOutcome = Client->PutObject(BucketName, sourceKey, putObjectContent);
+        EXPECT_EQ(putObjectOutcome.isSuccess(), true);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, sourceKey), true);
+
+        MultiCopyObjectRequest request(BucketName, targetKey, BucketName, sourceKey, checkpointDir, 102401, 1);
+        request.setFlags(request.Flags() | CopyPartFailedFlag);
+        auto outcome = Client->ResumableCopyObject(request);
+        EXPECT_EQ(outcome.isSuccess(), false);
+        EXPECT_EQ(Client->DoesObjectExist(BucketName, targetKey), false);
+
+        // abort upload Id
+        ListMultipartUploadsRequest lmuRequest(BucketName);
+        lmuRequest.setPrefix(targetKey);
+        auto lmuOutcome = Client->ListMultipartUploads(lmuRequest);
+        EXPECT_EQ(lmuOutcome.isSuccess(), true);
+        EXPECT_EQ(lmuOutcome.result().MultipartUploadList().size(), 1L);
+        auto uploadId = lmuOutcome.result().MultipartUploadList()[0].UploadId;
+        AbortMultipartUploadRequest abortRequest(BucketName, targetKey, uploadId);
+        auto abortOutcome = Client->AbortMultipartUpload(abortRequest);
+        EXPECT_EQ(abortOutcome.isSuccess(), true);
 
         // retry
         request.setFlags(request.Flags() ^ CopyPartFailedFlag);

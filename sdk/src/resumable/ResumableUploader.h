@@ -57,6 +57,7 @@ namespace OSS
         virtual void genRecordPath();
         virtual int loadRecord();
         virtual int prepare(OssError& err);
+        bool doesNotExistUploadId();
 
         const UploadObjectRequest& request_;
         UploadRecord record_;

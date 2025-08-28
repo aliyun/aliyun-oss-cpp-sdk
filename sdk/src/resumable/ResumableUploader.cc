@@ -255,6 +255,26 @@ int ResumableUploader::prepare(OssError& err)
     return 0;
 }
 
+bool ResumableUploader::doesNotExistUploadId() {
+    // The upload ID may be invalid, or the upload may have been aborted or completed.
+    auto listRequest = ListPartsRequest(request_.Bucket(), request_.Key(), record_.uploadID);
+    if (!request_.EncodingType().empty()) {
+        listRequest.setEncodingType(request_.EncodingType());
+    }
+    if (request_.RequestPayer() == RequestPayer::Requester) {
+        listRequest.setRequestPayer(request_.RequestPayer());
+    }
+    listRequest.setMaxParts(1);
+    auto listOutcome = this->client_->ListParts(listRequest);
+
+    if (!listOutcome.isSuccess() && 
+        listOutcome.error().Code() == "NoSuchUpload") {
+        return true;
+    }
+
+    return false;
+}
+
 int ResumableUploader::validateRecord()
 {
     if (record_.size != objectSize_ || record_.mtime != request_.ObjectMtime()){
@@ -272,6 +292,11 @@ int ResumableUploader::validateRecord()
     if (md5Sum != record_.md5Sum){
         return ARG_ERROR_UPLOAD_RECORD_INVALID;
     }
+
+    if (doesNotExistUploadId()) {
+        return ARG_ERROR_UPLOAD_RECORD_INVALID;
+    }
+
     return 0;
 }
 
