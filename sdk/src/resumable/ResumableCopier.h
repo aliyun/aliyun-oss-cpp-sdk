@@ -50,6 +50,7 @@ namespace OSS
         int prepare(OssError& err);
         void initRecord(const std::string &uploadID);
         int getPartsToUploadCopy(OssError &err, PartList &partsCopied, PartList &partsToUpload);
+        bool doesNotExistUploadId();
 
         const MultiCopyObjectRequest request_;
         MultiCopyRecord record_;
