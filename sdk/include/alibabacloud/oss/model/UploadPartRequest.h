@@ -17,6 +17,7 @@
 #pragma once
 #include <alibabacloud/oss/Export.h>
 #include <alibabacloud/oss/OssRequest.h>
+#include <alibabacloud/oss/model/ObjectMetaData.h>
 #include <sstream>
 #include <iostream>
 
@@ -32,7 +33,7 @@ namespace OSS
             const std::shared_ptr<std::iostream>& content);
         UploadPartRequest(const std::string &bucket, const std::string& key,
             int partNumber, const std::string& uploadId,
-            const std::shared_ptr<std::iostream>& content);
+            const std::shared_ptr<std::iostream>& content, const ObjectMetaData& metaData);
         virtual std::shared_ptr<std::iostream> Body() const;
         void setPartNumber(int partNumber);
         void setUploadId(const std::string& uploadId);
@@ -57,6 +58,7 @@ namespace OSS
         std::string userAgent_;
         std::string contentMd5_;
         bool contentMd5IsSet_;
+        ObjectMetaData metaData_;
     };
 } 
 }

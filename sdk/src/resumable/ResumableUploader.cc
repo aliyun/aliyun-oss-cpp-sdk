@@ -102,7 +102,7 @@ PutObjectOutcome ResumableUploader::Upload()
                     std::ios::in | std::ios::binary);
                 content->seekg(offset, content->beg);
 
-                UploadPartRequest uploadPartRequest(request_.Bucket(), request_.Key(), part.PartNumber(), uploadID_, content);
+                UploadPartRequest uploadPartRequest(request_.Bucket(), request_.Key(), part.PartNumber(), uploadID_, content, request_.MetaData());
                 uploadPartRequest.setContentLength(length);
 
                 UploaderTransferState transferState;
