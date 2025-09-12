@@ -680,7 +680,7 @@ public:
         lmuRequest.setPrefix(key);
         auto lmuOutcome = Client->ListMultipartUploads(lmuRequest);
         EXPECT_EQ(lmuOutcome.isSuccess(), true);
-        EXPECT_EQ(lmuOutcome.result().MultipartUploadList().size(), 1L);
+        EXPECT_EQ(lmuOutcome.result().MultipartUploadList().size(), 1UL);
         auto uploadId = lmuOutcome.result().MultipartUploadList()[0].UploadId;
         AbortMultipartUploadRequest abortRequest(BucketName, key, uploadId);
         auto abortOutcome = Client->AbortMultipartUpload(abortRequest);
@@ -2151,7 +2151,7 @@ public:
         lmuRequest.setPrefix(targetKey);
         auto lmuOutcome = Client->ListMultipartUploads(lmuRequest);
         EXPECT_EQ(lmuOutcome.isSuccess(), true);
-        EXPECT_EQ(lmuOutcome.result().MultipartUploadList().size(), 1L);
+        EXPECT_EQ(lmuOutcome.result().MultipartUploadList().size(), 1UL);
         auto uploadId = lmuOutcome.result().MultipartUploadList()[0].UploadId;
         AbortMultipartUploadRequest abortRequest(BucketName, targetKey, uploadId);
         auto abortOutcome = Client->AbortMultipartUpload(abortRequest);
