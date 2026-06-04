@@ -1,6 +1,13 @@
 # Alibaba Cloud OSS C++ Software Development Kit
 [中文文档](./README_zh.md)
 
+## About OSS SDK for C++ V2
+> - OSS SDK for C++ V2 ([alibabacloud-oss-cpp-sdk-v2](https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2)) has been released, it is a major rewrite of OSS SDK for C++ V1 (aliyun-oss-cpp-sdk).
+> - V2 simplifies underlying operations such as identification authentication, automatic retry of failed requests, and error handling. It provides flexible parameter configuration methods and rich advanced operations, such as native async API, request cancellation, paginator, transmission managers, and presigned URLs. This comprehensively improves development efficiency and experience.
+> - How to get started with V2, visit [Developer Guide](https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2/blob/main/README.md).
+> - How to migrate to V2, visit [Migration Guide](https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2/blob/main/MIGRATION.md).
+
+## About
 Alibaba Cloud Object Storage Service (OSS) is a cloud storage service provided by Alibaba Cloud, featuring massive capacity, security, a low cost, and high reliability. You can upload and download data on any application anytime and anywhere by calling APIs, and perform simple management of data through the web console. The OSS can store any type of files and therefore applies to various websites, development enterprises and developers.
 
 The OSS SDK for C++ provides a variety of modern C++ (version C++ 11 or later) interfaces for convenient use of the OSS.
