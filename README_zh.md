@@ -1,5 +1,12 @@
 # 阿里云OSS C++工具套件
 
+## 关于 OSS SDK for C++ V2
+> - OSS SDK for C++ V2([alibabacloud-oss-cpp-sdk-v2](https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2)) 已发布，是对 V1（aliyun-oss-cpp-sdk）代码库的重大改写。
+> - V2 是一个全新的版本，简化了底层操作例如身份验证、自动请求重试及错误处理等；提供了灵活友好的参数配置以及丰富的高级接口，例如原生异步 API、请求取消、分页器、传输管理器、预签名 URL 等，全面提升了开发效率和体验。
+> - 开始使用 V2，请参见[开发者指南](https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2/blob/main/README_CN.md)。
+> - 从 V1 升级为 V2，请参见[迁移指南](https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2/blob/main/MIGRATION_CN.md)。
+
+## 关于
 阿里云对象存储（Object Storage Service，简称OSS），是阿里云对外提供的海量、安全、低成本、高可靠的云存储服务。用户可以通过调用API，在任何应用、任何时间、任何地点上传和下载数据，也可以通过用户Web控制台对数据进行简单的管理。OSS适合存放任意文件类型，适合各种网站、开发企业及开发者使用。
 
 适用于阿里云OSS的 C++ SDK提供了一组现代化的 C++（C++ 11）接口,让您不用复杂编程即可访问阿里云OSS服务。
