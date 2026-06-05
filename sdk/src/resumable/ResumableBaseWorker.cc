@@ -18,6 +18,7 @@
 #include <algorithm>
 #ifdef _WIN32
 #include <codecvt>
+#include <locale>
 #endif
 #include <alibabacloud/oss/Const.h>
 #include "ResumableBaseWorker.h"

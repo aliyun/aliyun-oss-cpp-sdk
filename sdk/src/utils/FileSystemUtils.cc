@@ -211,7 +211,7 @@ std::shared_ptr<std::fstream> AlibabaCloud::OSS::GetFstreamByPath(
 {
 #ifdef _WIN32
     if (!pathw.empty()) {
-        return std::make_shared<std::fstream>(pathw, mode);
+        return std::make_shared<std::fstream>(pathw.c_str(), mode);
     }
 #else
     ((void)(pathw));

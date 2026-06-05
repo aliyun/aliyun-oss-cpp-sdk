@@ -63,7 +63,7 @@ add_definitions(-DPLATFORM_${TARGET_OS})
 #Find dependency Library, curl, openssl
 if (${TARGET_OS} STREQUAL "WINDOWS")
 	set(WLIB_TARGET "Win32")
-	if (CMAKE_CL_64)
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 	set(WLIB_TARGET "x64")
 	endif()
 	set(CRYPTO_LIBS 
